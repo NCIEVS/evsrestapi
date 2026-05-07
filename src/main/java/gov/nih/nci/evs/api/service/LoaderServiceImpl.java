@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -8,6 +9,7 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,11 +28,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-/**
- * The implementation for {@link LoaderService}.
- *
- * @author Arun
- */
+/** The implementation for {@link LoaderService}. */
 @Service
 public class LoaderServiceImpl {
 
@@ -38,12 +36,18 @@ public class LoaderServiceImpl {
   private static final Logger logger = LoggerFactory.getLogger(LoaderServiceImpl.class);
 
   /** the history download location *. */
-  // @Value("${nci.evs.bulkload.historyDir}")
-  private static String HISTORY_DIR;
+  // @Value("${nci.evs.bulkload.historyFile}")
+  private static String HISTORY_FILE;
 
-  @Value("${nci.evs.bulkload.historyDir}")
-  public void setHistoryDir(String historyDir) {
-    HISTORY_DIR = historyDir;
+  /**
+   * Sets the history dir.
+   *
+   * @param historyFile the new history file
+   */
+  @Value("${nci.evs.bulkload.historyFile}")
+  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+  public void setHistoryFile(String historyFile) {
+    HISTORY_FILE = historyFile;
   }
 
   /** the environment *. */
@@ -55,18 +59,37 @@ public class LoaderServiceImpl {
   /** The opensearch service. */
   @Autowired OpensearchQueryService osQueryService;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
+  /** The static operations service. */
   private static OpensearchOperationsService staticOperationsService;
+
+  /** The static os query service. */
   private static OpensearchQueryService staticOsQueryService;
+
+  /** The static term utils. */
   private static TerminologyUtils staticTermUtils;
 
+  /**
+   * Sets the static services.
+   *
+   * @param ops the ops
+   * @param query the query
+   * @param term the term
+   */
+  public static void setStaticServices(
+      OpensearchOperationsService ops, OpensearchQueryService query, TerminologyUtils term) {
+    staticOperationsService = ops;
+    staticOsQueryService = query;
+    staticTermUtils = term;
+  }
+
+  /** Inits the. */
   @PostConstruct
   public void init() {
-    staticOperationsService = this.operationsService;
-    staticOsQueryService = this.osQueryService;
-    staticTermUtils = this.termUtils;
+    setStaticServices(this.operationsService, this.osQueryService, this.termUtils);
   }
 
   /**
@@ -148,6 +171,7 @@ public class LoaderServiceImpl {
    * the main method to trigger Opensearch load via command line *.
    *
    * @param args the command line arguments
+   * @throws Exception the exception
    */
   @SuppressWarnings("resource")
   public static void main(String[] args) throws Exception {
@@ -170,6 +194,9 @@ public class LoaderServiceImpl {
     ConfigurableApplicationContext app = null;
     try {
       app = SpringApplication.run(Application.class, args);
+      if (app == null) {
+        throw new IllegalStateException("Failed to start Spring application");
+      }
       OpensearchLoadService loadService = null;
 
       // create Audit object
@@ -221,16 +248,24 @@ public class LoaderServiceImpl {
           return;
         }
         final Set<String> removed = loadService.cleanStaleIndexes();
+        final Set<String> seen = new HashSet<>();
         for (Terminology terminology : terms) {
+
+          // skip if seen
+          if (seen.contains(terminology.getTerminology())) {
+            continue;
+          }
+          seen.add(terminology.getTerminology());
+
           logger.info(
-              "Cleaning stale indexes/Updating flags for terminology: {}-{}",
-              terminology.getTerminology(),
-              terminology.getVersion());
+              "Cleaning stale indexes/Updating flags for terminology: {}",
+              terminology.getTerminology());
+
           loadService.updateLatestFlag(terminology, removed);
         }
         System.exit(0);
       }
-      final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_DIR);
+      final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_FILE);
       final Terminology term =
           loadService.getTerminology(
               app,
@@ -269,9 +304,9 @@ public class LoaderServiceImpl {
       termAudit.setEndDate(endDate);
       termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
       termAudit.setLogLevel("INFO");
-      logger.info("Audit: {}", termAudit.toString());
-      // only add new audit if something major has actually happened
-      if (termAudit.getElapsedTime() > 10000 && totalConcepts > 0) {
+      logger.info("  audit = {}", termAudit);
+      // only add new audit if concepts were added
+      if (totalConcepts > 0) {
         addAudit(termAudit);
         // update the metadata with the elapsed time
         term.getMetadata().setIndexRuntime(termAudit.getElapsedTime());

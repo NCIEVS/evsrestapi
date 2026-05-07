@@ -1,11 +1,11 @@
 package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.mail.Message.RecipientType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -31,27 +31,21 @@ import org.springframework.web.multipart.MultipartFile;
 /** Implementation class for the terminology suggestion form service. */
 @Service
 public class TermSuggestionFormServiceImpl implements TermSuggestionFormService {
+
   /** The Constant logger. */
-  // Logger
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
 
   /** The mail sender. */
-  // JavaMailSender
   private final JavaMailSender mailSender;
 
   /** The application properties. */
-  // The application properties
   private final ApplicationProperties applicationProperties;
 
   /** The valid emails. */
   private final Set<String> validEmails = new HashSet<>();
 
   /** The form file path. */
-  // path for the form file
   URL formFilePath;
-
-  /** The object mapper to read the config url with readTree. */
-  private final ObjectMapper mapper = new ObjectMapper();
 
   /** Pattern for optional instruction sheets with date suffix. */
   private static final Pattern INSTRUCTION_PATTERN =
@@ -62,12 +56,9 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    *
    * @param mailSender java mail sender
    * @param applicationProperties the application properties
-   * @param mapper the mapper
    */
   public TermSuggestionFormServiceImpl(
-      final JavaMailSender mailSender,
-      final ApplicationProperties applicationProperties,
-      final ObjectMapper mapper) {
+      final JavaMailSender mailSender, final ApplicationProperties applicationProperties) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
   }
@@ -92,7 +83,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       String json =
           EVSUtils.getValueFromFile(
               applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
-      final JsonNode termForm = mapper.readTree(json);
+      final JsonNode termForm = ThreadLocalMapper.get().readTree(json);
       // Get the recaptcha_site_key from application properties
       final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
 
@@ -226,16 +217,17 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       helper.setTo(emailDetails.getToEmail());
       helper.setFrom(emailDetails.getFromEmail());
       helper.setSubject(emailDetails.getSubject());
-      if (emailDetails.getMsgBody() != null
-          && emailDetails.getMsgBody().toLowerCase().contains("<html")) {
-        helper.setText(emailDetails.getMsgBody(), true);
+      final String msgBody = emailDetails.getMsgBody() != null ? emailDetails.getMsgBody() : "";
+      if (msgBody.toLowerCase().contains("<html")) {
+        helper.setText(msgBody, true);
       } else {
-        helper.setText(emailDetails.getMsgBody(), false);
+        helper.setText(msgBody, false);
       }
 
       if (file != null && !file.isEmpty()) {
         try {
-          helper.addAttachment(file.getOriginalFilename(), file);
+          final String filename = file.getOriginalFilename();
+          helper.addAttachment(filename != null ? filename : "attachment", file);
         } catch (final MessagingException me) {
           throw new MessagingException("Failed to attach file to email", me);
         }
@@ -247,15 +239,10 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
   }
 
-  /**
-   * Validate file attachment.
-   *
-   * @param file the file
-   * @return true, if successful
-   */
+  /* see superclass */
   @Override
-  public boolean validateFileAttachment(final MultipartFile file) {
-    final String reason = validateFileAttachmentReason(file);
+  public boolean validateFileAttachment(final MultipartFile file, final String formType) {
+    final String reason = validateFileAttachmentReason(file, formType);
     if (reason != null) {
       logger.warn(reason);
       return false;
@@ -265,7 +252,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
 
   /* see superclass */
   @Override
-  public String validateFileAttachmentReason(final MultipartFile file) {
+  public String validateFileAttachmentReason(final MultipartFile file, final String formType) {
     final String prefix = "Attachment is invalid: ";
 
     // No file attached / empty file
@@ -283,6 +270,25 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       return prefix + "Invalid file extension; expected .xls or .xlsx";
     }
 
+    // Route to appropriate validation method based on form type
+    if ("CDISC".equalsIgnoreCase(formType)) {
+      return validateCDISCAttachment(file, filename);
+    } else if ("NCIT".equalsIgnoreCase(formType)) {
+      return validateNCITAttachment(file, filename);
+    } else {
+      return prefix + "Unknown form type '" + formType + "' for file validation: " + filename;
+    }
+  }
+
+  /**
+   * Validate CDISC file attachment.
+   *
+   * @param file the file
+   * @param filename the filename
+   * @return true, if successful
+   */
+  private String validateCDISCAttachment(final MultipartFile file, final String filename) {
+    final String prefix = "Attachment is invalid: ";
     // Try to open the workbook once to ensure it's a valid Excel file and collect sheet names
     final java.util.Set<String> sheets = new java.util.HashSet<>();
     try (final java.io.InputStream is = file.getInputStream();
@@ -349,6 +355,163 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   }
 
   /**
+   * Validate NCIT file attachment.
+   *
+   * @param file the file
+   * @param filename the filename
+   * @return true, if successful
+   */
+  private String validateNCITAttachment(final MultipartFile file, final String filename) {
+    final String prefix = "Attachment is invalid: ";
+
+    try (final java.io.InputStream is = file.getInputStream();
+        final Workbook wb = WorkbookFactory.create(is)) {
+
+      // NCIT template should have exactly 1 sheet
+      if (wb.getNumberOfSheets() != 1) {
+        return prefix
+            + String.format(
+                "NCIT template should have exactly 1 sheet, found {} sheets in uploaded workbook:"
+                    + " {}",
+                wb.getNumberOfSheets(),
+                filename);
+      }
+
+      final org.apache.poi.ss.usermodel.Sheet sheet = wb.getSheetAt(0);
+      final org.apache.poi.ss.usermodel.DataFormatter formatter =
+          new org.apache.poi.ss.usermodel.DataFormatter();
+
+      // Expected headers in row 1 (index 0)
+      final String[] expectedHeaders = {
+        "Requested Term", "Use Case", "NCIt Code", "NCIt PT", "NCIt SY", "NCIt DEF"
+      };
+
+      // Validate header row
+      final org.apache.poi.ss.usermodel.Row headerRow = sheet.getRow(0);
+      if (headerRow == null) {
+        return prefix + String.format("Header row missing in NCIT uploaded workbook: {}", filename);
+      }
+
+      for (int col = 0; col < expectedHeaders.length; col++) {
+        final String cellValue = getMergedCellValue(sheet, 0, col, formatter);
+        if (!expectedHeaders[col].equals(cellValue)) {
+          return prefix
+              + String.format(
+                  "Header mismatch at column {}: expected '{}', found '{}' in uploaded workbook:"
+                      + " {}",
+                  (char) ('A' + col),
+                  expectedHeaders[col],
+                  cellValue,
+                  filename);
+        }
+      }
+
+      // Validate data rows (starting from row 2, index 1)
+      // Pattern for NCIt Code: C followed by digits
+      final java.util.regex.Pattern ncitCodePattern = java.util.regex.Pattern.compile("^C\\d+$");
+
+      boolean hasDataRows = false;
+      for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+        final org.apache.poi.ss.usermodel.Row row = sheet.getRow(rowIndex);
+        if (row == null) {
+          continue;
+        }
+
+        // Check if row has any data in columns A-F
+        boolean rowHasData = false;
+        for (int col = 0; col < 6; col++) {
+          final String cellValue = getMergedCellValue(sheet, rowIndex, col, formatter);
+          if (cellValue != null && !cellValue.isEmpty()) {
+            rowHasData = true;
+            break;
+          }
+        }
+
+        if (!rowHasData) {
+          continue; // Skip empty rows
+        }
+
+        hasDataRows = true;
+
+        // Column A (Requested Term) - must have text
+        final String colA = getMergedCellValue(sheet, rowIndex, 0, formatter);
+        if (colA == null || colA.trim().isEmpty()) {
+          return prefix
+              + String.format(
+                  "Column A (Requested Term) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
+        }
+
+        // Column B (Use Case) - must have text
+        final String colB = getMergedCellValue(sheet, rowIndex, 1, formatter);
+        if (colB == null || colB.trim().isEmpty()) {
+          return prefix
+              + String.format(
+                  "Column B (Use Case) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
+        }
+
+        // Column C (NCIt Code) - must match pattern C\d+
+        final String colC = getMergedCellValue(sheet, rowIndex, 2, formatter);
+        if (colC == null || !ncitCodePattern.matcher(colC.trim()).matches()) {
+          return prefix
+              + String.format(
+                  "Column C (NCIt Code) invalid or missing at row {}: '{}' (expected format: C"
+                      + " followed by digits) in uploaded workbook: {}",
+                  rowIndex + 1,
+                  colC,
+                  filename);
+        }
+
+        // Column D (NCIt PT) - must have text
+        final String colD = getMergedCellValue(sheet, rowIndex, 3, formatter);
+        if (colD == null || colD.trim().isEmpty()) {
+          return prefix
+              + String.format(
+                  "Column D (NCIt PT) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
+        }
+
+        // Column E (NCIt SY) - optional, but if present should be semicolon-separated
+        // We just log a warning if it doesn't contain semicolons but has commas
+        final String colE = getMergedCellValue(sheet, rowIndex, 4, formatter);
+        if (colE != null && !colE.trim().isEmpty() && colE.contains(",") && !colE.contains(";")) {
+          logger.warn(
+              "Column E (NCIt SY) at row {} contains commas but no semicolons. Expected"
+                  + " semicolon-separated values in uploaded workbook: {}",
+              rowIndex + 1,
+              filename);
+          // Not a fatal error, just a warning
+        }
+
+        // Column F (NCIt DEF) - must have text
+        final String colF = getMergedCellValue(sheet, rowIndex, 5, formatter);
+        if (colF == null || colF.trim().isEmpty()) {
+          return prefix
+              + String.format(
+                  "Column F (NCIt DEF) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
+        }
+      }
+
+      if (!hasDataRows) {
+        return prefix + String.format("No data rows found in NCIT uploaded workbook: {}", filename);
+      }
+
+    } catch (final Exception e) {
+      return prefix
+          + String.format(
+              "Invalid excel file uploaded or failed to validate NCIT workbook: {}", filename, e);
+    }
+
+    return null;
+  }
+
+  /**
    * Read a cell value and correctly handle merged regions. Returns trimmed string or empty string.
    *
    * @param sheet the sheet
@@ -357,7 +520,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param formatter the formatter
    * @return the merged cell value
    */
-  @SuppressWarnings("unused")
   private String getMergedCellValue(
       final org.apache.poi.ss.usermodel.Sheet sheet,
       final int rowIndex,

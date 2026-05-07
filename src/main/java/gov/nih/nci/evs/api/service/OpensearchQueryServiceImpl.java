@@ -119,7 +119,8 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
             .withFilter(QueryBuilders.idsQuery().addIds(codes.toArray(new String[0])))
-            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
+            .withSourceFilter(
+                new FetchSourceFilter(true, ip.getIncludedFields(), ip.getExcludedFields()))
             .withPageable(new EVSPageable(0, codes.size(), 0))
             .build();
 
@@ -257,7 +258,9 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
   @Override
   public Optional<String> getLabel(String code, Terminology terminology) {
     Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("minimal"));
-    if (!concept.isPresent() || concept.get().getName() == null) return Optional.empty();
+    if (!concept.isPresent() || concept.get().getName() == null) {
+      return Optional.empty();
+    }
     return Optional.of(concept.get().getName());
   }
 
@@ -275,7 +278,9 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
   public List<Concept> getRootNodes(Terminology terminology, IncludeParam ip)
       throws JsonParseException, JsonMappingException, IOException {
     Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
-    if (!hierarchy.isPresent()) return Collections.emptyList();
+    if (!hierarchy.isPresent()) {
+      return Collections.emptyList();
+    }
     List<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
     if (hierarchyRoots.size() < 1) {
       return new ArrayList<Concept>();
@@ -302,7 +307,9 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
   public List<HierarchyNode> getRootNodesHierarchy(Terminology terminology)
       throws JsonParseException, JsonMappingException, IOException {
     Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
-    if (!hierarchy.isPresent()) return Collections.emptyList();
+    if (!hierarchy.isPresent()) {
+      return Collections.emptyList();
+    }
     List<HierarchyNode> nodes = new ArrayList<>();
     List<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
     List<Concept> concepts = getConcepts(hierarchyRoots, terminology, new IncludeParam("minimal"));
@@ -515,7 +522,9 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
   public Optional<HierarchyUtils> getHierarchyRoots(Terminology terminology)
       throws JsonMappingException, JsonProcessingException {
     Optional<OpensearchObject> esObject = getOpensearchObject("hierarchy", terminology);
-    if (!esObject.isPresent()) return Optional.empty();
+    if (!esObject.isPresent()) {
+      return Optional.empty();
+    }
 
     return Optional.of(esObject.get().getHierarchy());
   }
@@ -539,6 +548,17 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
   @Override
   public Map<String, Set<String>> getQualifierValues(Terminology terminology) throws Exception {
     Optional<OpensearchObject> esObject = getOpensearchObject("qualifiers", terminology);
+    if (!esObject.isPresent()) {
+      return new HashMap<>();
+    }
+
+    return esObject.get().getMap();
+  }
+
+  /* see superclass */
+  @Override
+  public Map<String, Set<String>> getPropertyValues(Terminology terminology) throws Exception {
+    Optional<OpensearchObject> esObject = getOpensearchObject("propertyValues", terminology);
     if (!esObject.isPresent()) {
       return new HashMap<>();
     }
@@ -860,7 +880,8 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
-            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
+            .withSourceFilter(
+                new FetchSourceFilter(true, ip.getIncludedFields(), ip.getExcludedFields()))
             // assuming pageSize < 10000, trying to get all maps, 17 at the time of this comment
             .withPageable(PageRequest.of(0, 10000))
             .build();
@@ -874,7 +895,8 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
             .withFilter(QueryBuilders.termQuery("_id", code))
-            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
+            .withSourceFilter(
+                new FetchSourceFilter(true, ip.getIncludedFields(), ip.getExcludedFields()))
             .build();
 
     return getResults(query, Concept.class, OpensearchOperationsService.MAPSET_INDEX);

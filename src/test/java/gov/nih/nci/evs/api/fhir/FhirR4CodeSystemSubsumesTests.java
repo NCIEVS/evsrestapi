@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.net.URI;
 import org.hl7.fhir.r4.model.Coding;
@@ -23,15 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
-
-// TODO: Auto-generated Javadoc
 
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
@@ -50,9 +46,6 @@ public class FhirR4CodeSystemSubsumesTests {
 
   /** The test properties. */
   @Autowired TestProperties testProperties;
-
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
 
   /** local host prefix. */
   private final String localHost = "http://localhost:";
@@ -73,12 +66,8 @@ public class FhirR4CodeSystemSubsumesTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    // The object mapper
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
+    // n/a
   }
-
-  // TODO: test invalid parameter such as url instead of system
 
   /**
    * Test code system lookup code.
@@ -87,10 +76,10 @@ public class FhirR4CodeSystemSubsumesTests {
    */
   @Test
   public void testCodeSystemSubsumedByImplicit() throws Exception {
-    // Arrange
+    // Arrange (code A is narrower than code B) -> subsumed-by
     String content;
-    final String activeCodeB = "448772000";
-    final String activeCodeA = "271860004";
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
     final String url = "http://snomed.info/sct";
     final String outcome = "subsumed-by";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
@@ -136,11 +125,35 @@ public class FhirR4CodeSystemSubsumesTests {
    * @throws Exception the exception
    */
   @Test
-  public void testCodeSystemSubsumesImplicit() throws Exception {
+  public void testCodeSystemSubsumesImplicitParent() throws Exception {
+    // Arrange - 249565005 (A) is broader than 235856003 (B) -> subsumes
+    String content;
+    final String activeCodeA = "249565005";
+    final String activeCodeB = "235856003";
+    final String url = "http://snomed.info/sct";
+    final String outcome = "subsumes";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    final Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
+  }
+
+  /**
+   * Test code system subsumes implicit ancestor.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesImplicitAncestor() throws Exception {
     // Arrange
     String content;
-    final String activeCodeA = "448772000";
-    final String activeCodeB = "271860004";
+    final String activeCodeA = "64572001";
+    final String activeCodeB = "235856003";
     final String url = "http://snomed.info/sct";
     final String outcome = "subsumes";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
@@ -163,11 +176,11 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemSubsumesInstance() throws Exception {
     // Arrange
     String content;
-    final String activeCodeB = "448772000";
     final String activeCodeA = "271860004";
+    final String activeCodeB = "448772000";
     final String activeId = "snomedct_us_2025_03_01";
     final String url = "http://snomed.info/sct";
-    final String outcome = "subsumed-by";
+    final String outcome = "subsumes";
     final String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
     final String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
@@ -342,11 +355,12 @@ public class FhirR4CodeSystemSubsumesTests {
    */
   @Test
   public void testCodeSystemSubsumesImplicitWithCoding() throws Exception {
-    // Arrange
-    final String url = "http://snomed.info/sct";
+    // Arrange (code A is narrower than code B) -> subsumed-by
+    String content;
     final String activeCodeA = "448772000";
     final String activeCodeB = "271860004";
-    final String outcome = "subsumes";
+    final String url = "http://snomed.info/sct";
+    final String outcome = "subsumed-by";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
 
     // Create Coding objects
@@ -361,20 +375,25 @@ public class FhirR4CodeSystemSubsumesTests {
     final URI getUri = builder.build().toUri();
 
     // Act
-    final String content = this.restTemplate.getForObject(getUri, String.class);
+    content = this.restTemplate.getForObject(getUri, String.class);
     final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
   }
 
+  /**
+   * Test code system subsumes instance with coding.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemSubsumesInstanceWithCoding() throws Exception {
-    // Arrange
+    // Arrange - 271860004 (A) is broader than 448772000 (B) -> subsumes
     final String url = "http://snomed.info/sct";
     final String activeId = "snomedct_us_2025_03_01";
-    final String activeCodeA = "448772000";
-    final String activeCodeB = "271860004";
+    final String activeCodeA = "271860004";
+    final String activeCodeB = "448772000";
     final String outcome = "subsumes";
     final String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
@@ -455,6 +474,75 @@ public class FhirR4CodeSystemSubsumesTests {
     builder.queryParam("codeA", activeCodeA);
     builder.queryParam("codeB", activeCodeB);
     builder.queryParam("systemB", url);
+    final URI getUri = builder.build().toUri();
+
+    // Act
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, component.getDiagnostics());
+  }
+
+  /**
+   * Test subsumes operation with url parameter instead of system (implicit).
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesImplicitWithUrlInsteadOfSystem() throws Exception {
+    // Arrange
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
+    final String url = "http://snomed.info/sct";
+
+    final String messageNotSupported =
+        "Input parameter 'codeA' can only be used in conjunction with parameter 'system'.";
+    final String errorCode = "invariant";
+
+    final UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES);
+    builder.queryParam("codeA", activeCodeA);
+    builder.queryParam("codeB", activeCodeB);
+    builder.queryParam("url", url); // Using 'url' instead of 'system'
+    final URI getUri = builder.build().toUri();
+
+    // Act
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, component.getDiagnostics());
+  }
+
+  /**
+   * Test subsumes operation with url parameter instead of system (instance).
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesInstanceWithUrlInsteadOfSystem() throws Exception {
+    // Arrange
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
+    final String activeId = "snomedct_us_2025_03_01";
+    final String url = "http://snomed.info/sct";
+
+    final String messageNotSupported =
+        "Input parameter 'codeA' can only be used in conjunction with parameter 'system'.";
+    final String errorCode = "invariant";
+
+    final UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES);
+    builder.queryParam("codeA", activeCodeA);
+    builder.queryParam("codeB", activeCodeB);
+    builder.queryParam("url", url); // Using 'url' instead of 'system'
     final URI getUri = builder.build().toUri();
 
     // Act

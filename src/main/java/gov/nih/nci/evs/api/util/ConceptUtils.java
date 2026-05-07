@@ -145,10 +145,6 @@ public final class ConceptUtils {
         }
       }
     }
-
-    // TODO - when role search is supported
-    // TODO - when association search is supported
-
   }
 
   /**

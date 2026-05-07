@@ -573,6 +573,28 @@ public final class FhirUtilityR4 {
   }
 
   /**
+   * Create designation.
+   *
+   * @param language the language code (e.g., "en")
+   * @param use the Coding describing the type of designation
+   * @param value the designation text value
+   * @return the parameters parameter component representing a designation
+   */
+  public static ParametersParameterComponent createDesignation(
+      final String language, final Coding use, final String value) {
+    final ParametersParameterComponent designation =
+        new ParametersParameterComponent().setName("designation");
+    if (language != null) {
+      designation.addPart().setName("language").setValue(new CodeType(language));
+    }
+    if (use != null) {
+      designation.addPart().setName("use").setValue(use);
+    }
+    designation.addPart().setName("value").setValue(new StringType(value));
+    return designation;
+  }
+
+  /**
    * Returns the next link.
    *
    * @param uri the uri

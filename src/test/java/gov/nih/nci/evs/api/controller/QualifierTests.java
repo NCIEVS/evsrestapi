@@ -5,10 +5,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -44,9 +43,6 @@ public class QualifierTests {
   /** The test properties. */
   @Autowired TestProperties testProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** The base url. */
   private String baseUrl = "";
 
@@ -56,9 +52,6 @@ public class QualifierTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
     metaBaseUrl = "/api/v1/metadata";
@@ -82,7 +75,7 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C101669");
     assertThat(concept.getDefinitions().size()).isGreaterThan(0);
@@ -118,7 +111,7 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C101046");
     assertThat(concept.getDefinitions().size()).isGreaterThan(0);
@@ -154,7 +147,7 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C100065");
     assertThat(concept.getSynonyms().size()).isGreaterThan(0);
@@ -188,7 +181,7 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C101034");
     assertThat(concept.getMaps().size()).isGreaterThan(0);
@@ -223,7 +216,7 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C19799");
     assertThat(concept.getProperties().size()).isGreaterThan(0);
@@ -280,7 +273,7 @@ public class QualifierTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     final List<Concept> list1 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -295,7 +288,7 @@ public class QualifierTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     final List<Concept> list2 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -332,7 +325,7 @@ public class QualifierTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     final List<Concept> list1 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -347,7 +340,7 @@ public class QualifierTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     final List<Concept> list2 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -445,7 +438,7 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
 
     // Assert that the "preferred name" synonym does match the concept name
@@ -481,7 +474,7 @@ public class QualifierTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     final List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {

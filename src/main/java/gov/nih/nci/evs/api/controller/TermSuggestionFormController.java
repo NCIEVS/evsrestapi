@@ -116,10 +116,10 @@ public class TermSuggestionFormController extends BaseController {
    * <p>Sample call in curl form:
    *
    * <pre>
-   * curl -X POST "http://localhost:8082/api/v1/submitWithAttachment" \
+   * curl -X POST "http://localhost:8082/api/v1/form/submitWithAttachment" \
    * -H "Captcha-Token: TEST-KEY" \
-   * -F 'formData=@src/test/resources/formSamples/submissionFormTestCDISC.json;type=application/json' \
-   * -F "file=@src/test/resources/formSamples/filled-form-submission.xls"
+   * -F 'formData=@src/test/resources/formSamples/submissionFormTest-cdisc.json;type=application/json' \
+   * -F "file=@src/test/resources/formSamples/filled-form-submission-cdisc.xls"
    * </pre>
    *
    * <p>Accepts multipart/form-data with a JSON part named `formData` and an optional file part
@@ -151,18 +151,35 @@ public class TermSuggestionFormController extends BaseController {
             "Unable to submit form. Failed to verify the submitted Recaptcha!");
       }
 
-      final String invalidReason = formService.validateFileAttachmentReason(file);
+      // Convert the form data into our email details object first to get form type
+      EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);
+      final String invalidReason =
+          formService.validateFileAttachmentReason(file, emailDetails.getSource());
       if (invalidReason != null) {
         logger.error("Invalid attachment file: {}", invalidReason);
         throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, invalidReason);
       }
+
       // convert the form data into our email details object
-      EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);
-      if (!"CDISC".equals(emailDetails.getSource())) {
-        logger.error("Form type is not valid for attachment. Must be CDISC.");
+      if (!"CDISC".equals(emailDetails.getSource()) && !"NCIT".equals(emailDetails.getSource())) {
+        logger.error("Form type is not valid for attachment. Must be CDISC or NCIT.");
         throw new ResponseStatusException(
-            HttpStatus.EXPECTATION_FAILED, "Invalid form type for attachment. Must be CDISC.");
+            HttpStatus.EXPECTATION_FAILED,
+            "Invalid form type for attachment. Must be CDISC or NCIT.");
       }
+
+      // Validate file attachment with form-type-specific validation
+      if (!formService.validateFileAttachment(file, emailDetails.getSource())) {
+        logger.error(
+            "Invalid attachment file for {}, does not match the template.",
+            emailDetails.getSource());
+        throw new ResponseStatusException(
+            HttpStatus.EXPECTATION_FAILED,
+            "Invalid attachment file for "
+                + emailDetails.getSource()
+                + ", does not match the template.");
+      }
+
       // Send the email with optional attachment
       formService.sendEmailWithAttachment(emailDetails, file);
     } catch (Exception e) {

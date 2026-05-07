@@ -5,9 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -68,7 +68,7 @@ public class CanmedSampleTest extends SampleTest {
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -80,8 +80,10 @@ public class CanmedSampleTest extends SampleTest {
     final Terminology terminology =
         terminologies.stream().filter(t -> t.getTerminology().equals("canmed")).findFirst().get();
     assertThat(terminology.getTerminology()).isEqualTo("canmed");
-    assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("CanMED");
-    assertThat(terminology.getName()).isEqualTo("CanMED 202506");
+    assertThat(terminology.getMetadata().getUiLabel())
+        .isEqualTo("CanMED: Cancer Medications Enquiry Database");
+    assertThat(terminology.getName())
+        .isEqualTo("CanMED: Cancer Medications Enquiry Database 202506");
     assertThat(terminology.getDescription()).isNotEmpty();
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");
@@ -112,7 +114,7 @@ public class CanmedSampleTest extends SampleTest {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("NDC_16729-0131-30");
     assertThat(concept.getName()).isEqualTo("FLUDARABINE 25.0 mg/mL");
@@ -138,7 +140,7 @@ public class CanmedSampleTest extends SampleTest {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("J9017");
 
@@ -170,7 +172,7 @@ public class CanmedSampleTest extends SampleTest {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("HCPCS_ABEMACICLIB_200_MG");
 

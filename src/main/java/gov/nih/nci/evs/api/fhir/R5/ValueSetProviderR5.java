@@ -9,10 +9,7 @@ import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.annotation.Read;
 import ca.uhn.fhir.rest.annotation.Search;
-import ca.uhn.fhir.rest.param.DateRangeParam;
-import ca.uhn.fhir.rest.param.NumberParam;
-import ca.uhn.fhir.rest.param.StringParam;
-import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.*;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
@@ -22,6 +19,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -126,7 +124,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OptionalParam(name = "code") final StringParam code,
       @OptionalParam(name = "name") final StringParam name,
       @OptionalParam(name = "title") final StringParam title,
-      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "url") final UriParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
           final NumberParam count,
@@ -147,27 +145,27 @@ public class ValueSetProviderR5 implements IResourceProvider {
         final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
         // Skip non-matching
         if (id != null && !id.getValue().equals(vs.getId())) {
-          logger.debug("  SKIP id mismatch = " + vs.getId());
+          //   logger.debug("  SKIP id mismatch = " + vs.getId());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, vs.getDate())) {
-          logger.debug("  SKIP date mismatch = " + vs.getDate());
+          //  logger.debug("  SKIP date mismatch = " + vs.getDate());
           continue;
         }
-        if (url != null && !url.getValue().equals(vs.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + vs.getUrl());
+        if (url != null && !FhirUtility.compareUri(url, vs.getUrl())) {
+          //   logger.debug("  SKIP url mismatch = " + vs.getUrl());
           continue;
         }
         if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
-          logger.debug("  SKIP title mismatch = " + vs.getTitle());
+          // logger.debug("  SKIP title mismatch = " + vs.getTitle());
           continue;
         }
         if (name != null && !FhirUtility.compareString(name, vs.getName())) {
-          logger.debug("  SKIP name mismatch = " + vs.getName());
+          // logger.debug("  SKIP name mismatch = " + vs.getName());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, vs.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + vs.getVersion());
+          //  logger.debug("  SKIP version mismatch = " + vs.getVersion());
           continue;
         }
         list.add(vs);
@@ -181,28 +179,28 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ValueSet vs = FhirUtilityR5.toR5VS(map.get(subset.getTerminology()), subset);
       // Skip non-matching
       if (id != null && !id.getValue().equals(vs.getId())) {
-        logger.debug("  SKIP id mismatch = " + vs.getUrl());
+        // logger.debug("  SKIP id mismatch = " + vs.getUrl());
         continue;
       }
       if (date != null && !FhirUtility.compareDateRange(date, vs.getDate())) {
-        logger.debug("  SKIP date mismatch = " + vs.getDate());
+        // logger.debug("  SKIP date mismatch = " + vs.getDate());
         continue;
       }
-      if (url != null && !url.getValue().equals(vs.getUrl())) {
-        logger.debug("  SKIP url mismatch = " + vs.getUrl());
+      if (url != null && !FhirUtility.compareUri(url, vs.getUrl())) {
+        //  logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
       if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
-        logger.debug("  SKIP title mismatch = " + vs.getTitle());
+        //  logger.debug("  SKIP title mismatch = " + vs.getTitle());
         continue;
       }
       if (name != null && !FhirUtility.compareString(name, vs.getName())) {
-        logger.debug("  SKIP name mismatch = " + vs.getName());
+        // logger.debug("  SKIP name mismatch = " + vs.getName());
         continue;
       }
       if (code != null
           && !vs.getIdentifier().stream().anyMatch(i -> i.getValue().equals(code.getValue()))) {
-        logger.debug("  SKIP code mismatch = " + vs.getTitle());
+        //  logger.debug("  SKIP code mismatch = " + vs.getTitle());
         continue;
       }
       list.add(vs);
@@ -359,10 +357,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
           includeDefinitionValue,
           activeOnlyValue);
     }
-
-    // TODO add more test cases for exclude, after adding filter is-a
-    // TODO add remainder of parameters to expandValueSet
-    // TODO add include.version processing (use latest if not specified)
 
     // check if request is a post, throw exception as we don't support post
     // calls
@@ -526,8 +520,16 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
           // Add properties to the contains component if they were requested
           if (propertyNames != null && !propertyNames.isEmpty()) {
-            for (String propertyName : propertyNames) {
-              addConceptProperty(vsContains, member, propertyName);
+            // Check if '*' is specified to return all properties
+            if (propertyNames.contains("*")) {
+              List<String> allProps = getAllPropertyNames(member);
+              for (String propertyName : allProps) {
+                addConceptProperty(vsContains, member, propertyName);
+              }
+            } else {
+              for (String propertyName : propertyNames) {
+                addConceptProperty(vsContains, member, propertyName);
+              }
             }
           }
           // Add definitions to the contains component if they were requested
@@ -844,8 +846,16 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
           // Add properties to the contains component if they were requested
           if (propertyNames != null && !propertyNames.isEmpty()) {
-            for (String propertyName : propertyNames) {
-              addConceptProperty(vsContains, member, propertyName);
+            // Check if '*' is specified to return all properties
+            if (propertyNames.contains("*")) {
+              List<String> allProps = getAllPropertyNames(member);
+              for (String propertyName : allProps) {
+                addConceptProperty(vsContains, member, propertyName);
+              }
+            } else {
+              for (String propertyName : propertyNames) {
+                addConceptProperty(vsContains, member, propertyName);
+              }
             }
           }
           // Add definitions to the contains component if they were requested
@@ -985,7 +995,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired("system", system, "systemVersion", systemVersion);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
-      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "context",
@@ -1117,7 +1126,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
-      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "context",
@@ -1251,10 +1259,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @throws Exception the exception
    */
   public List<ValueSet> findPossibleValueSets(
-      @OptionalParam(name = "_id") final IdType id,
-      @OptionalParam(name = "system") final UriType system,
-      @OptionalParam(name = "url") final UriType url,
-      @OptionalParam(name = "version") final StringType version)
+      final IdType id, final UriType system, final UriType url, final StringType version)
       throws Exception {
     // If no ID and no url are specified, no code systems match
     if (id == null && url == null) {
@@ -1262,6 +1267,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
 
     final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+    Collections.sort(terms, TerminologyUtils.SORT_LATEST_MONTHLY);
+
     final List<ValueSet> list = new ArrayList<ValueSet>();
     final Map<String, Terminology> map = new HashMap<>();
     for (final Terminology terminology : terms) {
@@ -1269,23 +1276,24 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {
-        logger.debug("  SKIP id mismatch = " + vs.getId());
+        //      logger.debug("  SKIP id mismatch = " + vs.getId());
         continue;
       }
       if (url != null && !url.getValue().equals(vs.getUrl())) {
-        logger.debug("  SKIP url mismatch = " + vs.getUrl());
+        //    logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
       if (system != null && !system.getValue().equals(vs.getTitle())) {
-        logger.debug("  SKIP system mismatch = " + vs.getTitle());
+        //   logger.debug("  SKIP system mismatch = " + vs.getTitle());
         continue;
       }
       if (version != null && !version.getValue().equals(vs.getVersion())) {
-        logger.debug("  SKIP version mismatch = " + vs.getVersion());
+        // logger.debug("  SKIP version mismatch = " + vs.getVersion());
         continue;
       }
       list.add(vs);
     }
+    // This currently only gets latest monthly subsets, not earlier versions
     final List<Concept> subsets = getNcitSubsets();
     final Set<Concept> subsetsAsConcepts =
         subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
@@ -1294,19 +1302,20 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ValueSet vs = FhirUtilityR5.toR5VS(map.get(subset.getTerminology()), subset);
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {
-        logger.debug("  SKIP id mismatch = " + vs.getId());
+        // logger.debug("  SKIP id mismatch = " + vs.getId());
         continue;
       }
       if (url != null && !url.getValue().equals(vs.getUrl())) {
-        logger.debug("  SKIP url mismatch = " + vs.getUrl());
+        //  logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
       if (system != null && !system.getValue().equals(vs.getTitle())) {
-        logger.debug("  SKIP system mismatch = " + vs.getTitle());
+        // logger.debug("  SKIP system mismatch = " + vs.getTitle());
         continue;
       }
       list.add(vs);
     }
+
     return list;
   }
 
@@ -1364,6 +1373,44 @@ public class ValueSetProviderR5 implements IResourceProvider {
       // notFoundSeen.add(property);
       // }
     }
+  }
+
+  /**
+   * Gets all available property names for a concept.
+   *
+   * @param concept the concept
+   * @return list of all available property names
+   */
+  private List<String> getAllPropertyNames(Concept concept) {
+    List<String> allPropertyNames = new ArrayList<>();
+
+    // Add standard properties
+    allPropertyNames.add("active");
+
+    // Add parent if concept has parents
+    if (concept.getParents() != null && !concept.getParents().isEmpty()) {
+      allPropertyNames.add("parent");
+    }
+
+    // Add child if concept has children
+    if (concept.getChildren() != null && !concept.getChildren().isEmpty()) {
+      allPropertyNames.add("child");
+    }
+
+    // Add definition if concept has definitions
+    if (concept.getDefinitions() != null && !concept.getDefinitions().isEmpty()) {
+      allPropertyNames.add("definition");
+    }
+
+    // Add all custom properties
+    if (concept.getProperties() != null) {
+      concept.getProperties().stream()
+          .map(Property::getType)
+          .distinct()
+          .forEach(allPropertyNames::add);
+    }
+
+    return allPropertyNames;
   }
 
   /**

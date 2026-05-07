@@ -94,7 +94,7 @@ nci:
       sdkBaseUri: ${SDK_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-client-SDK/develop}
       uiLicense: ${UI_LICENSE:ui-license}
     bulkload:
-      historyDir: ${NCI_EVS_HISTORY_DIR:/tmp}
+      historyFile: ${NCI_EVS_HISTORY_FILE:}
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
       downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:1000}
       indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:1000}

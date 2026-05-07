@@ -156,7 +156,8 @@ export EVS_SERVER_PORT="8083"
 # Compute version (remove '.' from lcterm)
 lcterm=`echo $terminology | perl -ne 's/\.//; print lc($_);'`
 if [[ $terminology == "ncim" ]]; then
-    version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+    # check both places for good measure
+    version=`grep umls.release.name $dir/../release.dat $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
 else
     version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`
 fi
@@ -178,17 +179,17 @@ if [[ $skip -eq 0 ]]; then
     echo "  Generate indexes"
     # need to override this setting to make sure it's not too big
     export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=1000
-    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx5200M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx5200M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
+    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
+    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building indexes"
         exit 1
     fi
     
     # Set the indexes to have a larger max_result_window
-    echo "  Set max result window to 250000 for concept_${lcterm}_${version}"
+    echo "  Set max result window to 300000 for concept_${lcterm}_${version}"
     curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${lcterm}_${version}/_settings" \
-         -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
+         -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 300000 } }' >> /dev/null
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error setting max_result_window"
         exit 1

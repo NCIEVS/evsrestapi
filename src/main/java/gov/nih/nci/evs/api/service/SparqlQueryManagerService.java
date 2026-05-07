@@ -106,6 +106,17 @@ public interface SparqlQueryManagerService {
       throws Exception;
 
   /**
+   * Returns the distinct values used for a given property across concepts.
+   *
+   * @param propertyCode the property code
+   * @param terminology the terminology
+   * @return the property values
+   * @throws Exception the exception
+   */
+  public List<String> getPropertyValues(String propertyCode, Terminology terminology)
+      throws Exception;
+
+  /**
    * Returns the subset members.
    *
    * @param subsetCode the subset code
@@ -208,6 +219,16 @@ public interface SparqlQueryManagerService {
       throws Exception;
 
   /**
+   * Returns the logical definition codes (equivalent classes).
+   *
+   * @param terminology the terminology
+   * @return the map of concept code to parent codes in equivalent class
+   * @throws Exception the exception
+   */
+  public Map<String, Set<String>> getLogicalDefinitionCodes(Terminology terminology)
+      throws Exception;
+
+  /**
    * Returns the associations.
    *
    * @param conceptCode the concept code
@@ -249,6 +270,17 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Role> getRoles(String conceptCode, Terminology terminology) throws Exception;
+
+  /**
+   * Returns roles with group information for a batch of concepts.
+   *
+   * @param conceptCodes the concept codes
+   * @param terminology the terminology
+   * @return the roles with group info by concept code
+   * @throws Exception the exception
+   */
+  public Map<String, List<Role>> getRolesWithGroups(
+      List<String> conceptCodes, Terminology terminology) throws Exception;
 
   /**
    * Returns the complex roles for all codes.

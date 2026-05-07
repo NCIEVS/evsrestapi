@@ -12,6 +12,8 @@ package gov.nih.nci.evs.api.util;
 import ca.uhn.fhir.rest.param.DateParam;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.StringParam;
+import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +52,20 @@ public final class FhirUtility {
    */
   public static boolean compareString(final StringParam s1, final String s2) {
     // If we've not specified a search term, then we pass through a match
-    if (s1 == null || StringUtils.isEmpty(s1.getValue())) {
+    if (s1 == null) {
+      return true;
+    }
+
+    // Handle :missing modifier FIRST (before checking if value is empty)
+    // FHIR spec: param:missing=true returns resources WITHOUT the value
+    //           param:missing=false returns resources WITH the value
+    if (s1.getMissing() != null) {
+      boolean isMissing = (s2 == null || s2.isEmpty());
+      return isMissing == s1.getMissing().booleanValue();
+    }
+
+    // Now check if search value is empty
+    if (StringUtils.isEmpty(s1.getValue())) {
       return true;
     }
 
@@ -68,6 +83,125 @@ public final class FhirUtility {
     } else {
       return s2.toLowerCase().startsWith(s1.getValue().toLowerCase());
     }
+  }
+
+  /**
+   * Compare token. Handles :missing and :not modifiers for TokenParam. FHIR spec: :not modifier
+   * only works with token parameters.
+   *
+   * @param t1 the token parameter
+   * @param t2 the target value
+   * @return true, if successful
+   */
+  public static boolean compareToken(final TokenParam t1, final String t2) {
+    // If we've not specified a search term, then we pass through a match
+    if (t1 == null) {
+      return true;
+    }
+
+    // Handle :missing modifier FIRST (before checking if value is empty)
+    // FHIR spec: param:missing=true returns resources WITHOUT the value
+    //           param:missing=false returns resources WITH the value
+    // TokenParam has getMissing() method just like StringParam
+    if (t1.getMissing() != null) {
+      boolean isMissing = (t2 == null || t2.isEmpty());
+      return isMissing == t1.getMissing().booleanValue();
+    }
+
+    // Handle :not modifier (FHIR spec: only for token parameters)
+    // Returns resources that do NOT match the value (includes resources without the element)
+    if (t1.getModifier() != null && t1.getModifier().getValue().equals(":not")) {
+      if (t2 == null || t2.isEmpty()) {
+        return true; // Include resources without the element
+      }
+      return !t1.getValue().equals(t2);
+    }
+
+    // Now check if value is empty
+    if (StringUtils.isEmpty(t1.getValue())) {
+      return true;
+    }
+
+    // If we've specified a search term but the target element is not populated, that's not a
+    // match
+    if (t2 == null) {
+      return false;
+    }
+
+    // Default: exact match for token parameters
+    return t1.getValue().equals(t2);
+  }
+
+  /**
+   * Compare URI with support for :above, :below, :contains, and :missing modifiers. FHIR spec: URI
+   * parameters support hierarchical and substring matching. Note: UriParam in HAPI FHIR supports
+   * modifiers through getQualifier().
+   *
+   * @param u1 the URI parameter with possible modifiers
+   * @param u2 the target URI to compare against
+   * @return true, if successful
+   */
+  public static boolean compareUri(final UriParam u1, final String u2) {
+    // If we've not specified a search term, then we pass through a match
+    if (u1 == null) {
+      return true;
+    }
+
+    // Handle :missing modifier FIRST (before checking if value is empty)
+    // FHIR spec: param:missing=true returns resources WITHOUT the value
+    //           param:missing=false returns resources WITH the value
+    if (u1.getMissing() != null) {
+      boolean isMissing = (u2 == null || u2.isEmpty());
+      return isMissing == u1.getMissing().booleanValue();
+    }
+
+    // Now check if search value is empty
+    if (StringUtils.isEmpty(u1.getValue())) {
+      return true;
+    }
+
+    // If we've specified a search term but the target element is not populated, that's not a
+    // match
+    if (u2 == null) {
+      return false;
+    }
+
+    // Check for modifiers using getQualifier()
+    // HAPI FHIR stores modifiers like ":above", ":below", ":contains" in the qualifier
+    if (u1.getQualifier() != null) {
+      String qualifier = String.valueOf(u1.getQualifier());
+
+      if (qualifier.equals(":above")) {
+        // FHIR spec: :above returns resources where the resource URI is at or ABOVE
+        // (parent of) the search value in the URL hierarchy
+        // Example: search "url:above=http://example.com/a/b/c"
+        //   matches: http://example.com/a/b/c (exact)
+        //   matches: http://example.com/a/b (parent)
+        //   matches: http://example.com/a (grandparent)
+        // Implementation: search value must start with resource URL (or be equal)
+        return u1.getValue().startsWith(u2) || u1.getValue().equals(u2);
+      }
+
+      if (qualifier.equals(":below")) {
+        // FHIR spec: :below returns resources where the resource URI is at or BELOW
+        // (child of) the search value in the URL hierarchy
+        // Example: search "url:below=http://example.com/a"
+        //   matches: http://example.com/a (exact)
+        //   matches: http://example.com/a/b (child)
+        //   matches: http://example.com/a/b/c (grandchild)
+        // Implementation: resource URL must start with search value (or be equal)
+        return u2.startsWith(u1.getValue()) || u2.equals(u1.getValue());
+      }
+
+      if (qualifier.equals(":contains")) {
+        // FHIR spec: :contains returns resources where the URI contains the search value
+        // Simple substring matching (case-insensitive for URIs)
+        return u2.toLowerCase().contains(u1.getValue().toLowerCase());
+      }
+    }
+
+    // Default: exact match for URI parameters
+    return u1.getValue().equals(u2);
   }
 
   /**
@@ -163,6 +297,12 @@ public final class FhirUtility {
     return compareDate(d1.getLowerBound(), d2) && compareDate(d1.getUpperBound(), d2);
   }
 
+  /**
+   * Convert to YYYYMMDD.
+   *
+   * @param sdate the sdate
+   * @return the string
+   */
   public static String convertToYYYYMMDD(String sdate) {
     if (sdate == null || sdate.trim().isEmpty()) {
       return sdate; // Return input unchanged instead of null

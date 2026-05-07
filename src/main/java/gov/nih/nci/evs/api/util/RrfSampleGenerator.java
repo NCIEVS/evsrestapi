@@ -271,7 +271,7 @@ public class RrfSampleGenerator {
       // Parameterize this!
       final File outputDir = new File(inputPath, "/RRF-subset/");
       copier.setActiveOnly(false);
-      // TODO: we probably should pass in codesabs here and keep atoms
+      // NOTE: we probably should pass in codesabs here and keep atoms
       // that match them and then other downstream data matching those AUIs only.
       copier.copyFiles(new File(inputPath), outputDir, terminologies, cuis);
 

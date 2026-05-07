@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -14,6 +13,7 @@ import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -56,14 +56,16 @@ public class SparqlQueryCacheService {
       final RESTUtils restUtils,
       final SparqlQueryManagerService sparqlQueryManagerService)
       throws Exception {
+
+    logger.info("Load hierarchy");
+
     final List<String> parentchild = new ArrayList<>();
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("hierarchy", terminology);
     final String res =
         restUtils.runSPARQL(queryPrefix + query, sparqlQueryManagerService.getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final ObjectMapper mapper = ThreadLocalMapper.get();
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
@@ -92,6 +94,7 @@ public class SparqlQueryCacheService {
       str.append("\n");
       parentchild.add(str.toString());
     }
+    logger.debug("  hierarchy entries = " + parentchild.size());
 
     // Add role entries
     parentchild.addAll(getHierarchyRoleHelper(terminology, restUtils, sparqlQueryManagerService));
@@ -100,7 +103,8 @@ public class SparqlQueryCacheService {
   }
 
   /**
-   * Returns the hierarchy role helper.
+   * Returns the hierarchy role helper. This is for terminologies that define hierarchy roles such
+   * as GO.
    *
    * @param terminology the terminology
    * @param restUtils the rest utils
@@ -119,6 +123,8 @@ public class SparqlQueryCacheService {
       logger.debug("  no hierarchy roles defined");
       return new ArrayList<>(0);
     }
+    logger.debug("  add hierarchy roles");
+
     final List<String> parentchild = new ArrayList<>();
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
@@ -129,8 +135,7 @@ public class SparqlQueryCacheService {
     final String res =
         restUtils.runSPARQL(queryPrefix + query, sparqlQueryManagerService.getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final ObjectMapper mapper = ThreadLocalMapper.get();
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
@@ -190,8 +195,7 @@ public class SparqlQueryCacheService {
     final String res =
         restUtils.runSPARQL(queryPrefix + query, sparqlQueryManagerService.getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     final List<Qualifier> qualifiers = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
 
@@ -202,7 +206,7 @@ public class SparqlQueryCacheService {
       if (b.getPropertyCode() == null) {
         qualifier.setUri(b.getProperty().getValue());
       }
-      qualifier.setCode(EVSUtils.getPropertyCode(b));
+      qualifier.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       qualifiers.add(qualifier);
     }
 

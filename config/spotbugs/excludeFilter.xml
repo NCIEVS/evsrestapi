@@ -1,0 +1,54 @@
+<!-- Documentation - http://findbugs.sourceforge.net/manual/filter.html -->
+<FindBugsFilter>
+	<Match>
+		<Rank value="16" />
+	</Match>
+
+	<Match>
+		<Class name="com.foobar.ClassNotToBeAnalyzed" />
+	</Match>
+
+	<Match>
+		<Class name="com.foobar.ClassWithSomeBugsMatched" />
+		<!-- Bug descriptions: http://findbugs.sourceforge.net/bugDescriptions.html -->
+		<Bug code="DE,UrF,SIC" />
+	</Match>
+
+	<!-- Match all XYZ violations. -->
+	<Match>
+		<!-- Bug descriptions: http://findbugs.sourceforge.net/bugDescriptions.html -->
+		<Bug code="XYZ" />
+	</Match>
+
+	<!-- Match all doublecheck violations in these methods of "AnotherClass". -->
+	<Match>
+		<Class name="com.foobar.AnotherClass" />
+		<Or>
+			<Method name="nonOverloadedMethod" />
+			<Method name="frob" params="int,java.lang.String"
+				returns="void" />
+			<Method name="blat" params="" returns="boolean" />
+		</Or>
+		<!-- Bug descriptions: http://findbugs.sourceforge.net/bugDescriptions.html -->
+		<Bug code="DC" />
+	</Match>
+
+	<!-- A method with a dead local store false positive (medium priority). -->
+	<Match>
+		<Class name="com.foobar.MyClass" />
+		<Method name="someMethod" />
+		<!-- Bug descriptions: http://findbugs.sourceforge.net/bugDescriptions.html -->
+		<Bug pattern="DLS_DEAD_LOCAL_STORE" />
+		<Priority value="2" />
+	</Match>
+
+	<!-- All bugs in test classes, except for JUnit-specific bugs -->
+	<Match>
+		<Class name="~.*\.*Test" />
+		<Not>
+			<!-- Bug descriptions: http://findbugs.sourceforge.net/bugDescriptions.html -->
+			<Bug code="IJU" />
+		</Not>
+	</Match>
+
+</FindBugsFilter>

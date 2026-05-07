@@ -15,6 +15,7 @@ import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
@@ -109,7 +110,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @IdParam final IdType id,
-      @OperationParam(name = "url") final UriType url,
+      @OperationParam(name = "url") final UriParam url,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
@@ -248,7 +249,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       final HttpServletResponse response,
       final ServletRequestDetails details,
-      @OperationParam(name = "url") final UriType url,
+      @OperationParam(name = "url") final UriParam url,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
@@ -391,7 +392,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "name") final StringParam name,
-      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "url") final UriParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
           final NumberParam count,
@@ -425,24 +426,24 @@ public class ConceptMapProviderR4 implements IResourceProvider {
                 map.get(mapset.getPropertyValue("targetTerminology")),
                 mapset);
         // Skip non-matching
-        if (url != null && !url.getValue().equals(cm.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + cm.getUrl());
+        if (url != null && !FhirUtility.compareUri(url, cm.getUrl())) {
+          // logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getValue().equals(cm.getId())) {
-          logger.debug("  SKIP id mismatch = " + cm.getName());
+          // logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (name != null && !FhirUtility.compareString(name, cm.getName())) {
-          logger.debug("  SKIP name mismatch = " + cm.getName());
+          // logger.debug("  SKIP name mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cm.getDate());
+          //  logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cm.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cm.getVersion());
+          // logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
 
@@ -481,7 +482,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final IdType id,
       final DateRangeParam date,
       final UriType system,
-      final UriType url,
+      final UriParam url,
       final StringType version,
       final UriType source,
       final UriType target,
@@ -501,6 +502,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         map.put(terminology.getTerminology(), terminology);
       }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
+      Collections.sort(mapsets, TerminologyUtils.REVERSE_SORT_VERSIONS);
 
       final List<ConceptMap> list = new ArrayList<>();
       for (final Concept mapset : mapsets) {
@@ -515,44 +517,45 @@ public class ConceptMapProviderR4 implements IResourceProvider {
                 map.get(mapset.getPropertyValue("targetTerminology")),
                 mapset);
         // Skip non-matching
-        if (url != null && !url.getValue().equals(cm.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + cm.getUrl());
+        if (url != null && !FhirUtility.compareUri(url, cm.getUrl())) {
+          // logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getIdPart().equals(cm.getId())) {
-          logger.debug("  SKIP id mismatch = " + cm.getName());
+          // logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (system != null && !system.getValue().equals(cm.getSourceUriType().getValue())) {
-          logger.debug("  SKIP system mismatch = " + cm.getName());
+          // logger.debug("  SKIP system mismatch = " + cm.getName());
           continue;
         }
         if (targetSystem != null
             && !targetSystem.getValue().equals(cm.getTargetUriType().getValue())) {
-          logger.debug("  SKIP targetSystem mismatch = " + cm.getName());
+          //  logger.debug("  SKIP targetSystem mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cm.getDate());
+          //  logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !version.getValue().equals(cm.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cm.getVersion());
+          //  logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
         if (source != null
             && !source.getValue().equals(cm.getSourceUriType().getValue() + "?fhir_vs")) {
-          logger.debug("  SKIP source mismatch = " + cm.getVersion());
+          //  logger.debug("  SKIP source mismatch = " + cm.getVersion());
           continue;
         }
         if (target != null
             && !target.getValue().equals(cm.getTargetUriType().getValue() + "?fhir_vs")) {
-          logger.debug("  SKIP target mismatch = " + cm.getVersion());
+          // logger.debug("  SKIP target mismatch = " + cm.getVersion());
           continue;
         }
 
         list.add(cm);
       }
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;

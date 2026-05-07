@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
@@ -12,6 +11,7 @@ import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -202,7 +202,8 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             objectIndexName,
             "Deleting objects index " + objectIndexName + " failed!",
             "WARN");
-        continue;
+        // Keep going
+        // continue;
       }
 
       // delete concepts index
@@ -218,7 +219,8 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             indexName,
             "Deleting concepts index " + objectIndexName + " failed!",
             "WARN");
-        continue;
+        // Keep going
+        //        continue;
       }
 
       // delete metadata object
@@ -272,13 +274,12 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     boolean latestFound = false;
 
     for (final IndexMetadata iMeta : iMetas) {
-
       final boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
       final boolean weekly = iMeta.getTerminology().getTags().containsKey("weekly");
 
       // Set latest monthly
       if (!latestMonthlyFound && monthly) {
-        // Remove weekly tag if another thing was the latest weekly
+        // Remove weekly tag from a monthly if another thing was the latest weekly
         if (latestWeeklyFound) {
           logger.info("  " + iMeta.getTerminologyVersion() + " = remove weekly tag");
           iMeta.getTerminology().getTags().remove("weekly");
@@ -310,8 +311,9 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
         iMeta.getTerminology().setLatest(false);
       }
 
+      // TODO: this may not be needed here, investigate
       // see if Concept Statuses needs to be updated
-      // NOt sure why we need this here, but if we do, we need to use "indexAndWait" below
+      // Not sure why we need this here, but if we do, we need to use "indexAndWait" below
       if (!iMeta
           .getTerminology()
           .getMetadata()
@@ -450,7 +452,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * @throws Exception the exception
    */
   public TerminologyMetadata getMetadata(final String terminology) throws Exception {
-    return new ObjectMapper()
+    return ThreadLocalMapper.get()
         .treeToValue(getMetadataAsNode(terminology), TerminologyMetadata.class);
   }
 
@@ -470,7 +472,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-    return new ObjectMapper().readTree(EVSUtils.getValueFromFile(uri));
+    return ThreadLocalMapper.get().readTree(EVSUtils.getValueFromFile(uri));
   }
 
   /**
@@ -485,7 +487,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     // If terminology is {term}_{version} -> strip the version
     final String uri = "src/test/resources/" + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-    return new ObjectMapper().readTree(StringUtils.join(EVSUtils.getValueFromFile(uri), '\n'));
+    return ThreadLocalMapper.get().readTree(StringUtils.join(EVSUtils.getValueFromFile(uri), '\n'));
   }
 
   /**

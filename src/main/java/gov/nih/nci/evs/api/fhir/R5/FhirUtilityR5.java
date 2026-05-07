@@ -539,7 +539,7 @@ public class FhirUtilityR5 {
    * @return the parameter property component
    */
   public static ParametersParameterComponent createProperty(
-      final Object propertyValue, final String propertyName, final boolean isCode) {
+      final String propertyName, final Object propertyValue, final boolean isCode) {
     final String valueName = "value";
     // Create a property and add the code as a valueCode
     final ParametersParameterComponent property =
@@ -562,6 +562,28 @@ public class FhirUtilityR5 {
       property.addPart().setName(valueName).setValue(value);
     }
     return property;
+  }
+
+  /**
+   * Create designation.
+   *
+   * @param language the language code (e.g., "en")
+   * @param use the Coding describing the type of designation
+   * @param value the designation text value
+   * @return the parameters parameter component representing a designation
+   */
+  public static ParametersParameterComponent createDesignation(
+      final String language, final Coding use, final String value) {
+    final ParametersParameterComponent designation =
+        new ParametersParameterComponent().setName("designation");
+    if (language != null) {
+      designation.addPart().setName("language").setValue(new CodeType(language));
+    }
+    if (use != null) {
+      designation.addPart().setName("use").setValue(use);
+    }
+    designation.addPart().setName("value").setValue(new StringType(value));
+    return designation;
   }
 
   /**

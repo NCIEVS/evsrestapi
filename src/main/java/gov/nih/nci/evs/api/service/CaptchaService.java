@@ -72,6 +72,11 @@ public class CaptchaService {
     RecaptchaResponse verificationResponse =
         restTemplate.postForObject(recaptchaServerUrl, request, RecaptchaResponse.class);
 
+    if (verificationResponse == null) {
+      logger.error("Recaptcha verification failed: null response");
+      return false;
+    }
+
     // log response details
     logger.debug("Recaptcha success = " + verificationResponse.isSuccess());
     logger.debug("Recaptcha hostname = " + verificationResponse.getHostname());

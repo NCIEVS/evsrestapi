@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +30,7 @@ public class SerializationTester extends ProxyTester {
   public boolean testJsonSerialization() throws Exception {
     logger.debug("Test json serialization - " + getClazz().getName());
     final Object obj = createObject(1);
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.setSerializationInclusion(Include.NON_EMPTY);
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     logger.debug(" " + obj);
     final String json = mapper.writeValueAsString(obj);
     logger.info("json = " + json);

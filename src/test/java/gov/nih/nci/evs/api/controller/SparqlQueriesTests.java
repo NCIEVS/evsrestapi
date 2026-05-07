@@ -47,7 +47,7 @@ public class SparqlQueriesTests {
   }
 
   /**
-   * This test looks for fields in sparql that are delcared but not returned. Using ?x_... is an
+   * This test looks for fields in sparql that are declared but not returned. Using ?x_... is an
    * escape hatch.
    */
   @Test
@@ -137,7 +137,7 @@ public class SparqlQueriesTests {
 
         final boolean pnc = line.contains("preferredNameCode");
         final boolean matches =
-            line.matches(".*OPTIONAL \\{ .*#\\{preferredNameCode\\} .*Label.*\\}.*");
+            line.matches(".*OPTIONAL \\{ .*#\\{preferredNameCode\\} .*(group|Label).*\\}.*");
 
         if (pnc) {
           logger.info("  FOUND #{preferredNameCode} = " + key + ", " + line);

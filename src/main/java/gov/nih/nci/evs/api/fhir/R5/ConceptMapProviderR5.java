@@ -15,6 +15,7 @@ import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
@@ -101,7 +102,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "name") final StringParam name,
-      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "url") final UriParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
           final NumberParam count,
@@ -135,24 +136,24 @@ public class ConceptMapProviderR5 implements IResourceProvider {
                 map.get(mapset.getPropertyValue("targetTerminology")),
                 mapset);
         // Skip non-matching
-        if (url != null && !url.getValue().equals(cm.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + cm.getUrl());
+        if (url != null && !FhirUtility.compareUri(url, cm.getUrl())) {
+          // logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getValue().equals(cm.getId())) {
-          logger.debug("  SKIP id mismatch = " + cm.getName());
+          // logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (name != null && !FhirUtility.compareString(name, cm.getName())) {
-          logger.debug("  SKIP name mismatch = " + cm.getName());
+          // logger.debug("  SKIP name mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cm.getDate());
+          //  logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cm.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cm.getVersion());
+          // logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
 
@@ -219,7 +220,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "sourceScope") final UriType sourceScope,
       @OperationParam(name = "sourceCoding") final Coding sourceCoding,
       @OperationParam(name = "targetCode") final UriType targetCode,
-      // TODO: support for targetCoding not provided due to API error; should be Coding
+      // NOTE: support for targetCoding not provided due to API error; should be Coding
       @OperationParam(name = "targetCoding") final UriType targetCoding,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem)
@@ -397,7 +398,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       // @OperationParam(name = "codeableConcept") final CodeableConcept
       // sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
-      // TODO: support for targetCoding not provided due to API error; should be Coding
+      // NOTE: support for targetCoding not provided due to API error; should be Coding
       @OperationParam(name = "targetCoding") final UriType targetCoding,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem
@@ -587,6 +588,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         map.put(terminology.getTerminology(), terminology);
       }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
+      Collections.sort(mapsets, TerminologyUtils.REVERSE_SORT_VERSIONS);
 
       final List<ConceptMap> list = new ArrayList<>();
       // Find the matching mapsets
@@ -603,35 +605,36 @@ public class ConceptMapProviderR5 implements IResourceProvider {
                 mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + cm.getUrl());
+          //   logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getIdPart().equals(cm.getId())) {
-          logger.debug("  SKIP id mismatch = " + cm.getName());
+          //  logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (system != null && !system.getValue().startsWith(cm.getUrl())) {
-          logger.debug("  SKIP system mismatch = " + cm.getUrl());
+          //  logger.debug("  SKIP system mismatch = " + cm.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cm.getDate());
+          // logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !version.getValue().equals(cm.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cm.getVersion());
+          // logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
         if (targetSystem != null
             && !targetSystem
                 .getValue()
                 .equals(cm.getTargetScopeUriType().getValue().replaceFirst("\\?fhir_vs$", ""))) {
-          logger.debug("  SKIP target mismatch = " + cm.getTargetScopeUriType().getValue());
+          // logger.debug("  SKIP target mismatch = " + cm.getTargetScopeUriType().getValue());
           continue;
         }
 
         list.add(cm);
       }
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;

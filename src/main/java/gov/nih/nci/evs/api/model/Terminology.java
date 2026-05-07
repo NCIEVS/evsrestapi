@@ -76,10 +76,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   private String objectIndexName;
 
   /** The metadata. */
-  // TODO: we really should leave this off, but requires 4.1.RC
-  // or greater (spring data elasticsearch)
-  // @Field(type = FieldType.Object, enabled = false)
-  @Field(type = FieldType.Object)
+  @Field(type = FieldType.Object, enabled = false)
   private TerminologyMetadata metadata;
 
   /** The flag for using sparql searches. */

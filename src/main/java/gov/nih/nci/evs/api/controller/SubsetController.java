@@ -255,13 +255,13 @@ public class SubsetController extends BaseController {
         name = "fromRecord",
         description = "Start index of the search results",
         required = false,
-        schema = @Schema(implementation = String.class),
+        schema = @Schema(implementation = Integer.class),
         example = "0"),
     @Parameter(
         name = "pageSize",
         description = "Max number of results to return",
         required = false,
-        schema = @Schema(implementation = String.class),
+        schema = @Schema(implementation = Integer.class),
         example = "10000"),
   })
   @RecordMetric

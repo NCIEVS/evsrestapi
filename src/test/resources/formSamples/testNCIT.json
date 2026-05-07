@@ -2,6 +2,9 @@
   "formName": "NCIt Term Suggestion Request",
   "formType": "NCIT",
   "recipientEmail": "ncithesaurus@mail.nih.gov",
+  "businessEmail": "bcarlsen@westcoastinformatics.com",
+  "subject": "Test NCIT Term Suggestion Submission",
+  "body": "Test submission of NCIT Term Suggestion Request form.",
   "sections": [
     {
       "name": "contact",

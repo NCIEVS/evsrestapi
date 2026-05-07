@@ -133,12 +133,12 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1334	C1334	P351	Y
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1334	C1334	P352	Y
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1334	C1334	P358	Y
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1334	C1334	P359	Y
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C137934	C137934	rdfs:subClassOf/owl:Restriction~R168	C33073
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C142869	C142869	rdfs:subClassOf/owl:Restriction~R136	C12392
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C14424	C14424	P332	MGI:2159769
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C150443	C150443	rdfs:subClassOf/owl:Restriction~R153	C93106
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15179	C15179	P333	Severed Digit(s), (finger or toe)
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15278	C15278	rdfs:subClassOf/owl:Restriction~R166	C12904
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15356	C15356	rdfs:subClassOf/owl:Restriction~R168	C12391
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15356	C15356	rdfs:subClassOf/owl:Restriction~R170	C12377
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16240	C16240	P101	CSF1R/PDGFR Family
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C164181	C164181	P367	31026031
@@ -150,15 +150,15 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C179321	C179321	rdfs:subClass
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18330	C18330	rdfs:subClassOf/owl:Restriction~R36	C18396
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18498	C18498	rdfs:subClassOf/owl:Restriction~R39	C4878
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18611	C18611	P215	map01100
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C186741	C186741	rdfs:subClassOf/owl:Restriction~R165	C12971
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	P211	dopamine receptor activity
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C21781	C21781	rdfs:subClassOf/owl:Restriction~R23	C22543
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C22192	C22192	P167	http://ccm.ucdavis.edu/cfsidserver/view.cfm?cat=Mouse_N_Prostate&amp;img=MP19.sid&amp;rgn=&amp;nlvl=5&amp;iwid=26150&amp;ihei=27998
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C223864	C223864	P320	2.16.840.1.113883.3.2964
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C2317	C2317	P360	Y
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C2563	C2563	P357	Y
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C28610	C28610	rdfs:subClassOf/owl:Restriction~R145	C45002
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C38112	C38112	rdfs:subClassOf/owl:Restriction~R165	C12389
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C38969	C38969	P216	h_ace2Pathway
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C42636	C42636	P320	2.16.840.1.113883.3.26.1.1.2
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45598	C45598	rdfs:subClassOf/owl:Restriction~R159	C45424
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45600	C45600	rdfs:subClassOf/owl:Restriction~R158	C26533
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45600	C45600	P316	0
@@ -181,23 +181,25 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C10201	C10201	parent-count4
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C114101	C114101	parent-count5
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C115380	C115380	parent-count6
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C136256	C136256	parent-count7
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160025	C160025	parent-count8
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160034	C160034	parent-count8
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C156353	C156353	parent-count9
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C155746	C155746	parent-count10
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160105	C160105	parent-count11
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160053	C160053	parent-count11
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C159984	C159984	parent-count12
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C154272	C154272	parent-count13
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160006	C160006	parent-count13
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C186510	C186510	parent-count14
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C63406	C63406	parent-count15
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C154272	C154272	parent-count16
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C154325	C154325	parent-count17
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160024	C160024	parent-count18
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C173972	C173972	parent-count19
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160005	C160005	parent-count20
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C187233	C187233	parent-count21
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160102	C160102	parent-count22
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160043	C160043	parent-count22
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160074	C160074	parent-count23
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C213204	C213204	parent-count25
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160108	C160108	parent-count38
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160093	C160093	parent-count25
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C213204	C213204	parent-count28
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160108	C160108	parent-count40
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12218	C12218	root
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12219	C12219	root
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12913	C12913	root

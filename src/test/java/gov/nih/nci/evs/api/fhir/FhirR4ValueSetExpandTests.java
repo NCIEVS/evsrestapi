@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.util.JsonUtils;
 import java.net.URLEncoder;
@@ -43,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
@@ -52,8 +50,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-// TODO: Auto-generated Javadoc
 
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
@@ -72,9 +68,6 @@ public class FhirR4ValueSetExpandTests {
 
   /** The test properties. */
   @Autowired TestProperties testProperties;
-
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
 
   /** local host prefix. */
   private final String localHost = "http://localhost:";
@@ -98,9 +91,7 @@ public class FhirR4ValueSetExpandTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    // The object mapper
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
+    // n/a
   }
 
   /**
@@ -3315,8 +3306,8 @@ public class FhirR4ValueSetExpandTests {
       currentNCItVersion = "24.01d"; // Fallback to a recent version
     }
 
-    // TODO: investigate why currentNCItVersion as 25.07b doesn't match concepts
-    currentNCItVersion = "25.06e";
+    // NOTE: new ticket - investigate why currentNCItVersion as 26.01a doesn't match concepts
+    currentNCItVersion = "25.12e";
     log.info("Using current NCIt version: {} for R4 include.version test", currentNCItVersion);
 
     final String expandEndpoint =
@@ -3464,8 +3455,8 @@ public class FhirR4ValueSetExpandTests {
       log.warn("Could not determine current NCIt version, using fallback");
       currentNCItVersion = "24.01d"; // Fallback to a recent version
     }
-    // TODO: investigate why currentNCI
-    currentNCItVersion = "25.06e";
+    // NOTE: new ticket - investigate why currentNCI
+    currentNCItVersion = "25.12e";
     log.info(
         "Using current NCIt version: {} for R4 include.version filter test", currentNCItVersion);
 
@@ -3818,10 +3809,6 @@ public class FhirR4ValueSetExpandTests {
         log.debug("Included concept: {} - {}", concept.getCode(), concept.getDisplay());
       }
 
-      // Basic validation - should have some concepts if the referenced ValueSet was found and
-      // expanded
-      assertTrue(
-          contains.size() >= 0, "Should have concepts when include.valueSet is properly supported");
     } else {
       log.info(
           "Expanded ValueSet with include.valueSet contains no concepts - may indicate referenced"

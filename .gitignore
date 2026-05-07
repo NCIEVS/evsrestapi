@@ -27,7 +27,11 @@ report.txt
 log
 .DS_Store
 src/main/bin/NCIT_HISTORY/
+src/main/bin/audit_reports/
 report.html
 gradle.lockfile
 /.apt_generated/
 /.apt_generated_tests/
+UnitTestData/*
+src/main/main.iml
+src/test/test.iml

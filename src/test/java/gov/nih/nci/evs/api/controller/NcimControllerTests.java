@@ -5,13 +5,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -46,20 +45,12 @@ public class NcimControllerTests {
   /** The application properties. */
   @Autowired ApplicationProperties appProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** The base url. */
   private String baseUrl = "";
 
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    /*
-     * Configure the JacksonTester object
-     */
-    this.objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
   }
@@ -95,7 +86,7 @@ public class NcimControllerTests {
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -136,7 +127,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0000005");
     assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
@@ -148,7 +139,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL990362");
     assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
@@ -173,7 +164,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0000005");
     assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
@@ -185,7 +176,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL977629");
     assertThat(concept.getName()).isEqualTo("Concurrent Disease Type");
@@ -201,7 +192,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL990362");
     assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
@@ -213,7 +204,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0030274");
     assertThat(concept.getName()).isEqualTo("Pancreas");
@@ -230,7 +221,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0426679");
     assertThat(concept.getName()).isEqualTo("Puddle sign");
@@ -255,7 +246,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0000005");
     assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
@@ -276,7 +267,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0718043");
     assertThat(concept.getName()).isEqualTo("Sacrosidase");
@@ -300,7 +291,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL988042");
     assertThat(concept.getName())
@@ -327,7 +318,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL990362");
     assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
@@ -364,7 +355,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0000005");
     assertThat(concept.getAssociations().size()).isEqualTo(1);
@@ -380,7 +371,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0242354");
     assertThat(concept.getChildren().size()).isEqualTo(20);
@@ -409,7 +400,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL979355");
     assertThat(concept.getParents().size()).isGreaterThan(0);
@@ -439,7 +430,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0000726");
 
@@ -484,7 +475,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0000052");
     assertThat(concept.getName()).isEqualTo("1,4-alpha-Glucan Branching Enzyme");
@@ -505,7 +496,7 @@ public class NcimControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0000578");
     assertThat(concept.getName()).isEqualTo("Oxitriptan");
@@ -521,14 +512,14 @@ public class NcimControllerTests {
         .isEqualTo(1);
 
     // last concept in MRSTY/MRSAT
-    // TODO: we're ignoring AUI attributes so for the moment this turns up
+    // NOTE: we're ignoring AUI attributes so for the moment this turns up
     // nothing
     // url = baseUrl + "/ncim/CL988043";
     // log.info("Testing url - " + url + "?terminology=ncim&code=CL988043");
     // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     // content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
-    // concept = new ObjectMapper().readValue(content, Concept.class);
+    // concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     // assertThat(concept).isNotNull();
     // assertThat(concept.getCode()).isEqualTo("CL988043");
     // assertThat(concept.getName()).isEqualTo(
@@ -573,7 +564,7 @@ public class NcimControllerTests {
 
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list).isNotNull();
     // Look for the Aspirin CUI.
     assertThat(
@@ -608,7 +599,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -645,7 +636,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -664,7 +655,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -684,7 +675,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -700,7 +691,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -722,7 +713,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -757,7 +748,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -777,7 +768,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -797,7 +788,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -832,7 +823,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<String>>() {
@@ -865,7 +856,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -883,7 +874,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -901,7 +892,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<HierarchyNode>>() {
@@ -919,7 +910,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<HierarchyNode>>() {
@@ -950,7 +941,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -968,7 +959,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -986,7 +977,7 @@ public class NcimControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {

@@ -2,13 +2,13 @@ package gov.nih.nci.evs.api;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,7 +61,7 @@ public class DynamicMappingTest {
   public void testConceptDynamicMapping() throws Exception {
     // SETUP
     Concept concept =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 IOUtils.toString(
                     getClass().getClassLoader().getResource("conceptTestDM.json"), "UTF-8"),

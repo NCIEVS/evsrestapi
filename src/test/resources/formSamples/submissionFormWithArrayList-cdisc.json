@@ -1,0 +1,27 @@
+{
+  "body": {
+    "Contact Information": {
+      "Business Email": "test@email.com",
+      "Name": "Test Worker",
+      "Organization": "WCI"
+    },
+    "Term Information": {
+      "Vocabulary": "CDISC Terminology",
+      "Request Type": "Create New Codelist",
+      "CDISC Subset": [
+        "ADaM",
+        "CDASH",
+        "DDF"
+      ],
+      "CDISC Codelist": [
+        "ADaM-DTYPE",
+        "CDASH-EXDOSU",
+        "DDF - Endpoint Level Value Set Terminology"
+      ],
+      "Term or Codelist Request": "List of terms here"
+    },
+    "Additional Information": {
+      "Reason for suggestion/Any additional information": "this is my reason"
+    }
+  }
+}

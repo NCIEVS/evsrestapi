@@ -179,7 +179,7 @@ public interface OpensearchQueryService {
       throws JsonParseException, JsonMappingException, IOException;
 
   /**
-   * Returns the path to parent.
+   * Returns the paths to parent.
    *
    * @param code the code
    * @param parentCode the parent code
@@ -241,6 +241,17 @@ public interface OpensearchQueryService {
    * @throws Exception
    */
   Map<String, Set<String>> getQualifierValues(Terminology terminology) throws Exception;
+
+  /**
+   * Get property values.
+   *
+   * @param terminology the terminology
+   * @return the map of property values
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   * @throws Exception
+   */
+  Map<String, Set<String>> getPropertyValues(Terminology terminology) throws Exception;
 
   /**
    * Get qualifier.

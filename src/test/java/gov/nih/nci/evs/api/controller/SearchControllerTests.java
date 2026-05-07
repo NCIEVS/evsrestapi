@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
@@ -23,6 +22,7 @@ import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -121,7 +121,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     Concept concept = list.getConcepts().get(0);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(10);
@@ -180,7 +180,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     Concept concept = list.getConcepts().get(0);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(10);
@@ -233,7 +233,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(10);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -271,7 +271,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isEqualTo(1);
     assertThat(
             list.getConcepts().get(0).getSynonyms().stream()
@@ -293,7 +293,7 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isEqualTo(1);
     assertThat(
             list.getConcepts().get(0).getSynonyms().stream()
@@ -388,7 +388,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(10);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -451,7 +451,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(2);
 
@@ -473,7 +473,7 @@ public class SearchControllerTests {
       content = result.getResponse().getContentAsString();
       log.info("  content = " + content);
       assertThat(content).isNotNull();
-      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
       assertThat(list.getConcepts().size()).isEqualTo(10);
     }
     result =
@@ -488,7 +488,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    ConceptResultList list2 = new ObjectMapper().readValue(content, ConceptResultList.class);
+    ConceptResultList list2 = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list2.getConcepts().size()).isEqualTo(10);
     // should be a different code starting on 16
     assertThat(list.getConcepts().get(0).getCode())
@@ -517,7 +517,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts()).isEmpty();
 
@@ -541,7 +541,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(5);
     final List<Concept> cl1 = list.getConcepts();
@@ -561,7 +561,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(10);
     assertThat(list.getConcepts().subList(5, 10).toString()).isEqualTo(cl1.toString());
@@ -664,7 +664,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
@@ -696,7 +696,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
@@ -736,7 +736,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
 
     result =
@@ -749,7 +749,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
 
     result =
@@ -762,7 +762,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
 
     log.info(
@@ -781,7 +781,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(1);
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Sivifene");
@@ -847,7 +847,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(1);
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Sivifene");
@@ -901,7 +901,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
 
     // Test with single terminology form
@@ -915,7 +915,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
     log.info("Done Testing testSearchProperty ");
 
@@ -933,7 +933,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
     // all should have a name containing "Toluene" and have an FDA_UNII_CODE
     assertThat(
@@ -986,7 +986,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getName()).containsIgnoringCase("enzyme");
 
@@ -1004,7 +1004,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getName()).isEqualToIgnoringCase("melanoma");
 
@@ -1022,7 +1022,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     // Match search
@@ -1039,7 +1039,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     // startsWith search
@@ -1056,7 +1056,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     // AND search
@@ -1073,7 +1073,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     // OR search
@@ -1090,7 +1090,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     // Bad type
@@ -1137,7 +1137,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // Verify property of "Obsolete_Concept on each results
     assertThat(
@@ -1163,7 +1163,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // Verify property of "Obsolete_Concept on each results
     assertThat(
@@ -1189,7 +1189,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // Verify property of "Obsolete_Concept on each results
     assertThat(
@@ -1258,7 +1258,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     boolean found = false;
@@ -1290,7 +1290,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     found = false;
@@ -1341,7 +1341,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
 
     // Test single SynonymTermType
@@ -1357,7 +1357,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     boolean found = false;
@@ -1382,7 +1382,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     found = false;
@@ -1426,7 +1426,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // Verify that each concept contains a CDISC/SY synonym
     assertThat(
@@ -1461,7 +1461,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // Verify that each concept contains a CDISC/SY synonym
     assertThat(
@@ -1503,7 +1503,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
 
     boolean found = false;
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
@@ -1525,7 +1525,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
 
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
       if (syn.getType().equals("FULL_SYN")) {
@@ -1563,7 +1563,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     boolean found = false;
@@ -1627,7 +1627,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
 
     boolean found = false;
     for (final Definition def : list.getConcepts().get(0).getDefinitions()) {
@@ -1653,7 +1653,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
 
     for (final Definition def : list.getConcepts().get(0).getDefinitions()) {
       if (def.getType().equals("ALT_DEFINITION")) {
@@ -1714,7 +1714,7 @@ public class SearchControllerTests {
 
     assertThat(content).isEqualToIgnoringCase(content2);
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     boolean currentExact = true;
     for (Concept concept : conceptList) {
@@ -1776,7 +1776,7 @@ public class SearchControllerTests {
 
     assertThat(content).isEqualToIgnoringCase(content2);
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     currentExact = true;
     for (Concept concept : conceptList) {
@@ -1824,7 +1824,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
 
     assertThat(content).isNotEmpty();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     // The first one should contain the word "corona" (e.g. crown, corona
     // dentist)
     assertThat(
@@ -1865,7 +1865,7 @@ public class SearchControllerTests {
       log.info("  content = " + content);
 
       assertThat(content).isNotEmpty();
-      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
       // The first one should contain the word "corona" (e.g. crown, corona
       // dentist)
       assertThat(
@@ -1910,7 +1910,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
 
     assertThat(content).isNotEmpty();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     // The first one should contain the word "corona" (e.g. crown, corona
     // dentist)
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C4016");
@@ -1946,7 +1946,7 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     boolean currentExact = true;
     for (Concept concept : conceptList) {
@@ -1980,7 +1980,14 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+
+    log.info("Top 10 results for phrase search 'corona':");
+    for (int i = 0; i < Math.min(10, list.getConcepts().size()); i++) {
+      Concept concept = list.getConcepts().get(i);
+      log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+    }
+
     conceptList = list.getConcepts();
     assertThat(conceptList.size()).isEqualTo(2);
   }
@@ -2015,7 +2022,7 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     for (Concept concept : conceptList) {
       assertTrue(
@@ -2052,7 +2059,7 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("malignant bone neoplasm"));
     for (Concept concept : conceptList) {
@@ -2086,7 +2093,7 @@ public class SearchControllerTests {
             .andReturn();
 
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("blood"));
 
@@ -2102,7 +2109,7 @@ public class SearchControllerTests {
             .andReturn();
 
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("cold"));
 
@@ -2118,7 +2125,7 @@ public class SearchControllerTests {
             .andReturn();
 
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("cold"));
 
@@ -2136,7 +2143,7 @@ public class SearchControllerTests {
             .andReturn();
 
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for (Concept conc : conceptList) {
       log.info(conc.getName());
@@ -2157,7 +2164,7 @@ public class SearchControllerTests {
             .andReturn();
 
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for (Concept conc : conceptList) {
       log.info(conc.getName());
@@ -2178,7 +2185,7 @@ public class SearchControllerTests {
             .andReturn();
 
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for (Concept conc : conceptList) {
       log.info(conc.getName());
@@ -2199,7 +2206,7 @@ public class SearchControllerTests {
             .andReturn();
 
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for (Concept conc : conceptList) {
       log.info(conc.getName());
@@ -2236,7 +2243,7 @@ public class SearchControllerTests {
             .andReturn();
 
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     for (Concept concept : conceptList) {
       assertTrue(
@@ -2294,7 +2301,7 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     for (Concept concept : conceptList) {
       assertTrue(
@@ -2331,7 +2338,7 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for (Concept concept : conceptList) {
       boolean found = false;
@@ -2403,7 +2410,7 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     for (Concept concept : conceptList) {
       assertTrue(
@@ -2440,7 +2447,7 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for (Concept concept : conceptList) {
       assertTrue(
@@ -2487,7 +2494,7 @@ public class SearchControllerTests {
             .andReturn();
 
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
 
     log.info(
@@ -2505,7 +2512,7 @@ public class SearchControllerTests {
             .andReturn();
 
     list2 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
 
     assertThat(list.getConcepts().get(0).equals(list2.getConcepts().get(0))); // make
@@ -2547,7 +2554,7 @@ public class SearchControllerTests {
             .andReturn();
 
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
 
     log.info(
@@ -2566,7 +2573,7 @@ public class SearchControllerTests {
             .andReturn();
 
     list2 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
 
     assertThat(list.getTotal() > list2.getTotal()); // should be more in
@@ -2602,7 +2609,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -2621,7 +2628,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(1);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -2642,7 +2649,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -2660,7 +2667,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -2681,7 +2688,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -2699,7 +2706,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -2717,7 +2724,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -2738,7 +2745,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
@@ -2761,7 +2768,7 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "/ncit/search");
     result = mvc.perform(get(url + "/ncit/search")).andExpect(status().isOk()).andReturn();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
 
@@ -2775,7 +2782,7 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
     for (final Concept conc : list.getConcepts()) { // test that have match
@@ -2802,7 +2809,7 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
     for (final Concept conc : list.getConcepts()) { // test that have match
@@ -2828,7 +2835,7 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
 
@@ -2842,7 +2849,7 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
     for (final Concept conc : list.getConcepts()) { // test that have match
@@ -2869,7 +2876,7 @@ public class SearchControllerTests {
             .andReturn();
     String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
     // test that have match to synonymSource = GDC
     for (final Concept conc : list.getConcepts()) {
@@ -2922,7 +2929,7 @@ public class SearchControllerTests {
       String content = result.getResponse().getContentAsString();
       log.info("  content = " + content);
       assertThat(content).isNotNull();
-      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
       if (type.equals("contains") || type.equals("OR") || type.equals("fuzzy")) {
         assertThat(list.getConcepts()).isNotEmpty();
       } else {
@@ -2945,7 +2952,7 @@ public class SearchControllerTests {
       String content = result.getResponse().getContentAsString();
       log.info("  content = " + content);
       assertThat(content).isNotNull();
-      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
       // if (type.equals("contains") || type.equals("OR")) {
       // assertThat(list.getConcepts()).isNotEmpty();
       // } else {
@@ -2978,7 +2985,7 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
     boolean found = false;
@@ -3003,7 +3010,7 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
   }
@@ -3026,7 +3033,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
     assertThat(list.getTotal()).isEqualTo(29);
   }
@@ -3052,7 +3059,7 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     log.info("  list = " + list);
     assertThat(list.getConcepts() != null && !list.getConcepts().isEmpty()).isTrue();
@@ -3104,7 +3111,7 @@ public class SearchControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     log.info("  list = " + list);
     assertThat(list.getConcepts() != null && !list.getConcepts().isEmpty()).isTrue();
@@ -3137,7 +3144,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // test first result is Malignant Bone Neoplasm
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Malignant Bone Neoplasm");
@@ -3155,7 +3162,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // test first result is Malignant Digestive System Neoplasm
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C0685938");
@@ -3187,7 +3194,7 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C67015");
 
@@ -3211,7 +3218,14 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+
+    log.info("Top 10 results for 'double lymphoma':");
+    for (int i = 0; i < Math.min(10, list.getConcepts().size()); i++) {
+      Concept concept = list.getConcepts().get(i);
+      log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+    }
+
     boolean currentExact = true;
     boolean foundC125904 = false;
     int ct = 0;
@@ -3267,7 +3281,7 @@ public class SearchControllerTests {
 
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     currentExact = true;
     ct = 0;
     boolean foundC12959 = false;
@@ -3322,14 +3336,14 @@ public class SearchControllerTests {
     ConceptResultList list = null;
 
     // Basic search using the weekly version of NCIt
-    log.info("Testing url - " + url + "?terminology=ncit_25.07b&term=cancer");
+    log.info("Testing url - " + url + "?terminology=ncit_26.01a&term=cancer");
     result =
-        mvc.perform(get(url).param("terminology", "ncit_25.07b").param("term", "cancer"))
+        mvc.perform(get(url).param("terminology", "ncit_26.01a").param("term", "cancer"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal()).isGreaterThan(0);
   }
 
@@ -3359,7 +3373,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     values = list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList());
     sortedValues =
         list.getConcepts().stream().map(c -> c.getCode()).sorted().collect(Collectors.toList());
@@ -3377,7 +3391,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     values = list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList());
     sortedValues =
         list.getConcepts().stream()
@@ -3399,7 +3413,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     values = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
     sortedValues =
         list.getConcepts().stream().map(c -> c.getName()).sorted().collect(Collectors.toList());
@@ -3418,7 +3432,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     values = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
     sortedValues =
         list.getConcepts().stream()
@@ -3453,7 +3467,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     names = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
     assert (names.contains("All Sites"));
 
@@ -3469,7 +3483,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     names = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
     assert (names.contains("All Sites"));
 
@@ -3481,7 +3495,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 1000);
 
     // check another contains
@@ -3492,7 +3506,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 5000);
 
     // check a third contains
@@ -3503,8 +3517,8 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assert (list.getTotal() > 100);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 39);
 
     // check match
     log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue&type=match");
@@ -3518,7 +3532,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal().equals(0L));
 
     // check startsWith
@@ -3533,7 +3547,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal().equals(0L));
 
     // check phrase
@@ -3548,7 +3562,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal().equals(0L));
 
     // check AND
@@ -3563,7 +3577,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 50);
 
     // check another AND
@@ -3578,7 +3592,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 0);
 
     // check a third AND
@@ -3593,7 +3607,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 0);
   }
 
@@ -3632,7 +3646,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
 
@@ -3668,7 +3682,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
 
@@ -3695,7 +3709,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
 
@@ -3721,7 +3735,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C91477");
 
@@ -3747,7 +3761,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal()).isGreaterThan(0);
     // Verify each one contains the word "melanoma" and also "antigen"
     assertThat(
@@ -3783,7 +3797,7 @@ public class SearchControllerTests {
     //            .andReturn();
     //    content = result.getResponse().getContentAsString();
     //    log.info("  content = " + content);
-    //    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    //    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     //    assertThat(list.getTotal()).isGreaterThan(0);
     //    for (Concept conc : list.getConcepts()) {
     //      Boolean name = conc.getName().toLowerCase().contains("liver");
@@ -3821,7 +3835,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isEqualTo(0);
 
     // check query with malformed prefix - OK because prefix is rewritten
@@ -3923,7 +3937,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("T053");
 
@@ -4080,7 +4094,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    MapResultList results = new ObjectMapper().readValue(content, MapResultList.class);
+    MapResultList results = ThreadLocalMapper.get().readValue(content, MapResultList.class);
     assertThat(results.getParameters().getPageSize()).isEqualTo(10);
     assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
     Map<String, String> node = results.getResults().get(1);
@@ -4102,7 +4116,7 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    results = new ObjectMapper().readValue(content, MapResultList.class);
+    results = ThreadLocalMapper.get().readValue(content, MapResultList.class);
     assertThat(results.getParameters().getPageSize()).isEqualTo(5);
     assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
     assertThat(results.getResults().get(0)).isEqualTo(node);
@@ -4121,7 +4135,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     assertThat(content).isNotEqualTo(oldContent);
-    results = new ObjectMapper().readValue(content, MapResultList.class);
+    results = ThreadLocalMapper.get().readValue(content, MapResultList.class);
     assertThat(results.getParameters().getPageSize()).isEqualTo(5);
     assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
     assertThat(results.getResults().get(0)).isEqualTo(node2);
@@ -4207,7 +4221,7 @@ public class SearchControllerTests {
               .andReturn();
       content = result.getResponse().getContentAsString();
       assertThat(content).isNotNull();
-      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
       total = list.getTotal();
       if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
         log.info("  done reading");
@@ -4263,7 +4277,7 @@ public class SearchControllerTests {
               .andReturn();
       content = result.getResponse().getContentAsString();
       assertThat(content).isNotNull();
-      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
       total = list.getTotal();
       if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
         log.info("  done reading");
@@ -4292,7 +4306,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     assertThat(content).isNotNull();
 
-    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // check that C6283 contains itself and child
@@ -4307,7 +4321,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     assertThat(content).isNotNull();
 
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // check that C4005 contains itself
@@ -4494,7 +4508,7 @@ public class SearchControllerTests {
       log.info("  content = " + content);
       assertThat(content).isNotNull();
 
-      ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
       assertThat(list.getConcepts()).isNotNull();
       assertThat(list.getConcepts().size()).isGreaterThan(0);
 
@@ -4564,7 +4578,7 @@ public class SearchControllerTests {
       log.info("  content = " + content);
       assertThat(content).isNotNull();
 
-      ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
       assertThat(list.getConcepts()).isNotNull();
       assertThat(list.getConcepts().size()).isGreaterThan(0);
 
@@ -4595,7 +4609,7 @@ public class SearchControllerTests {
     String content1 = result1.getResponse().getContentAsString();
     assertThat(content1).isNotNull();
 
-    ConceptResultList list1 = new ObjectMapper().readValue(content1, ConceptResultList.class);
+    ConceptResultList list1 = ThreadLocalMapper.get().readValue(content1, ConceptResultList.class);
     assertThat(list1.getConcepts()).isNotNull();
     assertThat(list1.getConcepts().size()).isGreaterThan(0);
 
@@ -4623,7 +4637,7 @@ public class SearchControllerTests {
     String content2 = result2.getResponse().getContentAsString();
     assertThat(content2).isNotNull();
 
-    ConceptResultList list2 = new ObjectMapper().readValue(content2, ConceptResultList.class);
+    ConceptResultList list2 = ThreadLocalMapper.get().readValue(content2, ConceptResultList.class);
     assertThat(list2.getConcepts()).isNotNull();
     assertThat(list2.getConcepts().size()).isGreaterThan(0);
 
@@ -4656,7 +4670,7 @@ public class SearchControllerTests {
     String content3 = result3.getResponse().getContentAsString();
     assertThat(content3).isNotNull();
 
-    ConceptResultList list3 = new ObjectMapper().readValue(content3, ConceptResultList.class);
+    ConceptResultList list3 = ThreadLocalMapper.get().readValue(content3, ConceptResultList.class);
     assertThat(list3.getConcepts()).isNotNull();
     assertThat(list3.getConcepts().size()).isGreaterThan(0);
 
@@ -4702,6 +4716,363 @@ public class SearchControllerTests {
         log.info("Found other 'single agent' concepts, partial matching is working");
       }
     }
+  }
+
+  /**
+   * Test search for partial word matching with extended cases: partial first word ("rect car"),
+   * full first word with partial second ("rectal car" ranked first), and partial second+third words
+   * ("single agen ther").
+   */
+  @Test
+  public void testSearchPartialWordMatchExtended() throws Exception {
+
+    // Test Case 1: "recta car" - partial FIRST word, should rank "Rectal Carcinoma" first
+    {
+      String term = "recta car";
+      log.info("Testing partial first word match for term - " + term);
+
+      MvcResult result =
+          this.mvc
+              .perform(
+                  get(baseUrl)
+                      .param("terminology", "ncit")
+                      .param("include", "summary")
+                      .param("term", term)
+                      .param("type", "contains"))
+              .andExpect(status().isOk())
+              .andReturn();
+      String content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+
+      ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+      assertThat(list.getConcepts()).isNotNull();
+      assertThat(list.getConcepts()).isNotEmpty();
+
+      log.info("Top 10 results for '" + term + "':");
+      for (int i = 0; i < Math.min(10, list.getConcepts().size()); i++) {
+        Concept concept = list.getConcepts().get(i);
+        log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+      }
+
+      assertThat(list.getConcepts().get(0).getName())
+          .as("'Rectal Carcinoma' should be ranked first for term: " + term)
+          .isEqualTo("Rectal Carcinoma");
+    }
+    // Test Case 2: "rectal car" - full first word, partial second word, should rank first
+    {
+      String term = "rectal car";
+      log.info("Testing full+partial word match for term - " + term);
+
+      MvcResult result =
+          this.mvc
+              .perform(
+                  get(baseUrl)
+                      .param("terminology", "ncit")
+                      .param("include", "summary")
+                      .param("term", term)
+                      .param("type", "contains"))
+              .andExpect(status().isOk())
+              .andReturn();
+      String content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+
+      ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+      assertThat(list.getConcepts()).isNotNull();
+      assertThat(list.getConcepts()).isNotEmpty();
+
+      log.info("Top 5 results for '" + term + "':");
+      for (int i = 0; i < Math.min(5, list.getConcepts().size()); i++) {
+        Concept concept = list.getConcepts().get(i);
+        log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+      }
+
+      assertThat(list.getConcepts().get(0).getName())
+          .as("'Rectal Carcinoma' should be ranked first (position 0) for term: " + term)
+          .isEqualTo("Rectal Carcinoma");
+    }
+
+    // Test Case 3: "single agen ther" - partial second AND third words
+    {
+      String term = "single agen ther";
+      log.info("Testing partial second+third word match for term - " + term);
+
+      MvcResult result =
+          this.mvc
+              .perform(
+                  get(baseUrl)
+                      .param("terminology", "ncit")
+                      .param("include", "summary")
+                      .param("term", term)
+                      .param("type", "contains"))
+              .andExpect(status().isOk())
+              .andReturn();
+      String content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+
+      ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+      assertThat(list.getConcepts()).isNotNull();
+      assertThat(list.getConcepts()).isNotEmpty();
+
+      log.info("Top 5 results for '" + term + "':");
+      for (int i = 0; i < Math.min(5, list.getConcepts().size()); i++) {
+        Concept concept = list.getConcepts().get(i);
+        log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+      }
+
+      assertThat(list.getConcepts().get(0).getName())
+          .as("'Single Agent Therapy' should be ranked first for term: " + term)
+          .isEqualTo("Single Agent Therapy");
+    }
+  }
+
+  /**
+   * Test search meddra. NOTE: this test only works if the "full" meddra is loaded
+   *
+   * @throws Exception the exception
+   */
+  // @Test
+  public void testSearchMeddra() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Test "chronic granulomato"
+    url = baseUrl + "?terminology=mdr&term=chronic granulomato&type=contains&pageSize=10";
+    log.info("Testing 'chronic granulomato': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // "Chronic granulomatous disease"
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Chronic granulomatous disease");
+    //
+
+    // Test "chronic granul"
+    url = baseUrl + "?terminology=mdr&term=chronic granul&type=contains&pageSize=10";
+    log.info("Testing 'chronic granul': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Top 3 includes "Chronic granulomatous disease"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulomatous disease"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukaemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukaemia"))
+                .count())
+        // NOTE:  if this fails, make sure mdr 28_1 is loaded (or at least a full mdr)
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukemia"))
+                .count())
+        .isEqualTo(1);
+
+    // Test "chronic granu"
+    url = baseUrl + "?terminology=mdr&term=chronic granu&type=contains&pageSize=10";
+    log.info("Testing 'chronic granu': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Top 3 includes "Chronic granulomatous disease"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulomatous disease"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukaemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukaemia"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukemia"))
+                .count())
+        .isEqualTo(1);
+
+    // Test "granu chronic"
+    url = baseUrl + "?terminology=mdr&term=granu chronic&type=contains&pageSize=10";
+    log.info("Testing 'granu chronic': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Top 3 includes "Chronic granulomatous disease"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulomatous disease"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukaemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukaemia"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukemia"))
+                .count())
+        .isEqualTo(1);
+
+    // Test "granu chron"
+    url = baseUrl + "?terminology=mdr&term=granu chron&type=contains&pageSize=10";
+    log.info("Testing 'granu chron': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Top 3 includes "Chronic granulomatous disease"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulomatous disease"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukaemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukaemia"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukemia"))
+                .count())
+        .isEqualTo(1);
+
+    // Test "giant subep"
+    url = baseUrl + "?terminology=mdr&term=giant subep&type=contains&pageSize=10";
+    log.info("Testing 'giant subep': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Top is "Subependymal giant cell astrocytoma"
+    assertThat(list.getConcepts().get(0).getName())
+        .isEqualTo("Subependymal giant cell astrocytoma");
+
+    // Test "giant astro"
+    url = baseUrl + "?terminology=mdr&term=giant astro&type=contains&pageSize=10";
+    log.info("Testing 'giant subep': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Top is "Subependymal giant cell astrocytoma"
+    assertThat(list.getConcepts().get(0).getName())
+        .isEqualTo("Subependymal giant cell astrocytoma");
+
+    // "lymphoblastic" - should include "Acute lymphoblastic leukemia"
+
+    // Test "lymphoblastic" - page size 50
+    url = baseUrl + "?terminology=mdr&term=lymphoblastic&type=contains&pageSize=50";
+    log.info("Testing 'giant subep': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(
+            list.getConcepts().stream()
+                .filter(c -> c.getName().equals("Acute lymphoblastic leukemia"))
+                .count())
+        .isEqualTo(1);
   }
 
   /**

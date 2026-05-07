@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -62,9 +60,6 @@ public class FhirR4CodeSystemReadSearchTests {
   /** The test properties. */
   @Autowired TestProperties testProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** local host prefix. */
   private final String localHost = "http://localhost:";
 
@@ -84,9 +79,7 @@ public class FhirR4CodeSystemReadSearchTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    // The object mapper
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
+    // n/a
   }
 
   /**
@@ -138,10 +131,10 @@ public class FhirR4CodeSystemReadSearchTests {
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Verify things about this one
-    // {"resourceType":"CodeSystem","id":"ncit_25.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"25.06e","name":"NCI
+    // {"resourceType":"CodeSystem","id":"ncit_25.12e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"25.12e","name":"NCI
     // Thesaurus
-    // 25.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
+    // 25.12e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
+    final Set<String> ids = new HashSet<>(Set.of("ncit_25.12e"));
     final Set<String> urls =
         new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
 
@@ -177,7 +170,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     // Test successful case with all parameters
@@ -191,7 +184,7 @@ public class FhirR4CodeSystemReadSearchTests {
             .queryParam("date", "ge2035-01") // Future
             // date
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -203,7 +196,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2021-06")
             .queryParam("system", "http://invalid.system.url")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -227,7 +220,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2021-06")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "invalid_title");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -239,7 +232,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     // Test successful case with all parameters
@@ -253,7 +246,7 @@ public class FhirR4CodeSystemReadSearchTests {
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -353,7 +346,7 @@ public class FhirR4CodeSystemReadSearchTests {
 
     if (expectResults) {
       assertFalse(codeSystems.isEmpty());
-      final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
+      final Set<String> ids = new HashSet<>(Set.of("ncit_25.12e"));
       final Set<String> urls =
           new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
 
@@ -375,6 +368,12 @@ public class FhirR4CodeSystemReadSearchTests {
     }
   }
 
+  /**
+   * Validate canmed code system results.
+   *
+   * @param data the data
+   * @param expectResults the expect results
+   */
   private void validateCanmedCodeSystemResults(final Bundle data, final boolean expectResults) {
     final List<Resource> codeSystems =
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
@@ -409,7 +408,7 @@ public class FhirR4CodeSystemReadSearchTests {
    */
   @Test
   public void testCodeSystemReadWithParameters() throws Exception {
-    // TODO: implement for date when the CodeSystem data has dates
+    // NOTE: implement for date when the CodeSystem data has dates
     // implement for url when the custom parameter is registered to the HAPI
     // FHIR server
 
@@ -611,7 +610,7 @@ public class FhirR4CodeSystemReadSearchTests {
     log.info(" code system = " + parser.encodeResourceToString(css));
 
     // Verify specific IDs and URLs if needed
-    if (css.getIdPart().equals("ncit_25.06e")) {
+    if (css.getIdPart().equals("ncit_25.12e")) {
       assertEquals("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", css.getUrl());
     }
   }
@@ -705,6 +704,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(firstCodeSystemTitle, caseSensitiveMatchSystem.getTitle());
   }
 
+  /**
+   * Test code system history.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemHistory() throws Exception {
     // Arrange
@@ -744,6 +748,11 @@ public class FhirR4CodeSystemReadSearchTests {
     }
   }
 
+  /**
+   * Test code system history not found.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemHistoryNotFound() throws Exception {
     // Arrange
@@ -764,6 +773,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
+  /**
+   * Test code system vread.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemVread() throws Exception {
     // Arrange
@@ -799,6 +813,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(originalCodeSystem.getPublisher(), versionedCodeSystem.getPublisher());
   }
 
+  /**
+   * Test code system vread not found.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemVreadNotFound() throws Exception {
     // Arrange
@@ -821,6 +840,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
+  /**
+   * Test code system vread invalid version.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemVreadInvalidVersion() throws Exception {
     // Arrange
@@ -850,6 +874,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
+  /**
+   * Test code system history metadata consistency.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemHistoryMetadataConsistency() throws Exception {
     // Arrange
@@ -886,6 +915,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertTrue(foundCurrentVersion, "History should contain the current version");
   }
 
+  /**
+   * Test code system vread matches history entry.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemVreadMatchesHistoryEntry() throws Exception {
     // Arrange
@@ -1150,5 +1184,194 @@ public class FhirR4CodeSystemReadSearchTests {
     final OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
     assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
     assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
+  }
+
+  /**
+   * Test code system search with :missing modifier on string parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchWithMissingModifierOnStringParams() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // Test 1: Find CodeSystems WITH a title (title:missing=false)
+    String url = endpoint + "?title:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a title
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find CodeSystems with titles");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      CodeSystem cs = (CodeSystem) entry.getResource();
+      assertNotNull(cs.getTitle(), "CodeSystem should have a title when title:missing=false");
+      assertFalse(cs.getTitle().isEmpty(), "CodeSystem title should not be empty");
+    }
+
+    // Test 2: Find CodeSystems WITHOUT a title (title:missing=true)
+    url = endpoint + "?title:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a title
+    assertNotNull(bundle);
+    // Note: May be empty if all CodeSystems have titles
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      CodeSystem cs = (CodeSystem) entry.getResource();
+      assertTrue(
+          cs.getTitle() == null || cs.getTitle().isEmpty(),
+          "CodeSystem should not have a title when title:missing=true");
+    }
+  }
+
+  /**
+   * Test code system search with :missing modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchWithUrlMissingModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // Test 1: Find CodeSystems WITH a url (url:missing=false)
+    String url = endpoint + "?url:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a url
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find CodeSystems with urls");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      CodeSystem cs = (CodeSystem) entry.getResource();
+      assertNotNull(cs.getUrl(), "CodeSystem should have a url when url:missing=false");
+      assertFalse(cs.getUrl().isEmpty(), "CodeSystem url should not be empty");
+    }
+
+    // Test 2: Find CodeSystems WITHOUT a url (url:missing=true)
+    url = endpoint + "?url:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a url
+    assertNotNull(bundle);
+    // Note: May be empty if all CodeSystems have urls
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      CodeSystem cs = (CodeSystem) entry.getResource();
+      assertTrue(
+          cs.getUrl() == null || cs.getUrl().isEmpty(),
+          "CodeSystem should not have a url when url:missing=true");
+    }
+  }
+
+  /**
+   * Test code system search with :contains modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchWithUrlContainsModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // Test: Find CodeSystems where URL contains "ncit"
+    String url = endpoint + "?url:contains=ncit&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have "ncit" in their URL
+    assertNotNull(bundle);
+    if (bundle.hasEntry()) {
+      for (BundleEntryComponent entry : bundle.getEntry()) {
+        CodeSystem cs = (CodeSystem) entry.getResource();
+        assertNotNull(cs.getUrl(), "CodeSystem should have a url");
+        assertTrue(
+            cs.getUrl().toLowerCase().contains("ncit"),
+            "CodeSystem url should contain 'ncit': " + cs.getUrl());
+      }
+    }
+  }
+
+  /**
+   * Test code system search with :below modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchWithUrlBelowModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // First, get a known CodeSystem with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one CodeSystem");
+    CodeSystem firstCs = (CodeSystem) data.getEntry().get(0).getResource();
+    String baseUrl = firstCs.getUrl();
+
+    // Test: Find CodeSystems where URL is at or below the base URL
+    if (baseUrl != null && baseUrl.contains("/")) {
+      // Get parent URL (remove last path segment)
+      String parentUrl = baseUrl.substring(0, baseUrl.lastIndexOf("/"));
+
+      String url = endpoint + "?url:below=" + URLEncoder.encode(parentUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or below parent URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          CodeSystem cs = (CodeSystem) entry.getResource();
+          assertNotNull(cs.getUrl(), "CodeSystem should have a url");
+          assertTrue(
+              cs.getUrl().startsWith(parentUrl) || cs.getUrl().equals(parentUrl),
+              "CodeSystem url should be at or below '" + parentUrl + "': " + cs.getUrl());
+        }
+      }
+    }
+  }
+
+  /**
+   * Test code system search with :above modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchWithUrlAboveModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // First, get a known CodeSystem with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one CodeSystem");
+    CodeSystem firstCs = (CodeSystem) data.getEntry().get(0).getResource();
+    String childUrl = firstCs.getUrl();
+
+    // Test: Find CodeSystems where URL is at or above the child URL
+    if (childUrl != null) {
+      String url = endpoint + "?url:above=" + URLEncoder.encode(childUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or above child URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          CodeSystem cs = (CodeSystem) entry.getResource();
+          assertNotNull(cs.getUrl(), "CodeSystem should have a url");
+          assertTrue(
+              childUrl.startsWith(cs.getUrl()) || childUrl.equals(cs.getUrl()),
+              "Search url '"
+                  + childUrl
+                  + "' should be at or below CodeSystem url '"
+                  + cs.getUrl()
+                  + "'");
+        }
+      }
+    }
   }
 }

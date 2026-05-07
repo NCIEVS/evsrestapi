@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
@@ -14,6 +13,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.support.es.OpensearchObject;
 import gov.nih.nci.evs.api.util.*;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -1410,7 +1410,7 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
         // Load from config
         final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
         final TerminologyMetadata metadata =
-            new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+            ThreadLocalMapper.get().treeToValue(node, TerminologyMetadata.class);
 
         // Set term name and description
         term.setName(metadata.getUiLabel() + " " + term.getVersion());

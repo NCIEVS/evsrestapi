@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.junit.jupiter.api.BeforeAll;
@@ -54,7 +55,7 @@ class FhirR4CodeSystemGeneralOperations {
   @BeforeEach
   public void setUp() {
     // the object mapper
-    final ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = ThreadLocalMapper.get();
     JacksonTester.initFields(this, objectMapper);
   }
 

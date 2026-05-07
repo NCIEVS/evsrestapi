@@ -9,8 +9,10 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,7 +76,25 @@ public class HierarchyUtils {
    * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different
    * HierarchyUtils.
    */
-  @Transient private Map<String, Set<String>> pathsMap = new HashMap<>();
+  @Transient private Map<String, Set<String>> pathsMap = null;
+
+  /**
+   * Gets the paths map.
+   *
+   * @param terminology the terminology
+   * @return the paths map
+   */
+  private static Map<String, Set<String>> initPathsMap(final Terminology terminology) {
+
+    if (terminology.getTerminology().startsWith("snomed")) {
+      // Use a file-based map to avoid memory usage (for all terminologies)
+      return new FileSystemMap(512);
+    }
+    return new HashMap<>();
+  }
+
+  /** The logical definition map for equivalent classes. */
+  @Transient private Map<String, Set<String>> logicalDefinitionMap = new HashMap<>();
 
   /** The roots. */
   @Field(type = FieldType.Object)
@@ -204,10 +224,10 @@ public class HierarchyUtils {
         new Comparator<Concept>() {
           @Override
           public int compare(Concept c1, Concept c2) {
-            if (c1.getLevel() == c2.getLevel()) {
+            if (c1.getLevel().equals(c2.getLevel())) {
               return c1.getName().compareTo(c2.getName());
             } else {
-              return c1.getLevel() - c2.getLevel();
+              return Integer.compare(c1.getLevel(), c2.getLevel());
             }
           }
         });
@@ -235,8 +255,11 @@ public class HierarchyUtils {
       }
       if (descendantMap.get(child) == null) {
         Concept conc = new Concept(child);
-        if (parent2child.containsKey(child)) conc.setLeaf(false);
-        else conc.setLeaf(true);
+        if (parent2child.containsKey(child)) {
+          conc.setLeaf(false);
+        } else {
+          conc.setLeaf(true);
+        }
         conc.setLevel(level);
         conc.setName(code2label.get(child));
         descendantMap.put(child, conc);
@@ -403,6 +426,16 @@ public class HierarchyUtils {
   }
 
   /**
+   * Clear paths map.
+   *
+   * @param terminology the terminology
+   * @throws Exception the exception
+   */
+  public void clearPathsMap(final Terminology terminology) throws Exception {
+    pathsMap = null;
+  }
+
+  /**
    * Returns the path map.
    *
    * @param terminology the terminology
@@ -410,17 +443,19 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public Map<String, Set<String>> getPathsMap(final Terminology terminology) throws Exception {
-    if (pathsMap.isEmpty()
+
+    if (pathsMap == null
         && terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
 
+      pathsMap = initPathsMap(terminology);
+
+      final Map<String, Integer> pathsMapCt = new HashMap<>();
+
       // This finds paths for leaf nodes, and we need to turn into full paths
       // for each code. Write to a file because this can be a lot of data.
-      final Set<String> paths = findPaths();
-      final File file = File.createTempFile("tmp", "txt");
-      logger.info("    write file = " + file.getAbsolutePath());
-      FileUtils.writeLines(file, "UTF-8", paths, "\n", false);
-      paths.clear();
+      final File file = findPathsAsFile();
+      logMemory();
       logger.info("    start build paths map");
       try (final BufferedReader in = new BufferedReader(new FileReader(file))) {
         int partCt = 0;
@@ -442,13 +477,29 @@ public class HierarchyUtils {
             if (!pathsMap.get(key).contains(ptr)) {
               partCt++;
               pathsMap.get(key).add(ptr);
+              pathsMapCt.put(key, pathsMap.get(key).size());
             }
           }
           if (partCt % 5000 == 0) {
             logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
+            // logMemory();
           }
         }
         logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
+        logMemory();
+
+        // Report top 5 keys
+        pathsMapCt.entrySet().stream()
+            // Sort descending by the size of the Set
+            .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
+            // Take only the top 5
+            .limit(5)
+            // Print the results
+            .forEach(
+                entry -> {
+                  logger.debug("      " + entry.getKey() + " = " + entry.getValue());
+                });
+
         FileUtils.deleteQuietly(file);
       }
     }
@@ -457,10 +508,11 @@ public class HierarchyUtils {
   }
 
   /**
-   * Find paths.
+   * Find paths. (no longer used because now we write file directly)
    *
    * @return the list
    */
+  @SuppressWarnings("unused")
   private Set<String> findPaths() {
     final Set<String> paths = new HashSet<>();
     final Deque<String> stack = new ArrayDeque<String>();
@@ -494,6 +546,60 @@ public class HierarchyUtils {
     logger.debug("    total paths = " + ct);
     logger.debug("    total paths size = " + paths.stream().mapToInt(p -> p.length()).sum());
     return paths;
+  }
+
+  /**
+   * Find paths as file.
+   *
+   * @return the file
+   * @throws Exception the exception
+   */
+  private File findPathsAsFile() throws Exception {
+
+    final File file = File.createTempFile("tmp", ".txt");
+
+    // Use try-with-resources to ensure the writer closes and flushes data
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+      final Deque<String> stack = new ArrayDeque<>();
+      final List<String> roots = getHierarchyRoots();
+      logger.debug("    roots = " + roots.size());
+
+      for (final String root : roots) {
+        stack.push(root);
+      }
+
+      int ct = 0;
+
+      while (!stack.isEmpty()) {
+        final String path = stack.pop();
+        final String[] values = path.trim().split("\\|");
+        final String lastCode = values[values.length - 1];
+        final List<String> subclasses = getSubclassCodes(lastCode);
+
+        if (subclasses == null || subclasses.isEmpty()) {
+          // Write to file instead of adding to a Set
+          writer.write(path);
+          writer.newLine();
+
+          if (++ct % 100000 == 0) {
+            logger.debug("    paths = " + ct);
+          }
+
+        } else {
+          for (final String subclass : subclasses) {
+            if (path.contains("|" + subclass + "|")) {
+              logger.error("  unexpected cycle = " + path + ", " + subclass);
+              continue;
+            }
+            stack.push(path + "|" + subclass);
+          }
+        }
+      }
+
+      logger.debug("    total paths = " + ct);
+    }
+
+    return file;
   }
 
   /**
@@ -626,6 +732,27 @@ public class HierarchyUtils {
   }
 
   /**
+   * Gets the logical definition map.
+   *
+   * @return the logical definition map
+   */
+  public Map<String, Set<String>> getLogicalDefinitionMap() {
+    if (logicalDefinitionMap == null) {
+      logicalDefinitionMap = new HashMap<>();
+    }
+    return logicalDefinitionMap;
+  }
+
+  /**
+   * Sets the logical definition map.
+   *
+   * @param logicalDefinitionMap the logical definition map
+   */
+  public void setLogicalDefinitionMap(Map<String, Set<String>> logicalDefinitionMap) {
+    this.logicalDefinitionMap = logicalDefinitionMap;
+  }
+
+  /**
    * Indicates whether or not leaf is the case.
    *
    * @param code the code
@@ -707,7 +834,23 @@ public class HierarchyUtils {
     this.inverseAssociationMap = inverseAssociationMap;
   }
 
+  /**
+   * Gets the concept name from code.
+   *
+   * @param conceptCode the concept code
+   * @return the concept name from code
+   */
   public String getConceptNameFromCode(String conceptCode) {
     return this.code2label.get(conceptCode);
+  }
+
+  /** Log memory. */
+  public static void logMemory() {
+
+    logger.info(
+        "   MEMORY: ({} - {}) = {}",
+        Runtime.getRuntime().totalMemory(),
+        Runtime.getRuntime().freeMemory(),
+        (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
   }
 }

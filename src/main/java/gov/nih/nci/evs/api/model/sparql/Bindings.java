@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.api.model.sparql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 
 /** Bindings for sparql queries. */
 public class Bindings {
@@ -104,6 +104,9 @@ public class Bindings {
 
   /** The source. */
   private Property source;
+
+  /** The group (for role grouping). */
+  private Property group;
 
   /**
    * Returns the property value.
@@ -307,7 +310,7 @@ public class Bindings {
   @Override
   public String toString() {
     try {
-      return new ObjectMapper().writeValueAsString(this);
+      return ThreadLocalMapper.get().writeValueAsString(this);
     } catch (final Exception e) {
       return e.getMessage();
     }
@@ -707,5 +710,23 @@ public class Bindings {
    */
   public void setSource(Property source) {
     this.source = source;
+  }
+
+  /**
+   * Returns the group.
+   *
+   * @return the group
+   */
+  public Property getGroup() {
+    return group;
+  }
+
+  /**
+   * Sets the group.
+   *
+   * @param group the group
+   */
+  public void setGroup(Property group) {
+    this.group = group;
   }
 }

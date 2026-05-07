@@ -557,10 +557,6 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @return true, if successful
    */
   public boolean checkRequiredFields() {
-    //    if (term == null && codeList == null) {
-    //      return false;
-    // TODO: Update this section to fix the validation check with search params
-    //    }
     return true;
   }
 

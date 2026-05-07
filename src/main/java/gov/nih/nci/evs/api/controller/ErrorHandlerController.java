@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.api.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -67,7 +67,7 @@ public class ErrorHandlerController implements ErrorController {
     }
     String ppBody = null;
     try {
-      ppBody = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body);
+      ppBody = ThreadLocalMapper.get().writerWithDefaultPrettyPrinter().writeValueAsString(body);
     } catch (Exception e) {
       ppBody = body.toString();
     }

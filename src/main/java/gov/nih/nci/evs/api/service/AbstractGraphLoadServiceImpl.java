@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Audit;
@@ -18,6 +17,7 @@ import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.support.es.OpensearchObject;
 import gov.nih.nci.evs.api.util.*;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -119,8 +119,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
 
-    logger.debug(
-        "OpensearchLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
+    logger.debug("Load concepts - index = {}, type = {}", terminology.getIndexName());
 
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
@@ -132,6 +131,13 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
 
     // Get complex roles and inverse roles
+    logger.info("Load logical definition codes and parents");
+    if (terminology.getTerminology().equals("ncit")) {
+      hierarchy.setLogicalDefinitionMap(
+          sparqlQueryManagerService.getLogicalDefinitionCodes(terminology));
+    } else {
+      hierarchy.setLogicalDefinitionMap(new HashMap<>());
+    }
     logger.info("Load complex roles");
     hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
     logger.info("Load complex inverse roles");
@@ -450,6 +456,39 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     propertiesObject.setConcepts(properties);
     operationsService.index(propertiesObject, indexName, OpensearchObject.class);
     logger.info("  Properties loaded");
+
+    // Build property values map by code and by property name and index it
+    final Map<String, Set<String>> propertyMap = new HashMap<>();
+    for (final Concept property : properties) {
+
+      // skip any remodeled properties
+      if (terminology.getMetadata().isRemodeledProperty(property.getCode())) {
+        continue;
+      }
+      if (terminology.getMetadata().isRemodeledQualifier(property.getCode())) {
+        continue;
+      }
+      if (terminology.getMetadata().isRemodeledQualifier(property.getCode())) {
+        continue;
+      }
+
+      for (final String value :
+          sparqlQueryManagerService.getPropertyValues(property.getCode(), terminology)) {
+        if (!propertyMap.containsKey(property.getCode())) {
+          propertyMap.put(property.getCode(), new HashSet<>());
+        }
+        propertyMap.get(property.getCode()).add(value);
+        if (!propertyMap.containsKey(property.getName())) {
+          propertyMap.put(property.getName(), new HashSet<>());
+        }
+        propertyMap.get(property.getName()).add(value);
+      }
+    }
+    ConceptUtils.limitQualMap(propertyMap, 1000);
+    OpensearchObject propertyValuesObject = new OpensearchObject("propertyValues");
+    propertyValuesObject.setMap(propertyMap);
+    operationsService.index(propertyValuesObject, indexName, OpensearchObject.class);
+    logger.info("  Property values loaded");
 
     List<Concept> associations =
         sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
@@ -840,6 +879,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       String terminology,
       boolean forceDelete)
       throws Exception {
+
+    logger.info("Get terminology = " + terminology);
+
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
 
     // first check to see if this terminology already exists and if so return it
@@ -860,7 +902,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       // Load from config
       final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
       final TerminologyMetadata metadata =
-          new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+          ThreadLocalMapper.get().treeToValue(node, TerminologyMetadata.class);
 
       // Set term name and description
       term.setName(metadata.getUiLabel() + " " + term.getVersion());
@@ -922,7 +964,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         mapsets.put("ICD9CM", ncitMapsToIcd9cm);
         mapsets.put("ICDO3", ncitMapsToIcdo3);
         mapsets.put("MedDRA", ncitMapsToMeddra);
-        logger.info("mapsets = " + mapsets.size());
+        logger.info("  NCIt mapsets = " + mapsets.size());
       }
 
     } catch (Exception e) {
@@ -1049,7 +1091,7 @@ The browser links each mapped concept to that concept's page in the current prod
 
       final String replacementCode = historyItem.get("replacementCode");
 
-      if (replacementCode != null && replacementCode != "") {
+      if (replacementCode != null && !replacementCode.isEmpty()) {
 
         history.setReplacementCode(replacementCode);
         history.setReplacementName(nameMap.get(replacementCode));

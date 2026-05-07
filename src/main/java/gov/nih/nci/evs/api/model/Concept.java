@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -98,6 +99,10 @@ public class Concept extends ConceptMinimal {
    */
   @Field(type = FieldType.Boolean)
   private Boolean active;
+
+  /** The defining flag. */
+  @Field(type = FieldType.Boolean)
+  private Boolean defining;
 
   /** The synonyms. */
   @Field(type = FieldType.Nested)
@@ -358,6 +363,7 @@ public class Concept extends ConceptMinimal {
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
     active = other.getActive();
+    defining = other.getDefining();
     normName = other.getNormName();
     stemName = other.getStemName();
     if (!subsetFlag || subsetFlag && subsetLink == null) {
@@ -563,6 +569,25 @@ public class Concept extends ConceptMinimal {
    */
   public void setActive(final Boolean active) {
     this.active = active;
+  }
+
+  /**
+   * Returns the defining flag.
+   *
+   * @return the defining flag
+   */
+  @Schema(description = "Indicates whether the concept is defining")
+  public Boolean getDefining() {
+    return defining;
+  }
+
+  /**
+   * Sets the defining flag.
+   *
+   * @param defining the defining flag
+   */
+  public void setDefining(final Boolean defining) {
+    this.defining = defining;
   }
 
   /**
@@ -935,7 +960,9 @@ public class Concept extends ConceptMinimal {
    *
    * @return the extensions
    */
-  @Schema(description = "Generally unset, this is used for certain special cases", required = false)
+  @Schema(
+      description = "Generally unset, this is used for certain special cases",
+      requiredMode = RequiredMode.NOT_REQUIRED)
   public Extensions getExtensions() {
     return extensions;
   }

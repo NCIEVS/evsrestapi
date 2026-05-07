@@ -32,6 +32,7 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.text.ParseException;
@@ -96,6 +97,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The rest utils. */
   private RESTUtils restUtils = null;
 
+  /** The initialized files (for clearing at start of session). */
+  // private static final Set<String> initializedFiles = new HashSet<>();
+
   /**
    * Post init.
    *
@@ -141,6 +145,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   /* see superclass */
   /* see superclass */
+  /* see superclass */
   @Override
   public List<String> getAllGraphNames() throws Exception {
     final List<String> graphNames = new ArrayList<>();
@@ -149,7 +154,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     log.debug("getAllGraphNames response - " + res);
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
@@ -183,7 +188,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // if (log.isDebugEnabled()) {
     // log.debug("getTerminologies response - " + res);
     // }
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Terminology> termList = new ArrayList<>();
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
@@ -278,14 +283,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return getConceptByType("concept", conceptCode, terminology, ip);
   }
 
+  /* see superclass */
   @Override
   public Concept getConceptFromOpensearch(
       final String conceptCode, final Terminology terminology, final String include)
       throws Exception {
-    SearchCriteria searchCriteria = new SearchCriteria();
+    final SearchCriteria searchCriteria = new SearchCriteria();
     searchCriteria.setTerm(conceptCode);
     searchCriteria.setInclude(include);
-    ConceptResultList result =
+    final ConceptResultList result =
         openSearchService.findConcepts(Collections.singletonList(terminology), searchCriteria);
     return !result.getConcepts().isEmpty() ? result.getConcepts().get(0) : null;
   }
@@ -357,7 +363,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (conceptType.equals("concept")) {
         concept.setCode(EVSUtils.getCodeFromUri(conceptCode));
       } else {
-        concept.setCode(EVSUtils.getQualifiedCodeFromUri(conceptCode));
+        concept.setCode(
+            EVSUtils.getQualifiedCodeFromUri(terminology.getTerminology(), conceptCode));
       }
     }
 
@@ -543,6 +550,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Map<String, List<Association>> inverseAssociationMap =
         hierarchy.getInverseAssociationMap();
     final Map<String, List<Role>> roleMap = new HashMap<>();
+    final Map<String, List<Role>> roleGroupMap = new HashMap<>();
     final Map<String, List<Role>> inverseRoleMap = new HashMap<>();
     final Map<String, List<Role>> complexRoleMap = hierarchy.getRoleMap();
     final Map<String, List<Role>> complexInverseRoleMap = hierarchy.getInverseRoleMap();
@@ -557,7 +565,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 getProperties(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
             disjointWithMap.putAll(
                 getDisjointWith(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-            log.info("      finish main");
+            log.info(
+                "      finish main = "
+                    + propertyMap.size()
+                    + ", "
+                    + propertyMap.values().stream().mapToInt(List::size).sum());
           } catch (final Exception e) {
             log.error("Unexpected error on main", e);
             exceptions.add(e);
@@ -570,9 +582,43 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      start roles");
             roleMap.putAll(
                 getRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-            log.info("      finish roles");
+
+            // Add complex roles
+            for (final String codeOrUri : conceptUris.isEmpty() ? conceptCodes : conceptUris) {
+              if (complexRoleMap.containsKey(codeOrUri)) {
+                if (!roleMap.containsKey(codeOrUri)) {
+                  roleMap.put(codeOrUri, new ArrayList<>());
+                }
+                roleMap.get(codeOrUri).addAll(complexRoleMap.get(codeOrUri));
+              }
+            }
+
+            log.info(
+                "      finish roles = "
+                    + roleMap.size()
+                    + ", "
+                    + roleMap.values().stream().mapToInt(List::size).sum());
           } catch (final Exception e) {
             log.error("Unexpected error on roles", e);
+            exceptions.add(e);
+          }
+        });
+
+    // Given default query in sparql-queries.properties, only NCIt will return anything for this
+    executor.submit(
+        () -> {
+          try {
+            log.info("      start role groups");
+            roleGroupMap.putAll(
+                getRolesWithGroups(
+                    conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
+            log.info(
+                "      finish role groups = "
+                    + roleGroupMap.size()
+                    + ", "
+                    + roleGroupMap.values().stream().mapToInt(List::size).sum());
+          } catch (final Exception e) {
+            log.error("Unexpected error on role groups", e);
             exceptions.add(e);
           }
         });
@@ -583,7 +629,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      start inverse roles");
             inverseRoleMap.putAll(
                 getInverseRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-            log.info("      finish inverse roles");
+
+            // Add complex inverse roles
+            for (final String codeOrUri : conceptUris.isEmpty() ? conceptCodes : conceptUris) {
+              if (complexInverseRoleMap.containsKey(codeOrUri)) {
+                if (!inverseRoleMap.containsKey(codeOrUri)) {
+                  inverseRoleMap.put(codeOrUri, new ArrayList<>());
+                }
+                inverseRoleMap.get(codeOrUri).addAll(complexInverseRoleMap.get(codeOrUri));
+              }
+            }
+
+            log.info(
+                "      finish inverse roles = "
+                    + inverseRoleMap.size()
+                    + ", "
+                    + inverseRoleMap.values().stream().mapToInt(List::size).sum());
           } catch (final Exception e) {
             log.error("Unexpected error on inverse roles", e);
             exceptions.add(e);
@@ -596,7 +657,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      start axioms");
             axiomMap.putAll(
                 getAxioms(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology, true));
-            log.info("      finish axioms");
+            log.info(
+                "      finish axioms = "
+                    + axiomMap.size()
+                    + ", "
+                    + axiomMap.values().stream().mapToInt(List::size).sum());
           } catch (final Exception e) {
             log.error("Unexpected error on axioms", e);
             exceptions.add(e);
@@ -619,6 +684,32 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (!exceptions.isEmpty()) {
       throw new RuntimeException(exceptions.get(0));
     }
+    // Merge role groups into roleMap
+    if (!roleGroupMap.isEmpty()) {
+      for (final String conceptCode : roleGroupMap.keySet()) {
+        if (roleMap.containsKey(conceptCode)) {
+          // These roles will already contain complex roles.
+          final List<Role> roles = roleMap.get(conceptCode);
+          final List<Role> groupRoles = roleGroupMap.get(conceptCode);
+
+          // Remove any roles that have group roles based on uri
+          roles.removeIf(
+              r -> groupRoles.stream().filter(gr -> gr.getUri().equals(r.getUri())).count() > 0);
+
+          // Then add in any remaining group roles - these should replace the ones removed above
+          roles.addAll(groupRoles);
+
+        }
+        // roleGroupMap should only contain data that is also in roleMap
+        else {
+          throw new Exception("Code with role groups but not regular roles = " + conceptCode);
+        }
+      }
+    }
+
+    // Clear role uris after resolving groups
+    roleMap.values().stream().flatMap(r -> r.stream()).forEach(r -> r.setUri(null));
+
     for (final Concept concept : concepts) {
       final String conceptCode = concept.getCode();
       List<Property> properties =
@@ -719,22 +810,34 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setParents(parentMap.get(conceptCode));
       concept.setAssociations(associationMap.get(conceptCode));
       concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
+
+      // Set roles - check via codes and URIs
       concept.setRoles(roleMap.get(conceptCode));
-      // check uris
       if (concept.getRoles().size() == 0) {
         concept.setRoles(roleMap.get(concept.getUri()));
       }
-      if (complexRoleMap.containsKey(conceptCode)) {
-        concept.getRoles().addAll(complexRoleMap.get(conceptCode));
-      }
-      // check uris
+
+      // Set inverse roles - check via codes and URIs
       concept.setInverseRoles(inverseRoleMap.get(conceptCode));
       if (concept.getInverseRoles().size() == 0) {
         concept.setInverseRoles(inverseRoleMap.get(concept.getUri()));
       }
-      if (complexInverseRoleMap.containsKey(conceptCode)) {
-        concept.getInverseRoles().addAll(complexInverseRoleMap.get(conceptCode));
+
+      // Add logicalDefinition property and defining parent flags based on map
+      if ("ncit".equalsIgnoreCase(terminology.getTerminology())
+          && hierarchy.getLogicalDefinitionMap().containsKey(conceptCode)) {
+        final Property p = new Property();
+        p.setType("Logical_Definition");
+        p.setValue("true");
+        concept.getProperties().add(p);
+        final Set<String> definingParents = hierarchy.getLogicalDefinitionMap().get(conceptCode);
+        for (final Concept parent : concept.getParents()) {
+          if (definingParents.contains(parent.getCode())) {
+            parent.setDefining(true);
+          }
+        }
       }
+
       concept.setMaps(EVSUtils.getMapsTo(terminology, axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
       if (concept.getDisjointWith().size() == 0) {
@@ -765,7 +868,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("properties", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Property> properties = new ArrayList<>();
 
@@ -784,8 +887,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // continue;
       // }
       final Property property = new Property();
-      property.setCode(EVSUtils.getPropertyCode(b));
-      property.setType(EVSUtils.getPropertyLabel(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
+      property.setType(EVSUtils.getPropertyLabel(terminology.getTerminology(), b));
       property.setValue(b.getPropertyValue().getValue());
       final String key = property.getCode() + property.getValue();
       if (!seen.contains(key)) {
@@ -814,7 +917,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("properties.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Property>> resultMap = new HashMap<>();
 
@@ -832,8 +935,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Property property = new Property();
-      property.setCode(EVSUtils.getPropertyCode(b));
-      property.setType(EVSUtils.getPropertyLabel(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
+      property.setType(EVSUtils.getPropertyLabel(terminology.getTerminology(), b));
       property.setValue(b.getPropertyValue().getValue());
       final String key = conceptCode + property.getCode() + property.getValue();
       if (!seen.contains(key)) {
@@ -853,7 +956,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("children", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Concept> children = new ArrayList<>();
 
@@ -907,7 +1010,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("parents", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Concept> parents = new ArrayList<>();
 
@@ -962,7 +1065,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("associations", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Association> associations = new ArrayList<>();
 
@@ -970,8 +1073,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       associations.add(association);
@@ -995,7 +1098,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("associations.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Association>> resultMap = new HashMap<>();
 
@@ -1012,8 +1115,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
 
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
@@ -1032,7 +1135,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("associations.all", terminology, new ArrayList<>());
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Association>> resultMap = new HashMap<>();
 
@@ -1047,8 +1150,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
 
       if (inverse) {
         association.setRelatedCode(b.getConceptCode().getValue());
@@ -1073,7 +1176,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("inverse.associations", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Association> associations = new ArrayList<>();
 
@@ -1081,8 +1184,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       associations.add(association);
@@ -1108,7 +1211,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             "inverse.associations.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Association>> resultMap = new HashMap<>();
 
@@ -1125,8 +1228,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       resultMap.get(conceptCode).add(association);
@@ -1145,7 +1248,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // log.info("INVERSE ROLE REPORT QUERY = {}", query);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Role> roles = new ArrayList<>();
 
@@ -1155,8 +1258,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings) {
       // log.info("BINDING = {}", b);
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
 
@@ -1191,7 +1294,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Role>> resultMap = new HashMap<>();
 
@@ -1209,8 +1312,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       // distinct roles only
@@ -1235,35 +1338,183 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("roles", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Role> roles = new ArrayList<>();
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    final Set<String> seen = new HashSet<>();
+    //    final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       role.setRelatedCode(
           b.getRelatedConceptCode() != null
               ? b.getRelatedConceptCode().getValue()
               : b.getRelatedConcept().getValue());
       role.setRelatedName(b.getRelatedConceptLabel().getValue());
-      // distinct roles only
-      final String key = role.getCode() + role.getRelatedCode();
-      if (!seen.contains(key)) {
-        // Exclude roles remodeled as parent/child
-        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
-          roles.add(role);
+
+      // Set the URI for the relationship node
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+      // SKIP distinct roles only - the UI needs to deal with this.
+      //      final String key = role.getCode() + role.getRelatedCode();
+      //      if (!seen.contains(key)) {
+      // Exclude roles remodeled as parent/child
+      if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+        roles.add(role);
+      }
+      //      }
+      //      seen.add(key);
+    }
+
+    // Get roles with group information and merge (ncit only as done via sparql-queries.properties)
+    final List<Role> groupRoles = getRolesWithGroups(conceptCode, terminology);
+    if (!groupRoles.isEmpty()) {
+
+      // Remove any roles that have group roles based on uri
+      roles.removeIf(
+          r -> groupRoles.stream().filter(gr -> gr.getUri().equals(r.getUri())).count() > 0);
+
+      // Then add in any remaining group roles
+      roles.addAll(groupRoles);
+    }
+
+    // Clear uris (after resolving groups)
+    roles.forEach(r -> r.setUri(null));
+
+    return roles;
+  }
+
+  /**
+   * Returns roles with group information from owl:equivalentClass structures.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the roles with group info
+   * @throws Exception the exception
+   */
+  private List<Role> getRolesWithGroups(final String conceptCode, final Terminology terminology)
+      throws Exception {
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final String query =
+        queryBuilderService.constructQuery("roles.group", terminology, conceptCode);
+
+    // If no roles.group query is configured, return empty
+    if (query == null || query.equals("SKIP") || query.isEmpty()) {
+      return new ArrayList<>();
+    }
+
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    final ObjectMapper mapper = ThreadLocalMapper.get();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final List<Role> roles = new ArrayList<>();
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+
+    // Map blank node strings to sequential group numbers
+    final Map<String, Integer> groupNumberMap = new HashMap<>();
+    int nextGroupNumber = 1;
+
+    for (final Bindings b : bindings) {
+      final Role role = new Role();
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
+      role.setRelatedCode(
+          b.getRelatedConceptCode() != null
+              ? b.getRelatedConceptCode().getValue()
+              : b.getRelatedConcept().getValue());
+      role.setRelatedName(b.getRelatedConceptLabel().getValue());
+
+      // Set group number (the group must not be blank at this point)
+      final String groupStr = b.getGroup().getValue();
+      // Assign sequential group numbers for complex groups (not "range" roles)
+      if (groupStr != null && !groupStr.matches("^[A-Z].*")) {
+        if (!groupNumberMap.containsKey(groupStr)) {
+          groupNumberMap.put(groupStr, nextGroupNumber++);
         }
+        role.setGroup(String.valueOf(groupNumberMap.get(groupStr)));
+      } else {
+        role.setGroup(groupStr);
       }
 
-      seen.add(key);
+      // Set uri of role
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+      // SKIP logic for distinct roles
+      roles.add(role);
     }
 
     return roles;
+  }
+
+  /* see superclass */
+  @Override
+  public Map<String, List<Role>> getRolesWithGroups(
+      final List<String> conceptCodes, final Terminology terminology) throws Exception {
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final String query =
+        queryBuilderService.constructBatchQuery("roles.group.batch", terminology, conceptCodes);
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    final ObjectMapper mapper = ThreadLocalMapper.get();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final Map<String, List<Role>> resultMap = new HashMap<>();
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+
+    // Track group numbers PER concept
+    final Map<String, Map<String, Integer>> conceptGroupNumberMap = new HashMap<>();
+    final Map<String, Integer> conceptNextGroupNumber = new HashMap<>();
+
+    for (final Bindings b : bindings) {
+      final String conceptCode =
+          b.getConceptCode() != null
+              ? b.getConceptCode().getValue()
+              : b.getRelatedConcept().getValue();
+
+      if (!resultMap.containsKey(conceptCode)) {
+        resultMap.put(conceptCode, new ArrayList<>());
+        conceptGroupNumberMap.put(conceptCode, new HashMap<>());
+        conceptNextGroupNumber.put(conceptCode, 1);
+      }
+
+      final Role role = new Role();
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
+      role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
+      role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
+
+      // Set group number (the group must not be blank at this point)
+      final String groupStr = b.getGroup().getValue();
+      // Assign sequential group numbers for complex groups (not "range" roles)
+      if (!groupStr.matches("^[A-Z].*")) {
+        final Map<String, Integer> groupNumberMap = conceptGroupNumberMap.get(conceptCode);
+        if (!groupNumberMap.containsKey(groupStr)) {
+          final int nextNum = conceptNextGroupNumber.get(conceptCode);
+          groupNumberMap.put(groupStr, nextNum);
+          conceptNextGroupNumber.put(conceptCode, nextNum + 1);
+        }
+        role.setGroup(String.valueOf(groupNumberMap.get(groupStr)));
+      } else {
+        role.setGroup(groupStr);
+      }
+
+      // Set uri of role
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+      // SKIP logic for distinct roles
+      resultMap.get(conceptCode).add(role);
+    }
+
+    return resultMap;
   }
 
   /**
@@ -1281,13 +1532,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("roles.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Role>> resultMap = new HashMap<>();
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    final Set<String> seen = new HashSet<>();
+    //    final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
       final String conceptCode =
           b.getConceptCode() != null
@@ -1299,20 +1550,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
 
-      // distinct roles only
-      final String key = conceptCode + role.getCode() + role.getRelatedCode();
-      if (!seen.contains(key)) {
-        // Exclude roles remodeled as parent/child
-        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
-          resultMap.get(conceptCode).add(role);
-        }
+      // Set URI for now
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+      // SKIP distinct roles only (the UI must deal with this)
+      //      final String key = conceptCode + role.getCode() + role.getRelatedCode();
+      //      if (!seen.contains(key)) {
+      // Exclude roles remodeled as parent/child
+      if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+        resultMap.get(conceptCode).add(role);
       }
-      seen.add(key);
+      //      }
+      //      seen.add(key);
     }
 
     return resultMap;
@@ -1333,7 +1588,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Role>> resultMap = new HashMap<>();
 
@@ -1350,8 +1605,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       if (inverseFlag) {
         // reverse code and related code
         role.setRelatedCode(b.getConceptCode().getValue());
@@ -1368,15 +1623,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       } else {
         role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
         role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
-        // distinct roles only
-        final String key = conceptCode + role.getCode() + role.getRelatedCode();
-        if (!seen.contains(key)) {
-          // Exclude roles remodeled as parent/child
-          if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
-            resultMap.get(conceptCode).add(role);
-          }
+
+        // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+        role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+        // SKIP distinct roles only - the UI needs to deal with this.
+        //        final String key = conceptCode + role.getCode() + role.getRelatedCode();
+        //        if (!seen.contains(key)) {
+        // Exclude roles remodeled as parent/child
+        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+          resultMap.get(conceptCode).add(role);
         }
-        seen.add(key);
+        //        }
+        //        seen.add(key);
       }
     }
 
@@ -1392,7 +1651,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("disjoint.with", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<DisjointWith> disjointWithList = new ArrayList<>();
 
@@ -1424,7 +1683,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("disjoint.with.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<DisjointWith>> resultMap = new HashMap<>();
 
@@ -1440,7 +1699,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final DisjointWith disjointWith = new DisjointWith();
       disjointWith.setType("disjointWith");
       disjointWith.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
-      if (disjointWith.getRelatedCode().contains("anon-genid")) { // skip complex roles
+      // skip complex roles
+      if (disjointWith.getRelatedCode().contains("anon-genid")) {
         continue;
       }
       disjointWith.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
@@ -1458,7 +1718,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("axioms", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Axiom> axioms = new ArrayList<>();
 
@@ -1472,7 +1732,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings) {
       final String axiom = b.getAxiom().getValue();
       final String propertyUri = b.getAxiomProperty().getValue();
-      final String propertyCode = EVSUtils.getQualifiedCodeFromUri(propertyUri);
+      final String propertyCode =
+          EVSUtils.getQualifiedCodeFromUri(terminology.getTerminology(), propertyUri);
       final String value = b.getAxiomValue().getValue();
       // log.debug(" axiom = " + propertyUri + ", " + value + ", " + axiom);
 
@@ -1507,7 +1768,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("axioms.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     // log.info("AXIOM QUERY: {}", queryPrefix + query);
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Axiom>> resultMap = new HashMap<>();
 
@@ -1546,7 +1807,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
         final Axiom axiomObject = axiomMap.get(axiom);
         final String propertyUri = b.getAxiomProperty().getValue();
-        final String propertyCode = EVSUtils.getQualifiedCodeFromUri(propertyUri);
+        final String propertyCode =
+            EVSUtils.getQualifiedCodeFromUri(terminology.getTerminology(), propertyUri);
         final String value = b.getAxiomValue().getValue();
 
         setAxiomProperty(propertyCode, propertyUri, value, qualifierFlag, axiomObject, terminology);
@@ -1599,7 +1861,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         break;
       case "owl:annotatedProperty":
         // Use the code value
-        axiomObject.setAnnotatedProperty(EVSUtils.getQualifiedCodeFromUri(value));
+        axiomObject.setAnnotatedProperty(
+            EVSUtils.getQualifiedCodeFromUri(terminology.getTerminology(), value));
         // log.debug(" annotated property = " + EVSUtils.getQualifiedCodeFromUri(value));
         break;
       default:
@@ -1784,7 +2047,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("all.properties", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Property> properties = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -1803,7 +2066,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyLabel() != null) {
         property.setValue(b.getPropertyLabel().getValue());
       }
-      property.setCode(EVSUtils.getPropertyCode(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       if (!seen.contains(property.getCode()) && !excludedProperties.contains(property.getCode())) {
         properties.add(property);
         seen.add(property.getCode());
@@ -1870,7 +2133,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("all.properties", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Property> properties = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -1884,7 +2147,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyCode() == null) {
         property.setUri(b.getProperty().getValue());
       }
-      property.setCode(EVSUtils.getPropertyCode(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       if (!seen.contains(property.getCode())) {
         properties.add(property);
         seen.add(property.getCode());
@@ -1919,7 +2182,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("all.properties.never.used", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Property> properties = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -1932,7 +2195,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyCode() == null) {
         property.setUri(b.getProperty().getValue());
       }
-      property.setCode(EVSUtils.getPropertyCode(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       properties.add(property);
     }
 
@@ -1945,7 +2208,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings2) {
       // This query just looks up the codes
       qualifiers.add(b.getProperty().getValue());
-      qualifiers.add(EVSUtils.getPropertyCode(b));
+      qualifiers.add(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
     }
 
     final TerminologyMetadata md = terminology.getMetadata();
@@ -1980,7 +2243,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("distinct.property.values", terminology, values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<String> propertyValues = new ArrayList<>();
 
@@ -2002,7 +2265,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("all.qualifiers", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Qualifier> qualifiers = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -2014,7 +2277,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyCode() == null) {
         qualifier.setUri(b.getProperty().getValue());
       }
-      qualifier.setCode(EVSUtils.getPropertyCode(b));
+      qualifier.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       qualifiers.add(qualifier);
     }
 
@@ -2048,7 +2311,32 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("axiom.qualifier", terminology, values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final List<String> propertyValues = new ArrayList<>();
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (final Bindings b : bindings) {
+      final String propertyValue = b.getPropertyValue().getValue();
+      propertyValues.add(propertyValue);
+    }
+
+    return propertyValues;
+  }
+
+  /* see superclass */
+  @Override
+  public List<String> getPropertyValues(final String propertyCode, final Terminology terminology)
+      throws Exception {
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final Map<String, String> values =
+        ConceptUtils.asMap("propertyCode", propertyCode, "namedGraph", terminology.getGraph());
+    final String query =
+        queryBuilderService.constructQuery("concept.property.values", terminology, values);
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<String> propertyValues = new ArrayList<>();
 
@@ -2087,7 +2375,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("subset", terminology, values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Concept> subsetMembers = new ArrayList<>();
 
@@ -2111,7 +2399,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Association> associations = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -2123,7 +2411,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyCode() == null) {
         association.setUri(b.getProperty().getValue());
       }
-      association.setCode(EVSUtils.getPropertyCode(b));
+      association.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       associations.add(association);
     }
 
@@ -2149,19 +2437,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("all.roles", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Role> roles = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    if (bindings == null) {
+      return concepts;
+    }
     for (final Bindings b : bindings) {
       final Role role = new Role();
       if (b.getPropertyCode() == null) {
         role.setUri(b.getProperty().getValue());
       }
-      role.setCode(EVSUtils.getPropertyCode(b));
+      role.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
 
       // Exclude roles remodeled as parent/child
       if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
@@ -2195,7 +2486,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 .orElse(null);
       }
       if (concept.getCode().equals(concept.getName())
-          && bindings != null
           && matchConcept != null
           && matchConcept.getPropertyLabel() != null) {
         concept.setName(matchConcept.getPropertyLabel().getValue());
@@ -2362,7 +2652,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 terminology.getMetadata().getRetiredStatusValue()));
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<ConceptMinimal> sources = new ArrayList<>();
     final Map<String, String> map = terminology.getMetadata().getSources();
@@ -2411,7 +2701,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 terminology.getMetadata().getRetiredStatusValue()));
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<ConceptMinimal> sources = new ArrayList<>();
     final Map<String, String> map = terminology.getMetadata().getTermTypes();
@@ -2458,7 +2748,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 terminology.getMetadata().getRetiredStatusValue()));
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<ConceptMinimal> sources = new ArrayList<>();
     // Documentation on source definitions
@@ -2493,7 +2783,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = null;
     res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
@@ -2529,7 +2819,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = null;
     res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
@@ -2593,11 +2883,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
       }
       // Skip "No" entries
-      if (found && !valInSubset) {
-        continue;
-      }
       // Skip "not found" entries
-      if (!found) {
+      if ((found && !valInSubset) || !found) {
         continue;
       }
       childFull.setProperties(null);
@@ -2618,7 +2905,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = null;
     res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<AssociationEntry> entries = new ArrayList<>();
     Sparql sparqlResult = null;
@@ -2657,10 +2944,41 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return sparqlQueryCacheService.getAllQualifiers(terminology, ip, restUtils, this);
   }
 
+  /* see superclass */
+  @Override
+  public Map<String, Set<String>> getLogicalDefinitionCodes(final Terminology terminology)
+      throws Exception {
+    final Map<String, Set<String>> map = new HashMap<>();
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final String query = queryBuilderService.constructQuery("equivalent.class", terminology);
+
+    if (query == null || query.equals("SKIP") || query.isEmpty()) {
+      return map;
+    }
+
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    final ObjectMapper mapper = ThreadLocalMapper.get();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    if (sparqlResult != null && sparqlResult.getResults() != null) {
+      final Bindings[] bindings = sparqlResult.getResults().getBindings();
+      for (final Bindings b : bindings) {
+        if (b.getConceptCode() != null && b.getParentCode() != null) {
+          final String conceptCode = b.getConceptCode().getValue();
+          final String parentCode = b.getParentCode().getValue();
+          map.computeIfAbsent(conceptCode, k -> new HashSet<>()).add(parentCode);
+        }
+      }
+    }
+    return map;
+  }
+
   /**
    * Returns the ignore source urls.
    *
    * @return the ignore source urls
+   * @throws Exception the exception
    */
   private List<String> getIgnoreSourceUrls() throws Exception {
     final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
