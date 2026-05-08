@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '3.5.13'
+    springBootVersion = '3.5.14'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
@@ -114,8 +114,8 @@ dependencies {
 
   // other explicit vulnerability overrides
   implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.54"
-  implementation "org.thymeleaf:thymeleaf:3.1.4.RELEASE"
-  implementation "org.thymeleaf:thymeleaf-spring6:3.1.4.RELEASE"
+  implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
+  implementation "org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE"
 
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
