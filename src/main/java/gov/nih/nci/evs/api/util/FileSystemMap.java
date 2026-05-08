@@ -1,82 +1,256 @@
 package gov.nih.nci.evs.api.util;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Map<String, Set<String>> implementation that uses the file system for storage instead of
- * memory. Uses sharding to distribute keys across multiple files. Files are automatically cleaned
- * up when the JVM exits via shutdown hook.
+ * A Map<String, Set<String>> implementation backed by an H2 MVStore. Keys are persisted
+ * individually, which avoids the whole-shard serialization cost of the original implementation
+ * while preserving the mutable Map contract used by the hierarchy loader.
  */
 /** */
-public class FileSystemMap implements Map<String, Set<String>> {
+public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
 
   private static final Logger logger = LoggerFactory.getLogger(FileSystemMap.class);
+
+  /** The default hot key cache size limit. */
+  private static final int DEFAULT_HOT_KEY_CACHE_SIZE = 100000;
+
+  /** The default MVStore read cache size in MB. */
+  private static final int DEFAULT_STORE_CACHE_SIZE_MB = 256;
+
+  /** Report I/O stats after this many store operations. */
+  private static final int IO_LOG_INTERVAL = 10000;
+
+  /** Commit after this many persisted keys. */
+  private static final int COMMIT_INTERVAL = 1000;
 
   /** The storage dir. */
   private final Path storageDir;
 
-  /** The shard count. */
-  private final int shardCount;
+  /** The hot key cache size limit. */
+  private final int hotKeyCacheSize;
 
-  /** The cache size limit. */
-  private static final int CACHE_SIZE = 100000;
+  /** The MVStore cache size in MB. */
+  private final int storeCacheSizeMb;
+
+  /** The backing store. */
+  private final MVStore store;
+
+  /** The persisted key/value map. */
+  private final MVMap<String, byte[]> backingMap;
 
   /** The hot key cache. */
   private final LinkedHashMap<String, Set<String>> hotKeyCache;
 
-  /** The current shard index. */
-  private int currentShardIndex = -1;
-
-  /** The current shard cache. */
-  private Map<String, Set<String>> currentShard = null;
+  /** The dirty keys. */
+  private final Set<String> dirtyKeys = new HashSet<>();
 
   /** The total size. */
   private int totalSize = 0;
 
-  /**
-   * Creates a new FileSystemMap with 256 shards.
-   *
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /** The persisted load count. */
+  private long loadCount = 0;
+
+  /** The persisted save count. */
+  private long saveCount = 0;
+
+  /** The cache hit count. */
+  private long cacheHitCount = 0;
+
+  /** The last total I/O count reported in the log. */
+  private long lastLoggedIoTotal = -1;
+
+  /** The number of writes since the last commit. */
+  private int writesSinceCommit = 0;
+
+  /** Whether the map has been closed. */
+  private boolean closed = false;
+
+  /** A Set wrapper that marks a key dirty whenever it is mutated. */
+  private static class DirtyTrackingSet extends AbstractSet<String> {
+
+    /** The delegate set. */
+    private final Set<String> delegate;
+
+    /** The owning map. */
+    private transient FileSystemMap owner;
+
+    /** The owning key. */
+    private transient String key;
+
+    DirtyTrackingSet(Set<String> delegate, FileSystemMap owner, String key) {
+      this.delegate = delegate;
+      this.owner = owner;
+      this.key = key;
+    }
+
+    void attach(FileSystemMap owner, String key) {
+      this.owner = owner;
+      this.key = key;
+    }
+
+    private void markDirty() {
+      if (owner != null) {
+        owner.markDirty(key);
+      }
+    }
+
+    Set<String> copyDelegate() {
+      return new HashSet<>(delegate);
+    }
+
+    @Override
+    public Iterator<String> iterator() {
+      final Iterator<String> delegateIterator = delegate.iterator();
+      return new Iterator<>() {
+        @Override
+        public boolean hasNext() {
+          return delegateIterator.hasNext();
+        }
+
+        @Override
+        public String next() {
+          return delegateIterator.next();
+        }
+
+        @Override
+        public void remove() {
+          delegateIterator.remove();
+          markDirty();
+        }
+      };
+    }
+
+    @Override
+    public int size() {
+      return delegate.size();
+    }
+
+    @Override
+    public boolean contains(Object o) {
+      return delegate.contains(o);
+    }
+
+    @Override
+    public boolean add(String e) {
+      boolean changed = delegate.add(e);
+      if (changed) {
+        markDirty();
+      }
+      return changed;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+      boolean changed = delegate.remove(o);
+      if (changed) {
+        markDirty();
+      }
+      return changed;
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends String> c) {
+      boolean changed = delegate.addAll(c);
+      if (changed) {
+        markDirty();
+      }
+      return changed;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+      boolean changed = delegate.retainAll(c);
+      if (changed) {
+        markDirty();
+      }
+      return changed;
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+      boolean changed = delegate.removeAll(c);
+      if (changed) {
+        markDirty();
+      }
+      return changed;
+    }
+
+    @Override
+    public void clear() {
+      if (!delegate.isEmpty()) {
+        delegate.clear();
+        markDirty();
+      }
+    }
+  }
+
+  /** Creates a new FileSystemMap with default cache sizes. */
   public FileSystemMap() {
-    this(256);
+    this(DEFAULT_HOT_KEY_CACHE_SIZE, DEFAULT_STORE_CACHE_SIZE_MB);
   }
 
   /**
    * Creates a new FileSystemMap.
    *
-   * @param shardCount number of shard files (recommended: 64-1024 for 400k keys)
+   * @param hotKeyCacheSize number of decoded keys to retain in memory
    */
-  public FileSystemMap(int shardCount) {
-    if (shardCount <= 0) {
-      throw new IllegalArgumentException("Shard count must be positive");
+  public FileSystemMap(int hotKeyCacheSize) {
+    this(hotKeyCacheSize, DEFAULT_STORE_CACHE_SIZE_MB);
+  }
+
+  /**
+   * Creates a new FileSystemMap with configurable cache sizes.
+   *
+   * @param hotKeyCacheSize number of decoded keys to retain in memory
+   * @param storeCacheSizeMb MVStore read cache size in MB
+   */
+  public FileSystemMap(int hotKeyCacheSize, int storeCacheSizeMb) {
+    if (hotKeyCacheSize <= 0) {
+      throw new IllegalArgumentException("Hot key cache size must be positive");
+    }
+    if (storeCacheSizeMb <= 0) {
+      throw new IllegalArgumentException("Store cache size must be positive");
     }
 
-    this.shardCount = shardCount;
-    this.hotKeyCache = new LinkedHashMap<>(CACHE_SIZE, 0.75f, true);
+    this.hotKeyCacheSize = hotKeyCacheSize;
+    this.storeCacheSizeMb = storeCacheSizeMb;
+    this.hotKeyCache = new LinkedHashMap<>(hotKeyCacheSize, 0.75f, true);
 
     try {
-      // Create a temporary directory for storage
       this.storageDir = Files.createTempDirectory("filesystemmap-");
-      logger.info("  file map storage = " + storageDir);
+      logger.info("  file map storage = {}", storageDir);
 
-      // Register shutdown hook to flush and clean up files
+      this.store =
+          new MVStore.Builder()
+              .fileName(storageDir.resolve("map.mv.db").toString())
+              .cacheSize(storeCacheSizeMb)
+              .autoCommitDisabled()
+              .open();
+      this.backingMap = store.openMap("paths");
+      this.totalSize = backingMap.size();
+
       Runtime.getRuntime()
           .addShutdownHook(
               new Thread(
@@ -89,135 +263,235 @@ public class FileSystemMap implements Map<String, Set<String>> {
     }
   }
 
-  /** Evict the least recently used keys if cache exceeds capacity. */
-  private synchronized void evictIfNecessary() {
-    while (hotKeyCache.size() > CACHE_SIZE) {
-      Map.Entry<String, Set<String>> eldest = hotKeyCache.entrySet().iterator().next();
-      String key = eldest.getKey();
-      Set<String> value = eldest.getValue();
-
-      // Remove from cache FIRST to avoid ConcurrentModificationException during loadShard overlay
-      hotKeyCache.remove(key);
-
-      // Push back to shard
-      int shardIndex = getShardIndex(key);
-      Map<String, Set<String>> shard = loadShard(shardIndex);
-      shard.put(key, value);
+  /**
+   * Ensure the map is open.
+   *
+   * @throws IllegalStateException if the map has been closed
+   */
+  private synchronized void ensureOpen() {
+    if (closed) {
+      throw new IllegalStateException("FileSystemMap is closed");
     }
   }
 
   /**
-   * Determine which shard a key belongs to.
+   * Mark a key dirty.
    *
    * @param key the key
-   * @return the shard index
    */
-  private int getShardIndex(String key) {
-    return Math.abs(key.hashCode() % shardCount);
+  private synchronized void markDirty(String key) {
+    dirtyKeys.add(key);
   }
 
   /**
-   * Get the file path for a shard.
+   * Wrap a set so in-place mutations mark the key dirty.
    *
-   * @param shardIndex the shard index
-   * @return the shard path
+   * @param key the key
+   * @param value the value
+   * @return the wrapped set
    */
-  private Path getShardPath(int shardIndex) {
-    return storageDir.resolve("shard-" + shardIndex + ".dat");
+  private Set<String> wrapSet(String key, Set<String> value) {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof DirtyTrackingSet) {
+      DirtyTrackingSet wrapped = (DirtyTrackingSet) value;
+      wrapped.attach(this, key);
+      return wrapped;
+    }
+    return new DirtyTrackingSet(value, this, key);
   }
 
   /**
-   * Load a shard from disk into cache.
+   * Encode a set for storage.
    *
-   * @param shardIndex the shard index
-   * @return the map
+   * @param value the value
+   * @return the encoded bytes
    */
-  private synchronized Map<String, Set<String>> loadShard(int shardIndex) {
-    if (shardIndex == currentShardIndex && currentShard != null) {
-      return currentShard;
-    }
-
-    if (currentShardIndex != -1) {
-      saveShard(currentShardIndex);
-    }
-
-    Path shardPath = getShardPath(shardIndex);
-    Map<String, Set<String>> shard;
-
-    if (Files.exists(shardPath)) {
-      try (ObjectInputStream ois =
-          new ObjectInputStream(new BufferedInputStream(Files.newInputStream(shardPath)))) {
-        @SuppressWarnings("unchecked")
-        Map<String, Set<String>> loaded = (Map<String, Set<String>>) ois.readObject();
-        shard = loaded;
-      } catch (IOException | ClassNotFoundException e) {
-        // Fail if we can't load a shard
-        throw new RuntimeException(e);
+  private byte[] encodeSet(Set<String> value) {
+    try {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      try (DataOutputStream out = new DataOutputStream(baos)) {
+        out.writeInt(value.size());
+        for (String entry : value) {
+          byte[] bytes = entry.getBytes(StandardCharsets.UTF_8);
+          out.writeInt(bytes.length);
+          out.write(bytes);
+        }
+        out.flush();
       }
-    } else {
-      shard = new HashMap<>();
-    }
-
-    // Overlay dirty data from hotKeyCache safely
-    for (Map.Entry<String, Set<String>> entry : hotKeyCache.entrySet()) {
-      if (getShardIndex(entry.getKey()) == shardIndex) {
-        shard.put(entry.getKey(), entry.getValue());
-      }
-    }
-
-    currentShardIndex = shardIndex;
-    currentShard = shard;
-    return shard;
-  }
-
-  /**
-   * Save a shard from cache to disk.
-   *
-   * @param shardIndex the shard index
-   */
-  private synchronized void saveShard(int shardIndex) {
-    if (shardIndex != currentShardIndex || currentShard == null) {
-      return;
-    }
-
-    Map<String, Set<String>> shard = currentShard;
-    Path shardPath = getShardPath(shardIndex);
-
-    if (shard.isEmpty()) {
-      // Delete empty shards
-      try {
-        Files.deleteIfExists(shardPath);
-      } catch (IOException e) {
-        // Ignore
-      }
-      return;
-    }
-
-    try (ObjectOutputStream oos =
-        new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(shardPath)))) {
-      oos.writeObject(new HashMap<>(shard));
+      return baos.toByteArray();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  /** Flush all cached shards to disk. */
-  private synchronized void flushAll() {
-    // Collect all dirty shards from the hot key cache
-    Set<Integer> dirtyShards = new HashSet<>();
-    for (String key : hotKeyCache.keySet()) {
-      dirtyShards.add(getShardIndex(key));
+  /**
+   * Decode a set from storage.
+   *
+   * @param bytes the encoded bytes
+   * @return the decoded set
+   */
+  private Set<String> decodeSet(byte[] bytes) {
+    if (bytes == null) {
+      return null;
+    }
+    try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes))) {
+      int size = in.readInt();
+      Set<String> decoded = new HashSet<>(Math.max(5, size));
+      for (int i = 0; i < size; i++) {
+        int length = in.readInt();
+        byte[] entry = in.readNBytes(length);
+        decoded.add(new String(entry, StandardCharsets.UTF_8));
+      }
+      return decoded;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /** Evict the least recently used hot keys if cache exceeds capacity. */
+  private synchronized void evictIfNecessary() {
+    while (hotKeyCache.size() > hotKeyCacheSize) {
+      final String key = hotKeyCache.entrySet().iterator().next().getKey();
+      persistDirtyKeyIfNeeded(key);
+      hotKeyCache.remove(key);
+    }
+  }
+
+  /** Commit if enough writes have accumulated. */
+  private synchronized void commitIfNeeded() {
+    if (writesSinceCommit >= COMMIT_INTERVAL) {
+      store.commit();
+      writesSinceCommit = 0;
+    }
+  }
+
+  /** Log I/O progress for long-running builds. */
+  private synchronized void logIoProgressIfNeeded() {
+    final long totalIo = loadCount + saveCount;
+    if (totalIo > 0 && totalIo % IO_LOG_INTERVAL == 0 && totalIo != lastLoggedIoTotal) {
+      lastLoggedIoTotal = totalIo;
+      logger.info(
+          "  file map io: loads={}, saves={}, cacheHits={}, dirtyKeys={}, hotKeys={}",
+          loadCount,
+          saveCount,
+          cacheHitCount,
+          dirtyKeys.size(),
+          hotKeyCache.size());
+    }
+  }
+
+  /**
+   * Persist one key if it is dirty.
+   *
+   * @param key the key
+   */
+  private synchronized void persistDirtyKeyIfNeeded(String key) {
+    if (!dirtyKeys.contains(key)) {
+      return;
     }
 
-    // Swapping via loadShard will save the currently loaded one and overlay
-    for (Integer shardIndex : dirtyShards) {
-      if (shardIndex != currentShardIndex) {
-        loadShard(shardIndex);
+    final Set<String> value = hotKeyCache.get(key);
+    if (value == null) {
+      dirtyKeys.remove(key);
+      return;
+    }
+
+    backingMap.put(key, encodeSet(value));
+    dirtyKeys.remove(key);
+    saveCount++;
+    writesSinceCommit++;
+    commitIfNeeded();
+    logIoProgressIfNeeded();
+  }
+
+  /**
+   * Load a key from the MVStore and cache it.
+   *
+   * @param key the key
+   * @return the loaded set
+   */
+  private Set<String> loadValue(String key) {
+    ensureOpen();
+
+    synchronized (this) {
+      final Set<String> cached = hotKeyCache.get(key);
+      if (cached != null) {
+        cacheHitCount++;
+        return cached;
       }
     }
 
-    if (currentShardIndex != -1) {
-      saveShard(currentShardIndex);
+    final byte[] encoded = backingMap.get(key);
+    loadCount++;
+    logIoProgressIfNeeded();
+    if (encoded == null) {
+      return null;
+    }
+
+    final Set<String> value = wrapSet(key, decodeSet(encoded));
+    synchronized (this) {
+      hotKeyCache.put(key, value);
+      evictIfNecessary();
+    }
+    return value;
+  }
+
+  /** Flush all dirty cached keys to the MVStore. */
+  private synchronized void flushAll() {
+    if (closed) {
+      return;
+    }
+
+    final List<String> keysToFlush = new ArrayList<>(dirtyKeys);
+    for (String key : keysToFlush) {
+      persistDirtyKeyIfNeeded(key);
+    }
+
+    if (writesSinceCommit > 0 || store.hasUnsavedChanges()) {
+      store.commit();
+      writesSinceCommit = 0;
+    }
+  }
+
+  /** Clean up all files created by this map. */
+  private synchronized void cleanup() {
+    try {
+      if (!closed) {
+        try {
+          flushAll();
+        } catch (Exception e) {
+          // Ignore during shutdown cleanup
+        }
+        store.close();
+        closed = true;
+      }
+    } catch (Exception e) {
+      // Ignore during cleanup
+    }
+
+    try {
+      if (Files.exists(storageDir)) {
+        try (var paths = Files.walk(storageDir)) {
+          paths.sorted(Comparator.reverseOrder()).forEach(this::deleteQuietly);
+        }
+      }
+    } catch (IOException e) {
+      // Ignore during cleanup
+    }
+  }
+
+  /**
+   * Delete a path quietly.
+   *
+   * @param path the path
+   */
+  private void deleteQuietly(Path path) {
+    try {
+      Files.deleteIfExists(path);
+    } catch (IOException e) {
+      // Ignore during cleanup
     }
   }
 
@@ -239,17 +513,15 @@ public class FileSystemMap implements Map<String, Set<String>> {
     if (!(key instanceof String)) {
       return false;
     }
-    String strKey = (String) key;
 
+    final String strKey = (String) key;
     synchronized (this) {
       if (hotKeyCache.containsKey(strKey)) {
         return true;
       }
     }
-
-    int shardIndex = getShardIndex(strKey);
-    Map<String, Set<String>> shard = loadShard(shardIndex);
-    return shard.containsKey(key);
+    ensureOpen();
+    return backingMap.containsKey(strKey);
   }
 
   /* see superclass */
@@ -259,9 +531,20 @@ public class FileSystemMap implements Map<String, Set<String>> {
       return false;
     }
 
-    for (int i = 0; i < shardCount; i++) {
-      Map<String, Set<String>> shard = loadShard(i);
-      if (shard.containsValue(value)) {
+    @SuppressWarnings("unchecked")
+    final Set<String> target = (Set<String>) value;
+
+    synchronized (this) {
+      for (Set<String> cached : hotKeyCache.values()) {
+        if (cached.equals(target)) {
+          return true;
+        }
+      }
+    }
+
+    flushAll();
+    for (byte[] encoded : backingMap.values()) {
+      if (decodeSet(encoded).equals(target)) {
         return true;
       }
     }
@@ -274,27 +557,7 @@ public class FileSystemMap implements Map<String, Set<String>> {
     if (!(key instanceof String)) {
       return null;
     }
-    String strKey = (String) key;
-
-    synchronized (this) {
-      if (hotKeyCache.containsKey(strKey)) {
-        return hotKeyCache.get(strKey);
-      }
-    }
-
-    int shardIndex = getShardIndex(strKey);
-    Map<String, Set<String>> shard = loadShard(shardIndex);
-    Set<String> value = shard.get(strKey);
-
-    if (value != null) {
-      synchronized (this) {
-        hotKeyCache.put(strKey, value);
-        evictIfNecessary();
-      }
-    }
-
-    // Return directly so modifications will reflect in the shard memory
-    return value;
+    return loadValue((String) key);
   }
 
   /* see superclass */
@@ -303,24 +566,51 @@ public class FileSystemMap implements Map<String, Set<String>> {
     if (key == null) {
       throw new NullPointerException("Key cannot be null");
     }
+    ensureOpen();
 
-    int shardIndex = getShardIndex(key);
-    Map<String, Set<String>> shard = loadShard(shardIndex);
-    // No defensive copy, store directly
-    Set<String> oldValue = shard.put(key, value);
-
-    if (oldValue == null) {
-      synchronized (this) {
-        totalSize++;
-      }
-    }
+    final Set<String> wrappedValue = wrapSet(key, value == null ? null : new HashSet<>(value));
+    final Set<String> oldValue = get(key);
 
     synchronized (this) {
-      hotKeyCache.put(key, value);
+      if (oldValue == null) {
+        totalSize++;
+      }
+      hotKeyCache.put(key, wrappedValue);
+      markDirty(key);
       evictIfNecessary();
     }
 
     return oldValue;
+  }
+
+  /**
+   * Add a single value to the set for a key using one key-level lookup.
+   *
+   * @param key the key
+   * @param value the value
+   * @return true if the set changed
+   */
+  public boolean addToSet(String key, String value) {
+    if (key == null) {
+      throw new NullPointerException("Key cannot be null");
+    }
+    ensureOpen();
+
+    Set<String> set = get(key);
+    if (set == null) {
+      set = wrapSet(key, new HashSet<>(5));
+      synchronized (this) {
+        hotKeyCache.put(key, set);
+        totalSize++;
+        markDirty(key);
+      }
+    }
+
+    boolean changed = set.add(value);
+    synchronized (this) {
+      evictIfNecessary();
+    }
+    return changed;
   }
 
   /* see superclass */
@@ -329,97 +619,61 @@ public class FileSystemMap implements Map<String, Set<String>> {
     if (!(key instanceof String)) {
       return null;
     }
-    String strKey = (String) key;
+    ensureOpen();
 
-    int shardIndex = getShardIndex(strKey);
-    Map<String, Set<String>> shard = loadShard(shardIndex);
-    Set<String> oldValue = shard.remove(strKey);
-
-    if (oldValue != null) {
-      synchronized (this) {
-        totalSize--;
-      }
+    final String strKey = (String) key;
+    final Set<String> oldValue = get(strKey);
+    if (oldValue == null) {
+      return null;
     }
 
     synchronized (this) {
       hotKeyCache.remove(strKey);
+      dirtyKeys.remove(strKey);
+      backingMap.remove(strKey);
+      totalSize--;
+      saveCount++;
+      writesSinceCommit++;
+      commitIfNeeded();
+      logIoProgressIfNeeded();
     }
-
     return oldValue;
   }
 
   /* see superclass */
   @Override
   public void putAll(Map<? extends String, ? extends Set<String>> m) {
-    // Group puts by shard for efficiency
-    Map<Integer, List<Map.Entry<? extends String, ? extends Set<String>>>> byShard =
-        new HashMap<>();
-
     for (Map.Entry<? extends String, ? extends Set<String>> entry : m.entrySet()) {
-      int shardIndex = getShardIndex(entry.getKey());
-      byShard.computeIfAbsent(shardIndex, k -> new ArrayList<>()).add(entry);
-    }
-
-    // Process each shard
-    for (Map.Entry<Integer, List<Map.Entry<? extends String, ? extends Set<String>>>> shardEntry :
-        byShard.entrySet()) {
-      int shardIndex = shardEntry.getKey();
-      Map<String, Set<String>> shard = loadShard(shardIndex);
-
-      for (Map.Entry<? extends String, ? extends Set<String>> entry : shardEntry.getValue()) {
-        Set<String> oldValue = shard.put(entry.getKey(), entry.getValue());
-        if (oldValue == null) {
-          synchronized (this) {
-            totalSize++;
-          }
-        }
-      }
-    }
-
-    // Update hotkey cache safely without interrupting shard grouping logic
-    synchronized (this) {
-      for (Map.Entry<? extends String, ? extends Set<String>> entry : m.entrySet()) {
-        hotKeyCache.put(entry.getKey(), entry.getValue());
-      }
-      evictIfNecessary();
+      put(entry.getKey(), entry.getValue());
     }
   }
 
   /* see superclass */
   @Override
   public synchronized void clear() {
+    ensureOpen();
     hotKeyCache.clear();
-    currentShardIndex = -1;
-    currentShard = null;
+    dirtyKeys.clear();
+    backingMap.clear();
+    store.commit();
+    writesSinceCommit = 0;
     totalSize = 0;
-
-    for (int i = 0; i < shardCount; i++) {
-      try {
-        Files.deleteIfExists(getShardPath(i));
-      } catch (IOException e) {
-        // Continue with other shards
-      }
-    }
   }
 
   /* see superclass */
   @Override
   public Set<String> keySet() {
-    Set<String> keys = new HashSet<>();
-    for (int i = 0; i < shardCount; i++) {
-      Map<String, Set<String>> shard = loadShard(i);
-      keys.addAll(shard.keySet());
-    }
-    return keys;
+    flushAll();
+    return new HashSet<>(backingMap.keySet());
   }
 
   /* see superclass */
   @Override
   public Collection<Set<String>> values() {
+    flushAll();
     List<Set<String>> values = new ArrayList<>();
-    for (int i = 0; i < shardCount; i++) {
-      Map<String, Set<String>> shard = loadShard(i);
-      values.addAll(shard.values());
+    for (byte[] encoded : backingMap.values()) {
+      values.add(decodeSet(encoded));
     }
     return values;
   }
@@ -429,31 +683,12 @@ public class FileSystemMap implements Map<String, Set<String>> {
   public Set<Entry<String, Set<String>>> entrySet() {
     throw new UnsupportedOperationException(
         "See implementation if this is needed but it has spotbugs issues");
-    //    Set<Entry<String, Set<String>>> entries = new HashSet<>();
-    //    for (int i = 0; i < shardCount; i++) {
-    //      Map<String, Set<String>> shard = loadShard(i);
-    //      entries.addAll(shard.entrySet());
-    //    }
-    //    return entries;
   }
 
-  /** Clean up all files created by this map. */
-  private void cleanup() {
-    try {
-      // Delete all shard files
-      for (int i = 0; i < shardCount; i++) {
-        try {
-          Files.deleteIfExists(getShardPath(i));
-        } catch (IOException e) {
-          // Ignore errors during cleanup
-        }
-      }
-
-      // Delete the storage directory
-      Files.deleteIfExists(storageDir);
-    } catch (IOException e) {
-      // Ignore errors during cleanup
-    }
+  /* see superclass */
+  @Override
+  public synchronized void close() {
+    cleanup();
   }
 
   /**
@@ -466,25 +701,20 @@ public class FileSystemMap implements Map<String, Set<String>> {
   }
 
   /**
-   * Get the number of shards.
+   * Get the hot key cache size.
    *
-   * @return the shard count
+   * @return the hot key cache size
    */
-  public int getShardCount() {
-    return shardCount;
+  public int getHotKeyCacheSize() {
+    return hotKeyCacheSize;
   }
 
   /**
-   * Get statistics about shard distribution (useful for debugging).
+   * Get the store cache size in MB.
    *
-   * @return the shard distribution
+   * @return the store cache size
    */
-  public Map<Integer, Integer> getShardDistribution() {
-    Map<Integer, Integer> distribution = new HashMap<>();
-    for (int i = 0; i < shardCount; i++) {
-      Map<String, Set<String>> shard = loadShard(i);
-      distribution.put(i, shard.size());
-    }
-    return distribution;
+  public int getStoreCacheSizeMb() {
+    return storeCacheSizeMb;
   }
 }

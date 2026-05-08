@@ -87,8 +87,9 @@ public class HierarchyUtils {
   private static Map<String, Set<String>> initPathsMap(final Terminology terminology) {
 
     if (terminology.getTerminology().startsWith("snomed")) {
-      // Use a file-based map to avoid memory usage (for all terminologies)
-      return new FileSystemMap(512);
+      // Use a file-based map to avoid memory usage while retaining more data in memory during
+      // the SNOMED path build.
+      return new FileSystemMap(100000, 256);
     }
     return new HashMap<>();
   }
@@ -432,6 +433,9 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public void clearPathsMap(final Terminology terminology) throws Exception {
+    if (pathsMap instanceof FileSystemMap) {
+      ((FileSystemMap) pathsMap).close();
+    }
     pathsMap = null;
   }
 
@@ -459,33 +463,46 @@ public class HierarchyUtils {
       logger.info("    start build paths map");
       try (final BufferedReader in = new BufferedReader(new FileReader(file))) {
         int partCt = 0;
+        int pathCt = 0;
+        int uniquePathCt = 0;
         // Go from the end so we can remove entries as we work through
         String path = null;
         while ((path = in.readLine()) != null) {
+          pathCt++;
           final List<String> parts = Arrays.asList(path.split("\\|"));
           for (int i = 1; i < parts.size(); i++) {
             partCt++;
             final String key = parts.get(i);
             final String ptr = String.join("|", parts.subList(0, i + 1));
 
-            if (!pathsMap.containsKey(key)) {
-              // Keep set size to a minimum as most things have small numbers of
-              // paths
-              pathsMap.put(key, new HashSet<>(5));
+            final boolean changed;
+            if (pathsMap instanceof FileSystemMap) {
+              changed = ((FileSystemMap) pathsMap).addToSet(key, ptr);
+            } else {
+              changed = pathsMap.computeIfAbsent(key, k -> new HashSet<>(5)).add(ptr);
             }
 
-            if (!pathsMap.get(key).contains(ptr)) {
-              partCt++;
-              pathsMap.get(key).add(ptr);
+            if (changed) {
+              uniquePathCt++;
               pathsMapCt.put(key, pathsMap.get(key).size());
             }
           }
-          if (partCt % 5000 == 0) {
-            logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
-            // logMemory();
+          if (pathCt % 100000 == 0) {
+            logger.info(
+                "    paths processed = {}, path parts = {}, unique prefixes = {}, paths map = {}",
+                pathCt,
+                partCt,
+                uniquePathCt,
+                pathsMap.size());
           }
         }
-        logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
+        logger.info(
+            "    completed paths map build: leaf paths = {}, path parts = {}, unique prefixes = {},"
+                + " paths map = {}",
+            pathCt,
+            partCt,
+            uniquePathCt,
+            pathsMap.size());
         logMemory();
 
         // Report top 5 keys
