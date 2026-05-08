@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,11 @@ class FileSystemMapUnitTest {
     }
   }
 
+  /**
+   * Test basic operations default cache sizes.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should create map with default cache sizes")
   void testBasicOperations_DefaultCacheSizes() throws IOException {
@@ -43,15 +49,20 @@ class FileSystemMapUnitTest {
     assertEquals(256, map.getStoreCacheSizeMb());
   }
 
+  /**
+   * Test basic operations put and get.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should put and get values")
   void testBasicOperations_PutAndGet() throws IOException {
     map = new FileSystemMap();
 
-    Set<String> fruits = new HashSet<>(Arrays.asList("apple", "banana", "orange"));
+    final Set<String> fruits = new HashSet<>(Arrays.asList("apple", "banana", "orange"));
     map.put("fruits", fruits);
 
-    Set<String> retrieved = map.get("fruits");
+    final Set<String> retrieved = map.get("fruits");
     assertNotNull(retrieved);
     assertEquals(3, retrieved.size());
     assertTrue(retrieved.contains("apple"));
@@ -62,11 +73,16 @@ class FileSystemMapUnitTest {
     map.get("fruits2").add("apple");
     map.get("fruits2").add("banana");
     map.get("fruits2").add("orange");
-    Set<String> retrieved2 = map.get("fruits2");
+    final Set<String> retrieved2 = map.get("fruits2");
     assertNotNull(retrieved2);
     assertEquals(3, retrieved2.size());
   }
 
+  /**
+   * Test basic operations in place mutation persists.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should persist in-place set mutations")
   void testBasicOperations_InPlaceMutationPersists() throws IOException {
@@ -77,12 +93,17 @@ class FileSystemMapUnitTest {
     map.get("mutable").add("beta");
 
     assertEquals(1, map.size());
-    Set<String> retrieved = map.get("mutable");
+    final Set<String> retrieved = map.get("mutable");
     assertEquals(2, retrieved.size());
     assertTrue(retrieved.contains("alpha"));
     assertTrue(retrieved.contains("beta"));
   }
 
+  /**
+   * Test basic operations get non existent.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should return null for non-existent key")
   void testBasicOperations_GetNonExistent() throws IOException {
@@ -90,13 +111,18 @@ class FileSystemMapUnitTest {
     assertNull(map.get("non-existent-key"));
   }
 
+  /**
+   * Test basic operations multiple puts.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should handle multiple puts")
   void testBasicOperations_MultiplePuts() throws IOException {
     map = new FileSystemMap();
 
-    Set<String> fruits = new HashSet<>(Arrays.asList("apple", "banana"));
-    Set<String> colors = new HashSet<>(Arrays.asList("red", "blue"));
+    final Set<String> fruits = new HashSet<>(Arrays.asList("apple", "banana"));
+    final Set<String> colors = new HashSet<>(Arrays.asList("red", "blue"));
 
     map.put("fruits", fruits);
     map.put("colors", colors);
@@ -106,20 +132,30 @@ class FileSystemMapUnitTest {
     assertEquals(colors, map.get("colors"));
   }
 
+  /**
+   * Test basic operations remove.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should remove keys")
   void testBasicOperations_Remove() throws IOException {
     map = new FileSystemMap();
 
-    Set<String> values = new HashSet<>(Arrays.asList("value1", "value2"));
+    final Set<String> values = new HashSet<>(Arrays.asList("value1", "value2"));
     map.put("key", values);
 
-    Set<String> removed = map.remove("key");
+    final Set<String> removed = map.remove("key");
     assertEquals(values, removed);
     assertNull(map.get("key"));
     assertEquals(0, map.size());
   }
 
+  /**
+   * Test basic operations contains key.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should check if key exists")
   void testBasicOperations_ContainsKey() throws IOException {
@@ -129,18 +165,28 @@ class FileSystemMapUnitTest {
     assertFalse(map.containsKey("non-existent"));
   }
 
+  /**
+   * Test basic operations contains value.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should check if value exists")
   void testBasicOperations_ContainsValue() throws IOException {
     map = new FileSystemMap();
 
-    Set<String> values = new HashSet<>(Arrays.asList("value1", "value2"));
+    final Set<String> values = new HashSet<>(Arrays.asList("value1", "value2"));
     map.put("key", values);
 
     assertTrue(map.containsValue(values));
     assertFalse(map.containsValue(new HashSet<>(Arrays.asList("different"))));
   }
 
+  /**
+   * Test basic operations clear.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should clear all entries")
   void testBasicOperations_Clear() throws IOException {
@@ -155,6 +201,11 @@ class FileSystemMapUnitTest {
     assertTrue(map.isEmpty());
   }
 
+  /**
+   * Test basic operations is empty.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Basic Operations: Should return correct isEmpty status")
   void testBasicOperations_IsEmpty() throws IOException {
@@ -166,12 +217,17 @@ class FileSystemMapUnitTest {
     assertTrue(map.isEmpty());
   }
 
+  /**
+   * Test bulk operations put all.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Bulk Operations: Should handle putAll")
   void testBulkOperations_PutAll() throws IOException {
     map = new FileSystemMap(256);
 
-    Map<String, Set<String>> bulkData = new HashMap<>();
+    final Map<String, Set<String>> bulkData = new HashMap<>();
     bulkData.put("key1", new HashSet<>(Arrays.asList("v1", "v2")));
     bulkData.put("key2", new HashSet<>(Arrays.asList("v3", "v4")));
     bulkData.put("key3", new HashSet<>(Arrays.asList("v5", "v6")));
@@ -184,6 +240,11 @@ class FileSystemMapUnitTest {
     assertEquals(bulkData.get("key3"), map.get("key3"));
   }
 
+  /**
+   * Test bulk operations key set.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Bulk Operations: Should return correct keySet")
   void testBulkOperations_KeySet() throws IOException {
@@ -193,68 +254,88 @@ class FileSystemMapUnitTest {
     map.put("key2", new HashSet<>(Arrays.asList("b")));
     map.put("key3", new HashSet<>(Arrays.asList("c")));
 
-    Set<String> keys = map.keySet();
+    final Set<String> keys = map.keySet();
     assertEquals(3, keys.size());
     assertTrue(keys.contains("key1"));
     assertTrue(keys.contains("key2"));
     assertTrue(keys.contains("key3"));
   }
 
+  /**
+   * Test bulk operations values.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Bulk Operations: Should return correct values")
   void testBulkOperations_Values() throws IOException {
     map = new FileSystemMap(256);
 
-    Set<String> set1 = new HashSet<>(Arrays.asList("a", "b"));
-    Set<String> set2 = new HashSet<>(Arrays.asList("c", "d"));
+    final Set<String> set1 = new HashSet<>(Arrays.asList("a", "b"));
+    final Set<String> set2 = new HashSet<>(Arrays.asList("c", "d"));
     map.put("key1", set1);
     map.put("key2", set2);
 
-    Collection<Set<String>> values = map.values();
+    final Collection<Set<String>> values = map.values();
     assertEquals(2, values.size());
     assertTrue(values.contains(set1));
     assertTrue(values.contains(set2));
   }
 
+  /**
+   * Test large dataset ten thousand keys.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Large Dataset: Should handle 10,000 keys efficiently")
   void testLargeDataset_TenThousandKeys() throws IOException {
     map = new FileSystemMap(10000);
 
-    long startTime = System.currentTimeMillis();
+    final long startTime = System.currentTimeMillis();
     for (int i = 0; i < 10000; i++) {
       map.put(
           "key-" + i,
           new HashSet<>(
               Arrays.asList("value-" + i + "-1", "value-" + i + "-2", "value-" + i + "-3")));
     }
-    long duration = System.currentTimeMillis() - startTime;
+    final long duration = System.currentTimeMillis() - startTime;
 
     assertEquals(10000, map.size());
-    Set<String> retrieved = map.get("key-5000");
+    final Set<String> retrieved = map.get("key-5000");
     assertNotNull(retrieved);
     assertEquals(3, retrieved.size());
     assertTrue(duration < 30000, "Loading 10k keys took " + duration + "ms (should be < 30s)");
   }
 
+  /**
+   * Test large dataset bulk operations performance.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Large Dataset: Should handle bulk operations efficiently")
   void testLargeDataset_BulkOperationsPerformance() throws IOException {
     map = new FileSystemMap(5000);
 
-    Map<String, Set<String>> bulkData = new HashMap<>();
+    final Map<String, Set<String>> bulkData = new HashMap<>();
     for (int i = 0; i < 5000; i++) {
       bulkData.put("bulk-" + i, new HashSet<>(Arrays.asList("v1", "v2", "v3")));
     }
 
-    long startTime = System.currentTimeMillis();
+    final long startTime = System.currentTimeMillis();
     map.putAll(bulkData);
-    long duration = System.currentTimeMillis() - startTime;
+    final long duration = System.currentTimeMillis() - startTime;
 
     assertEquals(5000, map.size());
     assertTrue(duration < 20000, "putAll 5k entries took " + duration + "ms (should be < 20s)");
   }
 
+  /**
+   * Test configuration custom hot key cache size.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Configuration: Should create map with custom hot key cache size")
   void testConfiguration_CustomHotKeyCacheSize() throws IOException {
@@ -262,6 +343,11 @@ class FileSystemMapUnitTest {
     assertEquals(512, map.getHotKeyCacheSize());
   }
 
+  /**
+   * Test configuration configurable cache sizes.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Configuration: Should create map with configurable cache sizes")
   void testConfiguration_ConfigurableCacheSizes() throws IOException {
@@ -270,6 +356,11 @@ class FileSystemMapUnitTest {
     assertEquals(64, map.getStoreCacheSizeMb());
   }
 
+  /**
+   * Test auto persistence on put.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Auto-Persistence: Should persist data to store")
   void testAutoPersistence_OnPut() throws IOException {
@@ -277,12 +368,17 @@ class FileSystemMapUnitTest {
 
     map.put("test-key", new HashSet<>(Arrays.asList("value1", "value2")));
 
-    Path storageDir = map.getStorageDirectory();
+    final Path storageDir = map.getStorageDirectory();
     assertTrue(Files.exists(storageDir));
     assertEquals(1, map.size());
     assertTrue(map.keySet().contains("test-key"));
   }
 
+  /**
+   * Test auto persistence on remove.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Auto-Persistence: Should auto-persist on remove")
   void testAutoPersistence_OnRemove() throws IOException {
@@ -297,12 +393,17 @@ class FileSystemMapUnitTest {
     assertEquals(1, map.size());
   }
 
+  /**
+   * Test auto persistence on put all.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Auto-Persistence: Should auto-persist on putAll")
   void testAutoPersistence_OnPutAll() throws IOException {
     map = new FileSystemMap(16);
 
-    Map<String, Set<String>> bulk = new HashMap<>();
+    final Map<String, Set<String>> bulk = new HashMap<>();
     for (int i = 0; i < 100; i++) {
       bulk.put("bulk-" + i, new HashSet<>(Arrays.asList("v" + i)));
     }
@@ -312,6 +413,11 @@ class FileSystemMapUnitTest {
     assertEquals(100, map.keySet().size());
   }
 
+  /**
+   * Test auto persistence add to set.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Auto-Persistence: Should support addToSet without duplicates")
   void testAutoPersistence_AddToSet() throws IOException {
@@ -321,12 +427,17 @@ class FileSystemMapUnitTest {
     assertFalse(map.addToSet("path-key", "root|child"));
     assertTrue(map.addToSet("path-key", "root|child|leaf"));
 
-    Set<String> retrieved = map.get("path-key");
+    final Set<String> retrieved = map.get("path-key");
     assertEquals(2, retrieved.size());
     assertTrue(retrieved.contains("root|child"));
     assertTrue(retrieved.contains("root|child|leaf"));
   }
 
+  /**
+   * Test edge cases null key.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Edge Cases: Should throw exception for null key")
   void testEdgeCases_NullKey() throws IOException {
@@ -335,16 +446,26 @@ class FileSystemMapUnitTest {
         NullPointerException.class, () -> map.put(null, new HashSet<>(Arrays.asList("value"))));
   }
 
+  /**
+   * Test edge cases empty sets.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Edge Cases: Should handle empty sets")
   void testEdgeCases_EmptySets() throws IOException {
     map = new FileSystemMap();
     map.put("empty", new HashSet<>());
-    Set<String> retrieved = map.get("empty");
+    final Set<String> retrieved = map.get("empty");
     assertNotNull(retrieved);
     assertTrue(retrieved.isEmpty());
   }
 
+  /**
+   * Test edge cases special character keys.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Edge Cases: Should handle special characters in keys")
   void testEdgeCases_SpecialCharacterKeys() throws IOException {
@@ -360,26 +481,37 @@ class FileSystemMapUnitTest {
     assertNotNull(map.get("key with spaces"));
   }
 
+  /**
+   * Test edge cases overwrite existing.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Edge Cases: Should handle overwriting existing keys")
   void testEdgeCases_OverwriteExisting() throws IOException {
     map = new FileSystemMap();
 
-    Set<String> original = new HashSet<>(Arrays.asList("a", "b"));
-    Set<String> replacement = new HashSet<>(Arrays.asList("x", "y", "z"));
+    final Set<String> original = new HashSet<>(Arrays.asList("a", "b"));
+    final Set<String> replacement = new HashSet<>(Arrays.asList("x", "y", "z"));
 
     map.put("key", original);
-    Set<String> oldValue = map.put("key", replacement);
+    final Set<String> oldValue = map.put("key", replacement);
 
     assertEquals(original, oldValue);
     assertEquals(replacement, map.get("key"));
     assertEquals(1, map.size());
   }
 
+  /**
+   * Test integration polymorphic usage.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Test
   @DisplayName("Integration: Should work as polymorphic Map")
   void testIntegration_PolymorphicUsage() throws IOException {
-    Map<String, Set<String>> genericMap = new FileSystemMap(64);
+    @SuppressWarnings("resource")
+    final Map<String, Set<String>> genericMap = new FileSystemMap(64);
 
     genericMap.put("processed", new HashSet<>(Arrays.asList("p1", "p2")));
     genericMap.put("data", new HashSet<>(Arrays.asList("d1")));

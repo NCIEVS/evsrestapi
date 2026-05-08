@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 /** */
 public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
 
+  /** The Constant logger. */
   private static final Logger logger = LoggerFactory.getLogger(FileSystemMap.class);
 
   /** The default hot key cache size limit. */
@@ -99,27 +101,38 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
     /** The owning key. */
     private transient String key;
 
-    DirtyTrackingSet(Set<String> delegate, FileSystemMap owner, String key) {
+    /**
+     * Instantiates a new dirty tracking set.
+     *
+     * @param delegate the delegate
+     * @param owner the owner
+     * @param key the key
+     */
+    DirtyTrackingSet(final Set<String> delegate, final FileSystemMap owner, final String key) {
       this.delegate = delegate;
       this.owner = owner;
       this.key = key;
     }
 
-    void attach(FileSystemMap owner, String key) {
+    /**
+     * Attach.
+     *
+     * @param owner the owner
+     * @param key the key
+     */
+    void attach(final FileSystemMap owner, final String key) {
       this.owner = owner;
       this.key = key;
     }
 
+    /** Mark dirty. */
     private void markDirty() {
       if (owner != null) {
         owner.markDirty(key);
       }
     }
 
-    Set<String> copyDelegate() {
-      return new HashSet<>(delegate);
-    }
-
+    /* see superclass */
     @Override
     public Iterator<String> iterator() {
       final Iterator<String> delegateIterator = delegate.iterator();
@@ -142,61 +155,69 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
       };
     }
 
+    /* see superclass */
     @Override
     public int size() {
       return delegate.size();
     }
 
+    /* see superclass */
     @Override
-    public boolean contains(Object o) {
+    public boolean contains(final Object o) {
       return delegate.contains(o);
     }
 
+    /* see superclass */
     @Override
-    public boolean add(String e) {
-      boolean changed = delegate.add(e);
+    public boolean add(final String e) {
+      final boolean changed = delegate.add(e);
       if (changed) {
         markDirty();
       }
       return changed;
     }
 
+    /* see superclass */
     @Override
-    public boolean remove(Object o) {
-      boolean changed = delegate.remove(o);
+    public boolean remove(final Object o) {
+      final boolean changed = delegate.remove(o);
       if (changed) {
         markDirty();
       }
       return changed;
     }
 
+    /* see superclass */
     @Override
-    public boolean addAll(Collection<? extends String> c) {
-      boolean changed = delegate.addAll(c);
+    public boolean addAll(final Collection<? extends String> c) {
+      final boolean changed = delegate.addAll(c);
       if (changed) {
         markDirty();
       }
       return changed;
     }
 
+    /* see superclass */
     @Override
-    public boolean retainAll(Collection<?> c) {
-      boolean changed = delegate.retainAll(c);
+    public boolean retainAll(final Collection<?> c) {
+      final boolean changed = delegate.retainAll(c);
       if (changed) {
         markDirty();
       }
       return changed;
     }
 
+    /* see superclass */
     @Override
-    public boolean removeAll(Collection<?> c) {
-      boolean changed = delegate.removeAll(c);
+    public boolean removeAll(final Collection<?> c) {
+      final boolean changed = delegate.removeAll(c);
       if (changed) {
         markDirty();
       }
       return changed;
     }
 
+    /* see superclass */
     @Override
     public void clear() {
       if (!delegate.isEmpty()) {
@@ -216,7 +237,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    *
    * @param hotKeyCacheSize number of decoded keys to retain in memory
    */
-  public FileSystemMap(int hotKeyCacheSize) {
+  public FileSystemMap(final int hotKeyCacheSize) {
     this(hotKeyCacheSize, DEFAULT_STORE_CACHE_SIZE_MB);
   }
 
@@ -226,7 +247,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    * @param hotKeyCacheSize number of decoded keys to retain in memory
    * @param storeCacheSizeMb MVStore read cache size in MB
    */
-  public FileSystemMap(int hotKeyCacheSize, int storeCacheSizeMb) {
+  public FileSystemMap(final int hotKeyCacheSize, final int storeCacheSizeMb) {
     if (hotKeyCacheSize <= 0) {
       throw new IllegalArgumentException("Hot key cache size must be positive");
     }
@@ -258,7 +279,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
                     flushAll();
                     cleanup();
                   }));
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -279,7 +300,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    *
    * @param key the key
    */
-  private synchronized void markDirty(String key) {
+  private synchronized void markDirty(final String key) {
     dirtyKeys.add(key);
   }
 
@@ -290,12 +311,12 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    * @param value the value
    * @return the wrapped set
    */
-  private Set<String> wrapSet(String key, Set<String> value) {
+  private Set<String> wrapSet(final String key, final Set<String> value) {
     if (value == null) {
       return null;
     }
     if (value instanceof DirtyTrackingSet) {
-      DirtyTrackingSet wrapped = (DirtyTrackingSet) value;
+      final DirtyTrackingSet wrapped = (DirtyTrackingSet) value;
       wrapped.attach(this, key);
       return wrapped;
     }
@@ -308,20 +329,20 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    * @param value the value
    * @return the encoded bytes
    */
-  private byte[] encodeSet(Set<String> value) {
+  private byte[] encodeSet(final Set<String> value) {
     try {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      final ByteArrayOutputStream baos = new ByteArrayOutputStream();
       try (DataOutputStream out = new DataOutputStream(baos)) {
         out.writeInt(value.size());
-        for (String entry : value) {
-          byte[] bytes = entry.getBytes(StandardCharsets.UTF_8);
+        for (final String entry : value) {
+          final byte[] bytes = entry.getBytes(StandardCharsets.UTF_8);
           out.writeInt(bytes.length);
           out.write(bytes);
         }
         out.flush();
       }
       return baos.toByteArray();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -332,20 +353,20 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    * @param bytes the encoded bytes
    * @return the decoded set
    */
-  private Set<String> decodeSet(byte[] bytes) {
+  private Set<String> decodeSet(final byte[] bytes) {
     if (bytes == null) {
       return null;
     }
     try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes))) {
-      int size = in.readInt();
-      Set<String> decoded = new HashSet<>(Math.max(5, size));
+      final int size = in.readInt();
+      final Set<String> decoded = new HashSet<>(Math.max(5, size));
       for (int i = 0; i < size; i++) {
-        int length = in.readInt();
-        byte[] entry = in.readNBytes(length);
+        final int length = in.readInt();
+        final byte[] entry = in.readNBytes(length);
         decoded.add(new String(entry, StandardCharsets.UTF_8));
       }
       return decoded;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -373,7 +394,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
     if (totalIo > 0 && totalIo % IO_LOG_INTERVAL == 0 && totalIo != lastLoggedIoTotal) {
       lastLoggedIoTotal = totalIo;
       logger.info(
-          "  file map io: loads={}, saves={}, cacheHits={}, dirtyKeys={}, hotKeys={}",
+          "      file map io: loads={}, saves={}, cacheHits={}, dirtyKeys={}, hotKeys={}",
           loadCount,
           saveCount,
           cacheHitCount,
@@ -387,7 +408,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    *
    * @param key the key
    */
-  private synchronized void persistDirtyKeyIfNeeded(String key) {
+  private synchronized void persistDirtyKeyIfNeeded(final String key) {
     if (!dirtyKeys.contains(key)) {
       return;
     }
@@ -412,7 +433,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    * @param key the key
    * @return the loaded set
    */
-  private Set<String> loadValue(String key) {
+  private Set<String> loadValue(final String key) {
     ensureOpen();
 
     synchronized (this) {
@@ -445,7 +466,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
     }
 
     final List<String> keysToFlush = new ArrayList<>(dirtyKeys);
-    for (String key : keysToFlush) {
+    for (final String key : keysToFlush) {
       persistDirtyKeyIfNeeded(key);
     }
 
@@ -461,13 +482,13 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
       if (!closed) {
         try {
           flushAll();
-        } catch (Exception e) {
+        } catch (final Exception e) {
           // Ignore during shutdown cleanup
         }
         store.close();
         closed = true;
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // Ignore during cleanup
     }
 
@@ -477,7 +498,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
           paths.sorted(Comparator.reverseOrder()).forEach(this::deleteQuietly);
         }
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       // Ignore during cleanup
     }
   }
@@ -487,10 +508,10 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    *
    * @param path the path
    */
-  private void deleteQuietly(Path path) {
+  private void deleteQuietly(final Path path) {
     try {
       Files.deleteIfExists(path);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       // Ignore during cleanup
     }
   }
@@ -509,7 +530,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
 
   /* see superclass */
   @Override
-  public boolean containsKey(Object key) {
+  public boolean containsKey(final Object key) {
     if (!(key instanceof String)) {
       return false;
     }
@@ -526,7 +547,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
 
   /* see superclass */
   @Override
-  public boolean containsValue(Object value) {
+  public boolean containsValue(final Object value) {
     if (!(value instanceof Set)) {
       return false;
     }
@@ -535,7 +556,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
     final Set<String> target = (Set<String>) value;
 
     synchronized (this) {
-      for (Set<String> cached : hotKeyCache.values()) {
+      for (final Set<String> cached : hotKeyCache.values()) {
         if (cached.equals(target)) {
           return true;
         }
@@ -543,7 +564,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
     }
 
     flushAll();
-    for (byte[] encoded : backingMap.values()) {
+    for (final byte[] encoded : backingMap.values()) {
       if (decodeSet(encoded).equals(target)) {
         return true;
       }
@@ -553,7 +574,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
 
   /* see superclass */
   @Override
-  public Set<String> get(Object key) {
+  public Set<String> get(final Object key) {
     if (!(key instanceof String)) {
       return null;
     }
@@ -562,7 +583,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
 
   /* see superclass */
   @Override
-  public Set<String> put(String key, Set<String> value) {
+  public Set<String> put(final String key, final Set<String> value) {
     if (key == null) {
       throw new NullPointerException("Key cannot be null");
     }
@@ -590,7 +611,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
    * @param value the value
    * @return true if the set changed
    */
-  public boolean addToSet(String key, String value) {
+  public boolean addToSet(final String key, final String value) {
     if (key == null) {
       throw new NullPointerException("Key cannot be null");
     }
@@ -606,7 +627,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
       }
     }
 
-    boolean changed = set.add(value);
+    final boolean changed = set.add(value);
     synchronized (this) {
       evictIfNecessary();
     }
@@ -615,7 +636,7 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
 
   /* see superclass */
   @Override
-  public Set<String> remove(Object key) {
+  public Set<String> remove(final Object key) {
     if (!(key instanceof String)) {
       return null;
     }
@@ -642,8 +663,8 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
 
   /* see superclass */
   @Override
-  public void putAll(Map<? extends String, ? extends Set<String>> m) {
-    for (Map.Entry<? extends String, ? extends Set<String>> entry : m.entrySet()) {
+  public void putAll(final Map<? extends String, ? extends Set<String>> m) {
+    for (final Map.Entry<? extends String, ? extends Set<String>> entry : m.entrySet()) {
       put(entry.getKey(), entry.getValue());
     }
   }
@@ -671,8 +692,8 @@ public class FileSystemMap implements Map<String, Set<String>>, AutoCloseable {
   @Override
   public Collection<Set<String>> values() {
     flushAll();
-    List<Set<String>> values = new ArrayList<>();
-    for (byte[] encoded : backingMap.values()) {
+    final List<Set<String>> values = new ArrayList<>();
+    for (final byte[] encoded : backingMap.values()) {
       values.add(decodeSet(encoded));
     }
     return values;
