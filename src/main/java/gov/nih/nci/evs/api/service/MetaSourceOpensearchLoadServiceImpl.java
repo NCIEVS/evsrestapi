@@ -1059,18 +1059,19 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
       }
 
       // Determine concept2 (lookup the code for the AUI)
-      String concept2 = null;
-      // if matching STYPE2/AUI2 attribute
-      if (!fields[5].isEmpty() && auiCodeMap.containsKey(fields[5])) {
-        concept2 = auiCodeMap.get(fields[5]);
+      String concept2 = auiCodeMap.get(fields[5]);
 
-        // This is unexpected, except for cross-terminology mapping rels
-        if (concept2 == null && !rela.contains("map")) {
-          if (!rela.contains("map")) {
-            throw new Exception("AUI2 for relationship cannot be resolved = " + line);
-          }
-          continue;
+      // This is unexpected, except for cross-terminology mapping rels
+      if (concept2 == null && !rela.contains("map")) {
+        if (!rela.contains("map")) {
+          throw new Exception("AUI2 for relationship cannot be resolved = " + line);
         }
+        continue;
+      }
+
+      // Skip if concept2 is still null (e.g. map rela)
+      if (concept2 == null) {
+        continue;
       }
 
       // Skip combinations already seen (all will have the same SAB here)
@@ -1486,8 +1487,14 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
       // Attempt to read the config, if anything goes wrong
       // the config file is probably not there
       try {
+        // Map hl7v30 to hl7v3.0 for file lookup
+        String metadataName = terminology.toLowerCase();
+        if (metadataName.equals("hl7v30")) {
+          metadataName = "hl7v3.0";
+        }
+
         // Load from config
-        final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
+        final JsonNode node = getMetadataAsNode(metadataName);
         final TerminologyMetadata metadata =
             ThreadLocalMapper.get().treeToValue(node, TerminologyMetadata.class);
 
@@ -1501,15 +1508,19 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
         metadata.setLoader("rrf");
         metadata.setSources(sourceMap);
         metadata.setSourceCt(1);
-        metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
+        metadata.setWelcomeText(getWelcomeText(metadataName));
         term.setMetadata(metadata);
 
       } catch (Exception e) {
+        String metadataName = terminology.toLowerCase();
+        if (metadataName.equals("hl7v30")) {
+          metadataName = "hl7v3.0";
+        }
         throw new Exception(
             "Unexpected error trying to load metadata = "
                 + applicationProperties.getConfigBaseUri()
                 + "/"
-                + terminology.toLowerCase()
+                + metadataName
                 + ".json",
             e);
       }
@@ -1566,6 +1577,10 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
    * @return true, if successful
    */
   private boolean sabMatch(final String sab1, final String sab2) {
-    return sab1.toLowerCase().equals(sab2) || (sab1.equals("HL7V3.0") && sab2.equals("hl7v30"));
+    if (sab1 == null || sab2 == null) {
+      return false;
+    }
+    // Normalize both for comparison: lowercase and strip dots
+    return sab1.toLowerCase().replace(".", "").equals(sab2.toLowerCase().replace(".", ""));
   }
 }
