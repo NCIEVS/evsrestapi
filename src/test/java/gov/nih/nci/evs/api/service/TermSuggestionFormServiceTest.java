@@ -14,7 +14,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -23,13 +22,14 @@ import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -67,9 +67,6 @@ public class TermSuggestionFormServiceTest {
   /** The application properties. DO NOT mock this, as it needs to pick up the actual properties. */
   @Autowired private ApplicationProperties applicationProperties;
 
-  /** The object mapper. */
-  @Mock private ObjectMapper objectMapper;
-
   /** The term form service. */
   // Inject mocks automatically into FormEmailServiceImpl
   private TermSuggestionFormServiceImpl termFormService;
@@ -99,10 +96,25 @@ public class TermSuggestionFormServiceTest {
   @Value("${nci.evs.application.configBaseUri}")
   private String configUrl;
 
+  /** Original config base URI. */
+  private String originalConfigBaseUri;
+
+  /** Original recaptcha site key. */
+  private String originalRecaptchaSiteKey;
+
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
+    originalConfigBaseUri = applicationProperties.getConfigBaseUri();
+    originalRecaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
     termFormService = new TermSuggestionFormServiceImpl(javaMailSender, applicationProperties);
+  }
+
+  /** Restore mutable application properties changed by tests. */
+  @AfterEach
+  public void tearDown() {
+    applicationProperties.setConfigBaseUri(originalConfigBaseUri);
+    applicationProperties.setRecaptchaSiteKey(originalRecaptchaSiteKey);
   }
 
   /**
@@ -110,16 +122,15 @@ public class TermSuggestionFormServiceTest {
    *
    * @throws Exception throws exception
    */
-  @SuppressWarnings("resource")
   @Test
-  public void testGetFormTemplate() throws Exception {
+  public void testGetFormTemplate(@TempDir Path configDir) throws Exception {
     // SET UP
     String formType = "ncit-form";
-    JsonNode termForm = ThreadLocalMapper.get().createObjectNode();
-
-    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(new URI(configUrl + "/" + formType + ".json").toURL()))
-        .thenReturn(termForm);
+    Files.writeString(
+        configDir.resolve(formType + ".json"),
+        "{\"recipientEmail\":\"" + toEmail + "\",\"title\":\"NCIt form\"}");
+    applicationProperties.setConfigBaseUri(toConfigBaseUri(configDir));
+    applicationProperties.setRecaptchaSiteKey("test-site-key");
 
     // ACT
     JsonNode returnedForm = termFormService.getFormTemplate(formType);
@@ -128,7 +139,8 @@ public class TermSuggestionFormServiceTest {
     assertNotNull(returnedForm);
     assertTrue(returnedForm.isObject());
     // Verify the recaptcha site key was set and is in the response
-    assertNotNull(returnedForm.get("recaptchaSiteKey").asText());
+    assertEquals("test-site-key", returnedForm.get("recaptchaSiteKey").asText());
+    assertEquals(toEmail, returnedForm.get("recipientEmail").asText());
   }
 
   /**
@@ -243,7 +255,6 @@ public class TermSuggestionFormServiceTest {
     String filePath = configUrl + "/" + formType + ".json";
 
     assertEquals(configUrl, applicationProperties.getConfigBaseUri());
-    // when(objectMapper.readTree(any(URL.class).openStream())).thenReturn(termForm);
 
     // ACT & ASSERT
 
@@ -528,5 +539,16 @@ public class TermSuggestionFormServiceTest {
     testEmailDetails.setMsgBody(msgBody);
 
     return testEmailDetails;
+  }
+
+  /**
+   * Returns a file URI without a trailing slash because the service appends the form filename.
+   *
+   * @param directory the config directory
+   * @return the base URI
+   */
+  private String toConfigBaseUri(Path directory) {
+    String uri = directory.toUri().toString();
+    return uri.endsWith("/") ? uri.substring(0, uri.length() - 1) : uri;
   }
 }
