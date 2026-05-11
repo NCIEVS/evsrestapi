@@ -57,9 +57,7 @@ public class Hl7v30SampleTest extends SampleTest {
     assertThat(list).isNotNull();
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThanOrEqualTo(2);
-    assertThat(list.getConcepts())
-        .extracting(Concept::getCode)
-        .contains("41-11255", "41-11672");
+    assertThat(list.getConcepts()).extracting(Concept::getCode).contains("41-11255", "41-11672");
 
     Concept typhoid =
         list.getConcepts().stream()
