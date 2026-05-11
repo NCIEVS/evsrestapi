@@ -127,16 +127,12 @@ dependencies {
   implementation "org.apache.commons:commons-text:1.10.0"
   //implementation "org.apache.opennlp:opennlp-tools:2.2.0"
 
-  // Upgrade ecache to use jakarta - https://groups.google.com/g/ehcache-users/c/sKfxWuTpY-U
-  // See also: https://stackoverflow.com/questions/75813659/gradle-could-not-find-org-ehcacheehcache-after-upgrading-to-spring-boot-3-0-x
-  // Note: ehcache 3.10.8 uses Jakarta by default, no classifier needed
-  implementation "org.ehcache:ehcache:3.10.9"
-
-  // JAXB dependencies required for ehcache with Java 9+
-  // ehcache 3.10.8 still uses JAXB internally for XML parsing,
-  // but we prefer Jakarta for better Java 21+ compatibility
-  implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.4'
-  implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.6'
+  // Use Ehcache's Jakarta variant so XML configuration parsing uses Jakarta JAXB.
+  implementation("org.ehcache:ehcache:3.11.1") {
+    capabilities {
+      requireCapability("org.ehcache:ehcache-jakarta")
+    }
+  }
 
   // Apache POI for reading .xls and .xlsx files
   implementation 'org.apache.poi:poi:5.4.0'
