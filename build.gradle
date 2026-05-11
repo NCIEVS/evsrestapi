@@ -166,8 +166,8 @@ dependencies {
   }
   implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.6.1"
 
-  // disk-backed map implementation - unfortunately this has vulnerabilities and so we can't use it.
-  // implementation "org.mapdb:mapdb:3.1.0"
+  // disk-backed map implementation for hierarchy path builds
+  implementation "com.h2database:h2:2.4.240"
 
   // Lombok dependencies (avoid using lombok for now)
   //implementation "org.projectlombok:lombok:1.18.32"

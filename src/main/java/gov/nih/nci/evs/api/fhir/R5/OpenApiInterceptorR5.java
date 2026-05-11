@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -1648,7 +1647,8 @@ public class OpenApiInterceptorR5 {
           builder.append(UrlUtil.escapeUrlParam(nextEntry.getKey()));
           builder.append("=");
           builder.append(
-              UrlUtil.escapeUrlParam(defaultIfNull(nextEntry.getValue(), "").toString()));
+              UrlUtil.escapeUrlParam(
+                  nextEntry.getValue() == null ? "" : nextEntry.getValue().toString()));
           if (iter.hasNext()) {
             builder.append("&");
           }
