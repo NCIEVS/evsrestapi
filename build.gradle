@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '3.5.13'
+    springBootVersion = '3.5.14'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
@@ -116,8 +116,8 @@ dependencies {
   // other explicit vulnerability overrides
   implementation "org.apache.commons:commons-lang3:3.18.0"
   implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.54"
-  implementation "org.thymeleaf:thymeleaf:3.1.4.RELEASE"
-  implementation "org.thymeleaf:thymeleaf-spring6:3.1.4.RELEASE"
+  implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
+  implementation "org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE"
 
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
@@ -166,8 +166,8 @@ dependencies {
   }
   implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.6.1"
 
-  // disk-backed map implementation - unfortunately this has vulnerabilities and so we can't use it.
-  // implementation "org.mapdb:mapdb:3.1.0"
+  // disk-backed map implementation for hierarchy path builds
+  implementation "com.h2database:h2:2.4.240"
 
   // Lombok dependencies (avoid using lombok for now)
   //implementation "org.projectlombok:lombok:1.18.32"
