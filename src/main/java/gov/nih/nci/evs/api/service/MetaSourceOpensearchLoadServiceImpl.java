@@ -42,6 +42,11 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
   private static final Logger logger =
       LoggerFactory.getLogger(MetaSourceOpensearchLoadServiceImpl.class);
 
+  /** The duplicate code definition. */
+  private static final String DUPLICATE_CODE_DEFINITION =
+      "The code for this concept is reused across multiple contexts and so a differentiating value"
+          + " has been used to make the code values unique.";
+
   /** index batch size *. */
   @Value("${nci.evs.bulkload.indexBatchSize}")
   private int INDEX_BATCH_SIZE;
@@ -237,7 +242,7 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
           auiCodeMap.put(fields[7], code);
 
           // Track SCUI and CUI
-          if (Boolean.TRUE.equals(terminology.getMetadata().getDuplicateCodes())) {
+          if (hasDuplicateCodes(terminology)) {
             if (!auiContextMap.containsKey(fields[7])) {
               auiContextMap.put(fields[7], new AuiContext());
             }
@@ -257,7 +262,7 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
       }
 
       // Handle codes with multiple SCUI values
-      if (Boolean.TRUE.equals(terminology.getMetadata().getDuplicateCodes())) {
+      if (hasDuplicateCodes(terminology)) {
         for (final String code : new HashSet<>(codeAuisMap.keySet())) {
           Set<String> uniqueScuis = new HashSet<>();
           for (final String aui : codeAuisMap.get(code)) {
@@ -646,6 +651,9 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
                           .map(s -> s.getTermType())
                           .collect(Collectors.toSet()));
             }
+            if (hasDuplicateCodes(terminology) && !code.equals(fields[13])) {
+              addDuplicateCodeDefinition(terminology, concept, fields[11]);
+            }
             codeConceptMap.put(code, concept);
           }
 
@@ -982,6 +990,24 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
+   * Adds the duplicate code definition.
+   *
+   * @param terminology the terminology
+   * @param concept the concept
+   * @param source the source
+   */
+  private void addDuplicateCodeDefinition(
+      final Terminology terminology, final Concept concept, final String source) {
+    final Definition def = new Definition();
+    def.setDefinition(DUPLICATE_CODE_DEFINITION);
+    def.setSource(source);
+    def.setType("DEFINITION");
+    terminology.getMetadata().getDefinitionSourceSet().add(source);
+    concept.getDefinitions().add(def);
+    definitionCt++;
+  }
+
+  /**
    * Handle relationships.
    *
    * @param hierarchy the hierarchy
@@ -1062,15 +1088,10 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
       String concept2 = auiCodeMap.get(fields[5]);
 
       // This is unexpected, except for cross-terminology mapping rels
-      if (concept2 == null && !rela.contains("map")) {
+      if (concept2 == null) {
         if (!rela.contains("map")) {
           throw new Exception("AUI2 for relationship cannot be resolved = " + line);
         }
-        continue;
-      }
-
-      // Skip if concept2 is still null (e.g. map rela)
-      if (concept2 == null) {
         continue;
       }
 
@@ -1484,6 +1505,11 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
         }
       }
 
+      if (term.getTerminology() == null) {
+        throw new Exception(
+            "Unable to find matching MRSAB.RRF row for terminology = " + terminology);
+      }
+
       // Attempt to read the config, if anything goes wrong
       // the config file is probably not there
       try {
@@ -1566,6 +1592,18 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
           "Missing or incorrect metaConceptField = "
               + terminology.getMetadata().getMetaConceptField());
     }
+  }
+
+  /**
+   * Indicates whether duplicate code handling should be enabled.
+   *
+   * @param terminology the terminology
+   * @return true, if duplicate code handling should be enabled
+   */
+  private boolean hasDuplicateCodes(final Terminology terminology) {
+    return terminology != null
+        && terminology.getMetadata() != null
+        && Boolean.TRUE.equals(terminology.getMetadata().getDuplicateCodes());
   }
 
   /**

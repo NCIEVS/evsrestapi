@@ -44,7 +44,7 @@ public class Hl7v30SampleTest extends SampleTest {
   @Test
   public void testDuplicateCodeDisambiguation() throws Exception {
 
-    String url = "/api/v1/concept/search?terminology=hl7v30&term=41&include=parents&pageSize=2";
+    String url = "/api/v1/concept/search?terminology=hl7v30&term=41&include=parents&pageSize=20";
     log.info("Testing url - " + url);
     MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
@@ -57,13 +57,20 @@ public class Hl7v30SampleTest extends SampleTest {
     assertThat(list).isNotNull();
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThanOrEqualTo(2);
+    assertThat(list.getConcepts())
+        .extracting(Concept::getCode)
+        .contains("41-11255", "41-11672");
 
-    Concept concept1 = list.getConcepts().get(0);
-    Concept concept2 = list.getConcepts().get(1);
-
-    // Order isn't strictly guaranteed, so assign based on code
-    Concept typhoid = concept1.getCode().equals("41-11255") ? concept1 : concept2;
-    Concept tribe = concept1.getCode().equals("41-11672") ? concept1 : concept2;
+    Concept typhoid =
+        list.getConcepts().stream()
+            .filter(concept -> concept.getCode().equals("41-11255"))
+            .findFirst()
+            .orElseThrow();
+    Concept tribe =
+        list.getConcepts().stream()
+            .filter(concept -> concept.getCode().equals("41-11672"))
+            .findFirst()
+            .orElseThrow();
 
     assertThat(typhoid.getCode()).isEqualTo("41-11255");
     assertThat(typhoid.getTerminology()).isEqualTo("hl7v30");
@@ -78,5 +85,20 @@ public class Hl7v30SampleTest extends SampleTest {
     assertThat(tribe.getParents()).isNotEmpty();
     assertThat(tribe.getParents().size()).isEqualTo(1);
     assertThat(tribe.getParents().get(0).getCode()).isEqualTo("_NativeEntityContiguous");
+
+    url = "/api/v1/concept/hl7v30/41";
+    log.info("Testing url - " + url);
+    testMvc.perform(get(url)).andExpect(status().isNotFound());
+
+    url = "/api/v1/concept/hl7v30/41-11255?include=definitions";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Concept differentiatedConcept = ThreadLocalMapper.get().readValue(content, Concept.class);
+    assertThat(differentiatedConcept.getDefinitions())
+        .extracting(definition -> definition.getDefinition())
+        .contains(
+            "The code for this concept is reused across multiple contexts and so a differentiating"
+                + " value has been used to make the code values unique.");
   }
 }
