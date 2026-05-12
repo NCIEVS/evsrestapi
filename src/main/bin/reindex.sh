@@ -585,7 +585,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Verify that max_result_window on evs_mappings is set to 3000000
-if [[ `curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" | grep -c max_result_window` -eq 0 ]]; then
+if [[ `curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" | grep max_result_window | grep -c 300000` -eq 0 ]]; then
     # Set the indexes to have a larger max_result_window
     echo "  Set max result window to 300000 for evs_mappings"
     curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" \
