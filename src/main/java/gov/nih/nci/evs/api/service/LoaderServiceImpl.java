@@ -205,7 +205,7 @@ public class LoaderServiceImpl {
       Date startDate = new Date();
       termAudit.setStartDate(startDate);
       // which indexing object do we need to use
-      if (cmd.getOptionValue("t").equals("mapping")) {
+      if ("mapping".equals(cmd.getOptionValue("t"))) {
         loadService = app.getBean(MappingLoaderServiceImpl.class);
         loadService.initialize();
         loadService.loadObjects(null, null, null);
@@ -220,9 +220,9 @@ public class LoaderServiceImpl {
         }
       }
       if (cmd.hasOption('d')) {
-        if (cmd.getOptionValue("t").equals("ncim")) {
+        if ("ncim".equals(cmd.getOptionValue("t"))) {
           loadService = app.getBean(MetaOpensearchLoadServiceImpl.class);
-        } else if (cmd.getOptionValue("t").startsWith("ncit")) {
+        } else if (cmd.getOptionValue("t") != null && cmd.getOptionValue("t").startsWith("ncit")) {
           loadService = app.getBean(GraphOpensearchLoadServiceImpl.class);
         } else {
           loadService = app.getBean(MetaSourceOpensearchLoadServiceImpl.class);
@@ -235,7 +235,7 @@ public class LoaderServiceImpl {
       termAudit.setProcess(loadService.getClass().getSimpleName());
 
       loadService.initialize();
-      if (cmd.hasOption("xl") && cmd.getOptionValue("t").equals("reconcile")) {
+      if (cmd.hasOption("xl") && "reconcile".equals(cmd.getOptionValue("t"))) {
         // The logging info in its current state does not log in the console, but instead into a
         // temp file (/tmp/x.$$.log) that the reconciliation output is redirected to.
         // This can be changed to show the logs in the console by removing that redirect.
