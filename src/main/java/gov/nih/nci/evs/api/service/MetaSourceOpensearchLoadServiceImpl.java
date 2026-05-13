@@ -16,10 +16,8 @@ import gov.nih.nci.evs.api.util.*;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +41,11 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
   private static final Logger logger =
       LoggerFactory.getLogger(MetaSourceOpensearchLoadServiceImpl.class);
+
+  /** The duplicate code definition. */
+  private static final String DUPLICATE_CODE_DEFINITION =
+      "The code for this concept is reused across multiple contexts and so a differentiating value"
+          + " has been used to make the code values unique.";
 
   /** index batch size *. */
   @Value("${nci.evs.bulkload.indexBatchSize}")
@@ -175,6 +178,14 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
             "No preferred term types are specified, meaning no preferred names can be chosen");
       }
 
+      class AuiContext {
+        String scui;
+        String cui;
+        String name;
+        Integer rank;
+      }
+      Map<String, AuiContext> auiContextMap = new HashMap<>();
+
       String line = null;
       // Loop through concept lines until we reach "the end"
       while ((line = mrconso.readLine()) != null) {
@@ -211,6 +222,11 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
             nameMap.put(code, fields[14]);
             nameRankMap.put(code, rank);
           }
+          if (!auiContextMap.containsKey(fields[7])) {
+            auiContextMap.put(fields[7], new AuiContext());
+          }
+          auiContextMap.get(fields[7]).name = fields[14];
+          auiContextMap.get(fields[7]).rank = rank;
         }
 
         // If this MRCONSO entry has a "code" in this CUI, remember it
@@ -224,6 +240,15 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
           codeAuisMap.get(code).add(fields[7]);
           // CODE for an AUI
           auiCodeMap.put(fields[7], code);
+
+          // Track SCUI and CUI
+          if (hasDuplicateCodes(terminology)) {
+            if (!auiContextMap.containsKey(fields[7])) {
+              auiContextMap.put(fields[7], new AuiContext());
+            }
+            auiContextMap.get(fields[7]).scui = fields[9];
+            auiContextMap.get(fields[7]).cui = fields[0];
+          }
         }
 
         // Cache mapsets
@@ -233,6 +258,61 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
           // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
           // |SNOMEDCT_US_2022_03_01 to ICD10_2016 Mappings
           mapsets.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
+        }
+      }
+
+      // Handle codes with multiple SCUI values
+      if (hasDuplicateCodes(terminology)) {
+        for (final String code : new HashSet<>(codeAuisMap.keySet())) {
+          Set<String> uniqueScuis = new HashSet<>();
+          for (final String aui : codeAuisMap.get(code)) {
+            AuiContext ctx = auiContextMap.get(aui);
+            if (ctx != null && ctx.scui != null && !ctx.scui.isEmpty()) {
+              uniqueScuis.add(ctx.scui);
+            }
+          }
+
+          if (uniqueScuis.size() > 1) {
+            logger.info("  Duplicate code detected: " + code + " with SCUIs: " + uniqueScuis);
+            for (final String aui : new HashSet<>(codeAuisMap.get(code))) {
+              AuiContext ctx = auiContextMap.get(aui);
+              if (ctx == null || ctx.scui == null || ctx.scui.isEmpty()) continue;
+              final String newCode = code + "-" + ctx.scui;
+
+              // Update auiCodeMap
+              auiCodeMap.put(aui, newCode);
+
+              // Update codeAuisMap
+              codeAuisMap.get(code).remove(aui);
+              if (!codeAuisMap.containsKey(newCode)) {
+                codeAuisMap.put(newCode, new HashSet<>());
+              }
+              codeAuisMap.get(newCode).add(aui);
+
+              // Update codeCuisMap
+              codeCuisMap.get(code).remove(ctx.cui);
+              if (!codeCuisMap.containsKey(newCode)) {
+                codeCuisMap.put(newCode, new HashSet<>());
+              }
+              codeCuisMap.get(newCode).add(ctx.cui);
+
+              // Update nameMap and nameRankMap
+              if (ctx.name != null && ctx.rank != null) {
+                if (!nameRankMap.containsKey(newCode) || ctx.rank < nameRankMap.get(newCode)) {
+                  nameMap.put(newCode, ctx.name);
+                  nameRankMap.put(newCode, ctx.rank);
+                }
+              }
+            }
+
+            // Clean up old code entries if it became empty
+            if (codeAuisMap.get(code).isEmpty()) {
+              codeAuisMap.remove(code);
+              codeCuisMap.remove(code);
+              nameMap.remove(code);
+              nameRankMap.remove(code);
+            }
+          }
         }
       }
 
@@ -368,6 +448,8 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
 
         if (fields[3].equals("PAR")
             && !srcAuis.contains(fields[5])
+            && auiCodeMap.get(fields[5]) != null
+            && auiCodeMap.get(fields[1]) != null
             && !auiCodeMap.get(fields[5]).equals(auiCodeMap.get(fields[1]))) {
           final StringBuffer str = new StringBuffer();
           str.append(auiCodeMap.get(fields[5]));
@@ -537,7 +619,10 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
         if (sabMatch(sab, terminology.getTerminology())) {
 
           // Lookup the code
-          final String code = getCode(terminology, fields);
+          String code = auiCodeMap.get(fields[7]);
+          if (code == null) {
+            code = getCode(terminology, fields);
+          }
 
           // Skip NOCODE
           if (code.equals("NOCODE")) {
@@ -565,6 +650,9 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
                       + concept.getSynonyms().stream()
                           .map(s -> s.getTermType())
                           .collect(Collectors.toSet()));
+            }
+            if (hasDuplicateCodes(terminology) && !code.equals(fields[13])) {
+              addDuplicateCodeDefinition(terminology, concept, fields[11]);
             }
             codeConceptMap.put(code, concept);
           }
@@ -902,6 +990,24 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
+   * Adds the duplicate code definition.
+   *
+   * @param terminology the terminology
+   * @param concept the concept
+   * @param source the source
+   */
+  private void addDuplicateCodeDefinition(
+      final Terminology terminology, final Concept concept, final String source) {
+    final Definition def = new Definition();
+    def.setDefinition(DUPLICATE_CODE_DEFINITION);
+    def.setSource(source);
+    def.setType("DEFINITION");
+    terminology.getMetadata().getDefinitionSourceSet().add(source);
+    concept.getDefinitions().add(def);
+    definitionCt++;
+  }
+
+  /**
    * Handle relationships.
    *
    * @param hierarchy the hierarchy
@@ -979,18 +1085,14 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
       }
 
       // Determine concept2 (lookup the code for the AUI)
-      String concept2 = null;
-      // if matching STYPE2/AUI2 attribute
-      if (!fields[5].isEmpty() && auiCodeMap.containsKey(fields[5])) {
-        concept2 = auiCodeMap.get(fields[5]);
+      String concept2 = auiCodeMap.get(fields[5]);
 
-        // This is unexpected, except for cross-terminology mapping rels
-        if (concept2 == null && !rela.contains("map")) {
-          if (!rela.contains("map")) {
-            throw new Exception("AUI2 for relationship cannot be resolved = " + line);
-          }
-          continue;
+      // This is unexpected, except for cross-terminology mapping rels
+      if (concept2 == null) {
+        if (!rela.contains("map")) {
+          throw new Exception("AUI2 for relationship cannot be resolved = " + line);
         }
+        continue;
       }
 
       // Skip combinations already seen (all will have the same SAB here)
@@ -1373,9 +1475,8 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
     if (!this.getFilepath().exists()) {
       throw new Exception("Given filepath does not exist = " + filepath);
     }
-    try (InputStream input = new FileInputStream(this.getFilepath() + "/release.dat");
-        final BufferedReader in =
-            new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF")); ) {
+    try (final BufferedReader in =
+        new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF")); ) {
 
       String line;
       Terminology term = new Terminology();
@@ -1384,7 +1485,7 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
         // TFR,CFR,CXTY,TTYL,ATNL,LAT,CENC,CURVER,SABIN,SSN,SCIT
         final String[] fields = line.split("\\|", -1);
 
-        if (terminology.equals(fields[3]) && !fields[0].isEmpty()) {
+        if (sabMatch(fields[3], terminology) && !fields[0].isEmpty()) {
           sourceMap.put(fields[3], fields[4]);
           // HL7V3.0 -> hl7v30
           term.setTerminology(terminology.toLowerCase().replaceFirst("\\.", ""));
@@ -1404,11 +1505,22 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
         }
       }
 
+      if (term.getTerminology() == null) {
+        throw new Exception(
+            "Unable to find matching MRSAB.RRF row for terminology = " + terminology);
+      }
+
       // Attempt to read the config, if anything goes wrong
       // the config file is probably not there
       try {
+        // Map hl7v30 to hl7v3.0 for file lookup
+        String metadataName = terminology.toLowerCase();
+        if (metadataName.equals("hl7v30")) {
+          metadataName = "hl7v3.0";
+        }
+
         // Load from config
-        final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
+        final JsonNode node = getMetadataAsNode(metadataName);
         final TerminologyMetadata metadata =
             ThreadLocalMapper.get().treeToValue(node, TerminologyMetadata.class);
 
@@ -1422,19 +1534,26 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
         metadata.setLoader("rrf");
         metadata.setSources(sourceMap);
         metadata.setSourceCt(1);
-        metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
+        metadata.setWelcomeText(getWelcomeText(metadataName));
         term.setMetadata(metadata);
 
       } catch (Exception e) {
+        String metadataName = terminology.toLowerCase();
+        if (metadataName.equals("hl7v30")) {
+          metadataName = "hl7v3.0";
+        }
         throw new Exception(
             "Unexpected error trying to load metadata = "
-                + applicationProperties.getConfigBaseUri(),
+                + applicationProperties.getConfigBaseUri()
+                + "/"
+                + metadataName
+                + ".json",
             e);
       }
 
       return term;
     } catch (Exception ex) {
-      throw new Exception("Could not load terminology ncim");
+      throw new Exception("Could not load terminology " + terminology, ex);
     }
   }
 
@@ -1476,6 +1595,18 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
+   * Indicates whether duplicate code handling should be enabled.
+   *
+   * @param terminology the terminology
+   * @return true, if duplicate code handling should be enabled
+   */
+  private boolean hasDuplicateCodes(final Terminology terminology) {
+    return terminology != null
+        && terminology.getMetadata() != null
+        && Boolean.TRUE.equals(terminology.getMetadata().getDuplicateCodes());
+  }
+
+  /**
    * Indicates whether the two terminology arguments match. Mostly this is about being equal, but
    * may have exceptions.
    *
@@ -1484,6 +1615,10 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
    * @return true, if successful
    */
   private boolean sabMatch(final String sab1, final String sab2) {
-    return sab1.toLowerCase().equals(sab2) || (sab1.equals("HL7V3.0") && sab2.equals("hl7v30"));
+    if (sab1 == null || sab2 == null) {
+      return false;
+    }
+    // Normalize both for comparison: lowercase and strip dots
+    return sab1.toLowerCase().replace(".", "").equals(sab2.toLowerCase().replace(".", ""));
   }
 }
