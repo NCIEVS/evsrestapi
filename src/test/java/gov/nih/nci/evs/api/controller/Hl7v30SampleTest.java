@@ -28,6 +28,11 @@ public class Hl7v30SampleTest extends SampleTest {
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(Hl7v30SampleTest.class);
 
+  /** The duplicate code definition. */
+  private static final String DUPLICATE_CODE_DEFINITION =
+      "The code for this concept is reused across multiple contexts and so a differentiating value"
+          + " has been used to make the code values unique.";
+
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
   @Autowired private MockMvc testMvc;
 
@@ -88,15 +93,32 @@ public class Hl7v30SampleTest extends SampleTest {
     log.info("Testing url - " + url);
     testMvc.perform(get(url)).andExpect(status().isNotFound());
 
-    url = "/api/v1/concept/hl7v30/41-11255?include=definitions";
+    assertDuplicateCodeMetadata("41-11255");
+    assertDuplicateCodeMetadata("41-11672");
+  }
+
+  /**
+   * Assert duplicate code metadata.
+   *
+   * @param code the differentiated code
+   * @throws Exception the exception
+   */
+  private void assertDuplicateCodeMetadata(final String code) throws Exception {
+    final String url = "/api/v1/concept/hl7v30/" + code + "?include=definitions,properties";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
+    final MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
     Concept differentiatedConcept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(differentiatedConcept.getDefinitions())
         .extracting(definition -> definition.getDefinition())
-        .contains(
-            "The code for this concept is reused across multiple contexts and so a differentiating"
-                + " value has been used to make the code values unique.");
+        .contains(DUPLICATE_CODE_DEFINITION);
+    assertThat(differentiatedConcept.getProperties())
+        .anySatisfy(
+            property -> {
+              assertThat(property.getType()).isEqualTo("Original_Code");
+              assertThat(property.getValue()).isEqualTo("41");
+            });
   }
 }
