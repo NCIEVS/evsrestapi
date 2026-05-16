@@ -47,6 +47,9 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
       "The code for this concept is reused across multiple contexts and so a differentiating value"
           + " has been used to make the code values unique.";
 
+  /** The original code property. */
+  private static final String ORIGINAL_CODE_PROPERTY = "Original_Code";
+
   /** index batch size *. */
   @Value("${nci.evs.bulkload.indexBatchSize}")
   private int INDEX_BATCH_SIZE;
@@ -653,6 +656,7 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
             }
             if (hasDuplicateCodes(terminology) && !code.equals(fields[13])) {
               addDuplicateCodeDefinition(terminology, concept, fields[11]);
+              buildProperty(concept, ORIGINAL_CODE_PROPERTY, fields[13], fields[11]);
             }
             codeConceptMap.put(code, concept);
           }
@@ -1349,6 +1353,9 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
 
     // MRSTY: Semantic_Type property
     atnMap.put("Semantic_Type", "Semantic Type");
+
+    // Added for differentiated duplicate-code concepts
+    atnMap.put(ORIGINAL_CODE_PROPERTY, "Original Code");
 
     // MRSAT: property metadata for MRSAT
     for (final String atn : atnSet) {
