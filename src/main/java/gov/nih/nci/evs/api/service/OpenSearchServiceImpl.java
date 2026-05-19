@@ -50,6 +50,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(OpenSearchServiceImpl.class);
 
+  /** The original code property. */
+  private static final String ORIGINAL_CODE_PROPERTY = "Original_Code";
+
   /** The Opensearch operations service *. */
   @Autowired OpensearchOperationsService esOperationsService;
 
@@ -568,6 +571,14 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 QueryBuilders.queryStringQuery(codeList).field("synonyms.code"),
                 ScoreMode.Max)
             .boost(50f);
+    final NestedQueryBuilder originalCodeQuery =
+        QueryBuilders.nestedQuery(
+                "properties",
+                QueryBuilders.boolQuery()
+                    .must(QueryBuilders.matchQuery("properties.type", ORIGINAL_CODE_PROPERTY))
+                    .must(QueryBuilders.queryStringQuery(codeList).field("properties.value")),
+                ScoreMode.Max)
+            .boost(50f);
 
     // Name queries
 
@@ -579,10 +590,13 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       // Code match
       if (hasCodeList) {
         BoolQueryBuilder codeQueries =
-            QueryBuilders.boolQuery().should(codeQuery).should(synonymCodeQuery);
+            QueryBuilders.boolQuery()
+                .should(codeQuery)
+                .should(synonymCodeQuery)
+                .should(originalCodeQuery);
         termQuery.must(codeQueries);
       } else {
-        termQuery.should(codeQuery).should(synonymCodeQuery);
+        termQuery.should(codeQuery).should(synonymCodeQuery).should(originalCodeQuery);
       }
     }
 
