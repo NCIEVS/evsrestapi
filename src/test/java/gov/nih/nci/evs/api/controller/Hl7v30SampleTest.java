@@ -97,6 +97,34 @@ public class Hl7v30SampleTest extends SampleTest {
     assertDuplicateCodeMetadata("41-11672");
   }
 
+  @Test
+  public void testSearchByOriginalCode() throws Exception {
+
+    final String url =
+        "/api/v1/concept/search?terminology=hl7v30&type=contains&codeList=41&include=properties"
+            + "&pageSize=20";
+    log.info("Testing url - " + url);
+    final MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
+    gov.nih.nci.evs.api.model.ConceptResultList list =
+        ThreadLocalMapper.get()
+            .readValue(content, gov.nih.nci.evs.api.model.ConceptResultList.class);
+
+    assertThat(list).isNotNull();
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThanOrEqualTo(2);
+    assertThat(list.getConcepts()).extracting(Concept::getCode).contains("41-11255", "41-11672");
+    assertThat(
+            list.getConcepts().stream()
+                .filter(
+                    concept ->
+                        concept.getCode().equals("41-11255")
+                            || concept.getCode().equals("41-11672")))
+        .allSatisfy(this::assertOriginalCodeProperty);
+  }
+
   /**
    * Assert duplicate code metadata.
    *
@@ -114,7 +142,16 @@ public class Hl7v30SampleTest extends SampleTest {
     assertThat(differentiatedConcept.getDefinitions())
         .extracting(definition -> definition.getDefinition())
         .contains(DUPLICATE_CODE_DEFINITION);
-    assertThat(differentiatedConcept.getProperties())
+    assertOriginalCodeProperty(differentiatedConcept);
+  }
+
+  /**
+   * Assert original code property.
+   *
+   * @param concept the concept
+   */
+  private void assertOriginalCodeProperty(final Concept concept) {
+    assertThat(concept.getProperties())
         .anySatisfy(
             property -> {
               assertThat(property.getType()).isEqualTo("Original_Code");
