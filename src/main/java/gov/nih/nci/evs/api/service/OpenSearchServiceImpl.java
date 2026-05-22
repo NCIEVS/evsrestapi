@@ -718,24 +718,30 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       sb.append(c);
     }
 
-    // Escape "and", "or", and "not" - escape each char of the word
-    final String q1 = sb.toString();
-    final StringBuilder sb2 = new StringBuilder();
-    boolean first = true;
-    for (final String word : q1.split(" ")) {
-      if (!first) {
-        sb2.append(" ");
-      }
-      first = false;
-      if (word.toLowerCase().matches("(and|or|not)")) {
-        for (final String c : word.split("")) {
-          sb2.append("\\").append(c);
-        }
-      } else {
-        sb2.append(word);
-      }
-    }
-    return sb2.toString();
+    return sb.toString();
+
+    // The logic below was likely to deal with some kind of boolean operator situation
+    // that does not appear to affect the current codebase, but does affect
+    // searches like "not reported"
+
+    //    // Escape "and", "or", and "not" - escape each char of the word
+    //    final String q1 = sb.toString();
+    //    final StringBuilder sb2 = new StringBuilder();
+    //    boolean first = true;
+    //    for (final String word : q1.split(" ")) {
+    //      if (!first) {
+    //        sb2.append(" ");
+    //      }
+    //      first = false;
+    //      if (word.toLowerCase().matches("(and|or|not)")) {
+    //        for (final String c : word.split("")) {
+    //          sb2.append("\\").append(c);
+    //        }
+    //      } else {
+    //        sb2.append(word);
+    //      }
+    //    }
+    //    return sb2.toString();
   }
 
   /**

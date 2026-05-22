@@ -1,10 +1,11 @@
 package gov.nih.nci.evs.api.util;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.TimeZone;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import java.util.TimeZone;
 
 /** Supply object mapper per thread. */
 public final class ThreadLocalMapper {
@@ -25,7 +26,9 @@ public final class ThreadLocalMapper {
    */
   public static ObjectMapper newMapper() {
     final ObjectMapper mapper = new ObjectMapper();
-    mapper.setDefaultPropertyInclusion(Include.NON_EMPTY);
+    mapper.setDefaultPropertyInclusion(
+        JsonInclude.Value.construct(JsonInclude.Include.NON_EMPTY, JsonInclude.Include.NON_EMPTY));
+
     mapper
         .findAndRegisterModules()
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);

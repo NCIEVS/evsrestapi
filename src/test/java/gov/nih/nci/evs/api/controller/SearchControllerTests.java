@@ -7,6 +7,27 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
@@ -23,25 +44,6 @@ import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /** Integration tests for SearchController. */
 @ExtendWith(SpringExtension.class)
@@ -5167,6 +5169,57 @@ public class SearchControllerTests {
                 .filter(c -> c.getName().equals("Acute lymphoblastic leukemia"))
                 .count())
         .isEqualTo(1);
+  }
+
+  /**
+   * Test terms with boolean logic words. The parameter sets here are designed to model what the UI
+   * does when searching
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTermsWithBooleanLogicWords() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // Terms
+    for (final String term :
+        new String[] {
+          "Not Reported", "Do Not Own Smartphone or Tablet", "Date and Time of Death"
+        }) {
+
+      // Types
+      for (final String type :
+          new String[] {"contains", "match", "startsWith", "phrase", "fuzzy", "AND", "OR"}) {
+        url = baseUrl;
+        log.info(
+            "Testing url - "
+                + url
+                + "?terminology=ncit&term="
+                + term.replaceAll(" ", "%20")
+                + "&type="
+                + type);
+
+        // Test a basic term search
+        result =
+            this.mvc
+                .perform(
+                    get(url).param("terminology", "ncit").param("term", term).param("type", type))
+                .andExpect(status().isOk())
+                .andReturn();
+        content = result.getResponse().getContentAsString();
+        log.info("  content = " + content);
+        assertThat(content).isNotNull();
+
+        ConceptResultList list =
+            ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+        // Verify results
+        assertThat(list.getConcepts().size()).isGreaterThan(0);
+        // Verify top result is the concept name
+        assertThat(list.getConcepts().get(0).getName().toLowerCase()).isEqualTo(term.toLowerCase());
+      }
+    }
   }
 
   /**
