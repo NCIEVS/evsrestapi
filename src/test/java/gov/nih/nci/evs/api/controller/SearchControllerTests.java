@@ -5170,6 +5170,57 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test terms with boolean logic words. The parameter sets here are designed to model what the UI
+   * does when searching
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTermsWithBooleanLogicWords() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // Terms
+    for (final String term :
+        new String[] {
+          "Not Reported", "Do Not Own Smartphone or Tablet", "Date and Time of Death"
+        }) {
+
+      // Types
+      for (final String type :
+          new String[] {"contains", "match", "startsWith", "phrase", "fuzzy", "AND", "OR"}) {
+        url = baseUrl;
+        log.info(
+            "Testing url - "
+                + url
+                + "?terminology=ncit&term="
+                + term.replaceAll(" ", "%20")
+                + "&type="
+                + type);
+
+        // Test a basic term search
+        result =
+            this.mvc
+                .perform(
+                    get(url).param("terminology", "ncit").param("term", term).param("type", type))
+                .andExpect(status().isOk())
+                .andReturn();
+        content = result.getResponse().getContentAsString();
+        log.info("  content = " + content);
+        assertThat(content).isNotNull();
+
+        ConceptResultList list =
+            ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+        // Verify results
+        assertThat(list.getConcepts().size()).isGreaterThan(0);
+        // Verify top result is the concept name
+        assertThat(list.getConcepts().get(0).getName().toLowerCase()).isEqualTo(term.toLowerCase());
+      }
+    }
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response
