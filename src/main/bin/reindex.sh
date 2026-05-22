@@ -575,24 +575,29 @@ fi
 /bin/rm -rf /tmp/x.$$.log
 
 # Reconcile mappings after loading terminologies
-export EVS_SERVER_PORT="8083"
-echo "    Generate mapping indexes"
-echo "      java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology mapping"
-java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building mapping indexes"
-    exit 1
-fi
-
-# Verify that max_result_window on evs_mappings is set to 3000000
-if [[ `curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" | grep max_result_window | grep -c 300000` -eq 0 ]]; then
-    # Set the indexes to have a larger max_result_window
-    echo "  Set max result window to 300000 for evs_mappings"
-    curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" \
-         -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 300000 } }' >> /dev/null
+# Skip it for targeted reindexing.
+if [[ $terminologyOverride ]]; then
+    echo "    SKIP mapping indexes (targeted reindex of $terminologyOverride)"
+else
+    export EVS_SERVER_PORT="8083"
+    echo "    Generate mapping indexes"
+    echo "      java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology mapping"
+    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
     if [[ $? -ne 0 ]]; then
-        echo "ERROR: unexpected error setting max_result_window for evs_mappings"
+        echo "ERROR: unexpected error building mapping indexes"
         exit 1
+    fi
+
+    # Verify that max_result_window on evs_mappings is set to 3000000
+    if [[ `curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" | grep -c max_result_window` -eq 0 ]]; then
+        # Set the indexes to have a larger max_result_window
+        echo "  Set max result window to 300000 for evs_mappings"
+        curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" \
+             -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 300000 } }' >> /dev/null
+        if [[ $? -ne 0 ]]; then
+            echo "ERROR: unexpected error setting max_result_window for evs_mappings"
+            exit 1
+        fi
     fi
 fi
 
