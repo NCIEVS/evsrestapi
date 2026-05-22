@@ -123,4 +123,29 @@ public class ChebiSampleTest extends SampleTest {
     assertThat(concept.getTerminology()).isEqualTo("chebi");
     assertThat(concept.getActive()).isTrue();
   }
+
+  /**
+   * Test ChEBI relationship buckets.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testRelationshipBuckets() throws Exception {
+
+    final String url =
+        "/api/v1/concept/chebi/CHEBI:100?include=roles,associations,inverseAssociations,disjointWith";
+    log.info("Testing url - " + url);
+    final MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    final Concept concept = ThreadLocalMapper.get().readValue(content, Concept.class);
+
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CHEBI:100");
+    assertThat(concept.getRoles()).extracting(role -> role.getCode()).contains("has_role");
+    assertThat(concept.getRoles()).extracting(role -> role.getCode()).contains("is_enantiomer_of");
+    assertThat(concept.getAssociations()).isEmpty();
+    assertThat(concept.getInverseAssociations()).isEmpty();
+    assertThat(concept.getDisjointWith()).isEmpty();
+  }
 }
