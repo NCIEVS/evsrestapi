@@ -571,14 +571,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 QueryBuilders.queryStringQuery(codeList).field("synonyms.code"),
                 ScoreMode.Max)
             .boost(50f);
-    final NestedQueryBuilder originalCodeQuery =
-        QueryBuilders.nestedQuery(
-                "properties",
-                QueryBuilders.boolQuery()
-                    .must(QueryBuilders.matchQuery("properties.type", ORIGINAL_CODE_PROPERTY))
-                    .must(QueryBuilders.queryStringQuery(codeList).field("properties.value")),
-                ScoreMode.Max)
-            .boost(50f);
+    final NestedQueryBuilder originalCodeQuery = getOriginalCodeQuery(codeList, false, 50f);
 
     // Name queries
 
@@ -656,6 +649,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     final String codeTerm = term.toUpperCase() + (startsWithFlag ? "*" : "");
     final String exactTerm = term.replace(" ", "\\ ");
     final String exactNormTerm = normTerm.replace(" ", "\\ ");
+    final NestedQueryBuilder originalCodeQuery =
+        getOriginalCodeQuery(codeTerm, startsWithFlag, 20f);
 
     // "Exact" clauses (with normTerm)
     // Only search name, code, and synonyms
@@ -682,7 +677,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 QueryBuilders.queryStringQuery(codeTerm)
                     .field("code")
                     .analyzeWildcard(startsWithFlag)
-                    .boost(20f));
+                    .boost(20f))
+            // exact match to original code property
+            .should(originalCodeQuery);
 
     // If startsWith flag, boost exact matches to the top
     if (startsWithFlag) {
@@ -691,9 +688,32 @@ public class OpenSearchServiceImpl implements OpenSearchService {
               .should(
                   QueryBuilders.termQuery("normName", ConceptUtils.normalize(exactTerm)).boost(40f))
               .should(
-                  QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f));
+                  QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f))
+              .should(getOriginalCodeQuery(exactTerm.toUpperCase(), false, 40f));
     }
     return termQuery;
+  }
+
+  /**
+   * Returns an original code property query.
+   *
+   * @param codeList the code list query
+   * @param analyzeWildcard the analyze wildcard flag
+   * @param boost the boost
+   * @return the nested original code query
+   */
+  private NestedQueryBuilder getOriginalCodeQuery(
+      final String codeList, final boolean analyzeWildcard, final float boost) {
+    return QueryBuilders.nestedQuery(
+            "properties",
+            QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchQuery("properties.type", ORIGINAL_CODE_PROPERTY))
+                .must(
+                    QueryBuilders.queryStringQuery(codeList)
+                        .field("properties.value")
+                        .analyzeWildcard(analyzeWildcard)),
+            ScoreMode.Max)
+        .boost(boost);
   }
 
   /**

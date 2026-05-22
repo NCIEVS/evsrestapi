@@ -100,9 +100,29 @@ public class Hl7v30SampleTest extends SampleTest {
   @Test
   public void testSearchByOriginalCode() throws Exception {
 
-    final String url =
-        "/api/v1/concept/search?terminology=hl7v30&type=contains&codeList=41&include=properties"
-            + "&pageSize=20";
+    assertOriginalCodeSearch(
+        "/api/v1/concept/search?terminology=hl7v30&type=contains&codeList=41"
+            + "&include=properties&pageSize=20");
+  }
+
+  @Test
+  public void testMatchSearchByOriginalCode() throws Exception {
+
+    assertOriginalCodeSearch(
+        "/api/v1/concept/search?terminology=hl7v30&type=match&term=41&include=properties"
+            + "&pageSize=20");
+    assertOriginalCodeSearch(
+        "/api/v1/concept/search?terminology=hl7v30&type=startsWith&term=41&include=properties"
+            + "&pageSize=20");
+  }
+
+  /**
+   * Assert original code search.
+   *
+   * @param url the url
+   * @throws Exception the exception
+   */
+  private void assertOriginalCodeSearch(final String url) throws Exception {
     log.info("Testing url - " + url);
     final MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
