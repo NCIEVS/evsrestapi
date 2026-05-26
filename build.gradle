@@ -42,6 +42,9 @@ repositories {
 // Avoid specifying version unless needed
 // Explicit override for medium-severity CVEs pulled in by OpenSearch 2.19.x
 ext['log4j2.version'] = '2.25.4'
+// Override Spring Boot BOM's commons-lang3 (3.17.0) to pick up CVE-2025-48924 fix.
+// Applies BOM-wide, so the spotbugs configuration also gets 3.18.0.
+ext['commons-lang3.version'] = '3.18.0'
 
 // Extra Properties
 ext {
@@ -175,7 +178,6 @@ dependencies {
 
   // SpotBugs annotations
   compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.2"
-  spotbugs "org.apache.commons:commons-lang3:3.18.0"
 
   /*
    * Test Dependencies
