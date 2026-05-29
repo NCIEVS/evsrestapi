@@ -13,6 +13,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -461,7 +462,8 @@ public class HierarchyUtils {
       final File file = findPathsAsFile();
       logMemory();
       logger.info("    start build paths map");
-      try (final BufferedReader in = new BufferedReader(new FileReader(file))) {
+      try (final BufferedReader in =
+          new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
         int partCt = 0;
         int pathCt = 0;
         int uniquePathCt = 0;

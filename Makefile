@@ -27,7 +27,7 @@ build:
 	./gradlew clean spotlessApply build spotbugsMain spotbugsTest -x test -x zipFile
 
 run:
-	java -Dspring.profiles.active=local -jar build/libs/evsrestapi*.jar
+	java -Dspring.profiles.active=local -jar build/libs/evsrestapi*.war
 
 test:
 	./gradlew spotlessCheck -x test 

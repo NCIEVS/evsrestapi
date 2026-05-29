@@ -1,15 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Paths;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import java.util.List;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +40,7 @@ public class MainTypeHierarchyTest {
    * @throws Exception the exception
    */
   // @Test
-  public void test() throws Exception {
+  /*public void test() throws Exception {
 
     log.info("  Get terminology = ncit");
     // Use true to get the metadata
@@ -70,5 +62,5 @@ public class MainTypeHierarchyTest {
       log.info("  Get main menu anc = " + paths);
       assertTrue(!paths.isEmpty());
     }
-  }
+  }*/
 }

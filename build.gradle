@@ -61,8 +61,8 @@ ext {
 group = "gov.nih.nci.evs.api"
 version = "2.5.0.RELEASE"
 
-sourceCompatibility = 17
-targetCompatibility = 17
+sourceCompatibility = 21
+targetCompatibility = 21
 
 springBoot {
   // generate file META-INF/build-info.properties during the build
@@ -73,7 +73,7 @@ springBoot {
 // it will automatically download and install the required version of Java
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(21)
   }
 
 }
@@ -119,6 +119,7 @@ dependencies {
   implementation "org.apache.thrift:libthrift:0.23.0"
   implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
   implementation "org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE"
+  implementation "org.apache.thrift:libthrift:0.23.0"
 
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
@@ -128,15 +129,12 @@ dependencies {
   implementation "org.apache.commons:commons-text:1.10.0"
   //implementation "org.apache.opennlp:opennlp-tools:2.2.0"
 
-  // Upgrade ecache to use jakarta - https://groups.google.com/g/ehcache-users/c/sKfxWuTpY-U
-  // See also: https://stackoverflow.com/questions/75813659/gradle-could-not-find-org-ehcacheehcache-after-upgrading-to-spring-boot-3-0-x
-  // Note: ehcache 3.10.8 uses Jakarta by default, no classifier needed
-  implementation "org.ehcache:ehcache:3.10.9"
-
-  // JAXB dependencies required for ehcache with Java 9+
-  // ehcache 3.10.8 still uses javax.xml.bind internally for XML parsing
-  implementation 'javax.xml.bind:jaxb-api:2.3.1'
-  implementation 'com.sun.xml.bind:jaxb-impl:2.3.3'
+  // Use Ehcache's Jakarta variant so XML configuration parsing uses Jakarta JAXB.
+  implementation("org.ehcache:ehcache:3.11.1") {
+    capabilities {
+      requireCapability("org.ehcache:ehcache-jakarta")
+    }
+  }
 
   // Apache POI for reading .xls and .xlsx files
   implementation 'org.apache.poi:poi:5.4.0'

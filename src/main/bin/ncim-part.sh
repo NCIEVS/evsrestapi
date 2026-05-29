@@ -144,7 +144,8 @@ fi
 
 # Handle the local setup
 echo ""
-export PATH="/usr/local/corretto-jdk17/bin/:$PATH"
+export JAVA_HOME="${JAVA_HOME:-/usr/local/corretto-jdk21}"
+export PATH="${JAVA_HOME}/bin:$PATH"
 local=""
 jar="../lib/evsrestapi.jar"
 if [[ $config -eq 0 ]]; then
