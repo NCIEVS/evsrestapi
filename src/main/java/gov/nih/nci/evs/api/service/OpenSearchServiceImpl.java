@@ -50,6 +50,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(OpenSearchServiceImpl.class);
 
+  /** The original code property. */
+  private static final String ORIGINAL_CODE_PROPERTY = "Original_Code";
+
   /** The Opensearch operations service *. */
   @Autowired OpensearchOperationsService esOperationsService;
 
@@ -568,6 +571,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 QueryBuilders.queryStringQuery(codeList).field("synonyms.code"),
                 ScoreMode.Max)
             .boost(50f);
+    final NestedQueryBuilder originalCodeQuery = getOriginalCodeQuery(codeList, false, 50f);
 
     // Name queries
 
@@ -579,10 +583,13 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       // Code match
       if (hasCodeList) {
         BoolQueryBuilder codeQueries =
-            QueryBuilders.boolQuery().should(codeQuery).should(synonymCodeQuery);
+            QueryBuilders.boolQuery()
+                .should(codeQuery)
+                .should(synonymCodeQuery)
+                .should(originalCodeQuery);
         termQuery.must(codeQueries);
       } else {
-        termQuery.should(codeQuery).should(synonymCodeQuery);
+        termQuery.should(codeQuery).should(synonymCodeQuery).should(originalCodeQuery);
       }
     }
 
@@ -642,6 +649,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     final String codeTerm = term.toUpperCase() + (startsWithFlag ? "*" : "");
     final String exactTerm = term.replace(" ", "\\ ");
     final String exactNormTerm = normTerm.replace(" ", "\\ ");
+    final NestedQueryBuilder originalCodeQuery =
+        getOriginalCodeQuery(codeTerm, startsWithFlag, 20f);
 
     // "Exact" clauses (with normTerm)
     // Only search name, code, and synonyms
@@ -668,7 +677,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 QueryBuilders.queryStringQuery(codeTerm)
                     .field("code")
                     .analyzeWildcard(startsWithFlag)
-                    .boost(20f));
+                    .boost(20f))
+            // exact match to original code property
+            .should(originalCodeQuery);
 
     // If startsWith flag, boost exact matches to the top
     if (startsWithFlag) {
@@ -677,9 +688,32 @@ public class OpenSearchServiceImpl implements OpenSearchService {
               .should(
                   QueryBuilders.termQuery("normName", ConceptUtils.normalize(exactTerm)).boost(40f))
               .should(
-                  QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f));
+                  QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f))
+              .should(getOriginalCodeQuery(exactTerm.toUpperCase(), false, 40f));
     }
     return termQuery;
+  }
+
+  /**
+   * Returns an original code property query.
+   *
+   * @param codeList the code list query
+   * @param analyzeWildcard the analyze wildcard flag
+   * @param boost the boost
+   * @return the nested original code query
+   */
+  private NestedQueryBuilder getOriginalCodeQuery(
+      final String codeList, final boolean analyzeWildcard, final float boost) {
+    return QueryBuilders.nestedQuery(
+            "properties",
+            QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchQuery("properties.type", ORIGINAL_CODE_PROPERTY))
+                .must(
+                    QueryBuilders.queryStringQuery(codeList)
+                        .field("properties.value")
+                        .analyzeWildcard(analyzeWildcard)),
+            ScoreMode.Max)
+        .boost(boost);
   }
 
   /**
@@ -704,22 +738,21 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       sb.append(c);
     }
 
+    //    return sb.toString();
+
+    // The logic below was likely to deal with some kind of boolean operator situation
+    // that does not appear to affect the current codebase, but does affect
+    // searches like "not reported"
+
     // Escape "and", "or", and "not" - escape each char of the word
     final String q1 = sb.toString();
     final StringBuilder sb2 = new StringBuilder();
-    boolean first = true;
-    for (final String word : q1.split(" ")) {
-      if (!first) {
-        sb2.append(" ");
+    if (q1.toLowerCase().matches("(and|or|not)")) {
+      for (final String c : q1.split("")) {
+        sb2.append("\\").append(c);
       }
-      first = false;
-      if (word.toLowerCase().matches("(and|or|not)")) {
-        for (final String c : word.split("")) {
-          sb2.append("\\").append(c);
-        }
-      } else {
-        sb2.append(word);
-      }
+    } else {
+      sb2.append(q1);
     }
     return sb2.toString();
   }

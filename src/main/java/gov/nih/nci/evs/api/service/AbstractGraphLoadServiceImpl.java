@@ -146,7 +146,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     logger.info("Load all associations");
     hierarchy.setAssociationMap(
         sparqlQueryManagerService.getAssociationsForAllCodes(terminology, false));
-    logger.info("Load all inverse roles");
+    logger.info("Load all inverse associations");
     hierarchy.setInverseAssociationMap(
         sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
 
@@ -606,7 +606,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         continue;
       }
 
-      // get the subset and concept that the new subset is a part of i.e. pediatric subset part of
+      // get the subset and concept that the new subset is a part of i.e. pediatric
+      // subset part of
       // ncit subset
       Map<String, String> newSubsets = terminology.getMetadata().getExtraSubsets();
       Concept parentSubset = new Concept();
@@ -688,7 +689,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         inverseAssoc.setRelatedCode(subsetMember.getCode());
         inverseAssoc.setRelatedName(subsetMember.getName());
         subsetConcept.getInverseAssociations().add(inverseAssoc);
-        // index subsetMember (but only if the member is not also the subset concept itself)
+        // index subsetMember (but only if the member is not also the subset concept
+        // itself)
         if (!subsetMember.getCode().equals(subsetConcept.getCode())) {
           operationsService.update(
               subsetMember.getCode(), subsetMember, terminology.getIndexName(), Concept.class);
@@ -1179,7 +1181,8 @@ The browser links each mapped concept to that concept's page in the current prod
 
         historyItem.put("replacementCode", replacementCode);
 
-        // create history entry for the replacement concept if it isn't merging with itself
+        // create history entry for the replacement concept if it isn't merging with
+        // itself
         if (!replacementCode.equals(code)) {
 
           List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
@@ -1216,10 +1219,13 @@ The browser links each mapped concept to that concept's page in the current prod
       String newHistoryVersion)
       throws Exception {
 
-    // Update history for "ncit" monthly when it gets revisitied to double check latest versions
-    // Skip this for other terminologies, for cases where an updated cumulative history file has
+    // Update history for "ncit" monthly when it gets revisitied to double check
+    // latest versions
+    // Skip this for other terminologies, for cases where an updated cumulative
+    // history file has
     // already been processed
-    // or in cases where the cumulative history for this version is unable to be found
+    // or in cases where the cumulative history for this version is unable to be
+    // found
     if (!terminology.getTerminology().equals("ncit")
         || newHistoryVersion == null
         || newHistoryVersion.isEmpty()) {
