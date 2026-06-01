@@ -53,7 +53,12 @@ public class OpensearchConfiguration {
     return new RestHighLevelClient(
         RestClient.builder(new HttpHost(osHost, osPort, osScheme))
             .setRequestConfigCallback(
-                builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout)));
+                builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout))
+            // This hooks the HTTP layer, after Spring Data has serialized Query objects into
+            // replayable OpenSearch REST requests.
+            .setHttpClientConfigCallback(
+                builder ->
+                    builder.addInterceptorLast(new EvsOpenSearchRequestLoggingInterceptor())));
 
     // Alternate:
     // ClientConfiguration clientConfiguration =
