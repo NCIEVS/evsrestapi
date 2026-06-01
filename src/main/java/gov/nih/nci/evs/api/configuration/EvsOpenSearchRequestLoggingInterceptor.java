@@ -84,16 +84,21 @@ final class EvsOpenSearchRequestLoggingInterceptor implements HttpRequestInterce
     }
 
     final ContentType contentType = ContentType.get(entity);
+    // OpenSearch search payloads should be JSON or NDJSON. If another media type appears, do not
+    // decode or rebuild it just for logging; leave the original entity untouched.
     if (!isLoggableContentType(contentType)) {
       return "<payload not logged: content type " + contentType.getMimeType() + ">";
     }
 
+    // OpenSearch JSON is normally UTF-8. Honor an explicit charset when present, but default to
+    // UTF-8 when Apache's entity metadata does not include one.
     final Charset charset =
         contentType == null || contentType.getCharset() == null
             ? StandardCharsets.UTF_8
             : contentType.getCharset();
 
-    // EntityUtils reads and closes the original entity content stream.
+    // EntityUtils reads and closes the original entity content stream. Keep the raw bytes so the
+    // outgoing request can be restored byte-for-byte, even if the logged text is truncated.
     final byte[] payloadBytes = EntityUtils.toByteArray(entity);
     final String payload = new String(payloadBytes, charset);
 
@@ -108,6 +113,7 @@ final class EvsOpenSearchRequestLoggingInterceptor implements HttpRequestInterce
     }
     entityRequest.setEntity(replacement);
 
+    // Only the log message is truncated. The replacement entity above contains the full payload.
     return truncatePayload(payload);
   }
 
@@ -118,6 +124,8 @@ final class EvsOpenSearchRequestLoggingInterceptor implements HttpRequestInterce
    * @return {@code true} if the payload should be decoded and logged
    */
   private boolean isLoggableContentType(final ContentType contentType) {
+    // Missing content type is allowed because Spring/OpenSearch callers can still provide a normal
+    // JSON body without Apache metadata; in that case getPayload decodes as UTF-8.
     if (contentType == null) {
       return true;
     }
@@ -137,6 +145,7 @@ final class EvsOpenSearchRequestLoggingInterceptor implements HttpRequestInterce
       return payload;
     }
 
+    // Keep the truncation marker explicit so a copied log body is not mistaken for the full query.
     return payload.substring(0, MAX_LOGGED_PAYLOAD_LENGTH)
         + "\n<... payload truncated after "
         + MAX_LOGGED_PAYLOAD_LENGTH

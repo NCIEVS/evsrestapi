@@ -23,7 +23,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.slf4j.LoggerFactory;
 
-/** Unit tests for {@link EvsOpenSearchRequestLoggingInterceptor}. */
+/**
+ * Unit tests for {@link EvsOpenSearchRequestLoggingInterceptor}.
+ *
+ * <p>These tests avoid Spring context startup and exercise the Apache HTTP request objects
+ * directly, which is the layer where the interceptor reads, logs, and restores outgoing OpenSearch
+ * requests.
+ */
 @ResourceLock("EvsOpenSearchRestTemplateLogger")
 class EvsOpenSearchRequestLoggingInterceptorTest {
 
@@ -45,6 +51,9 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
     logger = (Logger) LoggerFactory.getLogger(EvsOpenSearchRestTemplate.class);
     originalLevel = logger.getLevel();
     originalAdditive = logger.isAdditive();
+
+    // The interceptor is DEBUG-gated. Flip only this logger for the test and make it non-additive
+    // so the captured request log does not also go to the root console appender.
     logger.setLevel(Level.DEBUG);
     logger.setAdditive(false);
 
@@ -56,6 +65,7 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
   /** Restore logger state after each test. */
   @AfterEach
   void cleanup() {
+    // Logger configuration is JVM-global, so every test restores the original state it changed.
     logger.detachAppender(appender);
     appender.stop();
     logger.setLevel(originalLevel);
@@ -68,6 +78,7 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
    * @return the logged request message
    */
   private String getLoggedMessage() {
+    // Each interceptor invocation should produce exactly one request log entry.
     assertEquals(1, appender.list.size());
     return appender.list.get(0).getFormattedMessage();
   }
