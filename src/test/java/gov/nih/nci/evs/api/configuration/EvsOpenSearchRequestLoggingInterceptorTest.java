@@ -20,9 +20,11 @@ import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.slf4j.LoggerFactory;
 
 /** Unit tests for {@link EvsOpenSearchRequestLoggingInterceptor}. */
+@ResourceLock("EvsOpenSearchRestTemplateLogger")
 class EvsOpenSearchRequestLoggingInterceptorTest {
 
   /** The logger used by the interceptor. */
@@ -60,6 +62,16 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
     logger.setAdditive(originalAdditive);
   }
 
+  /**
+   * Get the single request log emitted by the interceptor.
+   *
+   * @return the logged request message
+   */
+  private String getLoggedMessage() {
+    assertEquals(1, appender.list.size());
+    return appender.list.get(0).getFormattedMessage();
+  }
+
   /** Test that search requests log the actual request details and preserve the payload. */
   @Test
   void logsSearchRequestDetailsAndPreservesPayload() throws Exception {
@@ -94,7 +106,7 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
 
     new EvsOpenSearchRequestLoggingInterceptor().process(request, context);
 
-    final String logMessage = appender.list.get(0).getFormattedMessage();
+    final String logMessage = getLoggedMessage();
     assertTrue(logMessage.contains("method = POST"));
     assertTrue(
         logMessage.contains(
@@ -160,7 +172,7 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
 
     new EvsOpenSearchRequestLoggingInterceptor().process(request, context);
 
-    final String logMessage = appender.list.get(0).getFormattedMessage();
+    final String logMessage = getLoggedMessage();
     assertTrue(logMessage.contains("<... payload truncated after 100000 characters>"));
     assertFalse(logMessage.contains(unloggedSuffix));
     assertEquals(payload, EntityUtils.toString(request.getEntity(), StandardCharsets.UTF_8));
@@ -186,7 +198,7 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
 
     new EvsOpenSearchRequestLoggingInterceptor().process(request, context);
 
-    final String logMessage = appender.list.get(0).getFormattedMessage();
+    final String logMessage = getLoggedMessage();
     assertTrue(logMessage.contains("<payload not logged: content type text/plain>"));
     assertFalse(logMessage.contains("super-secret"));
     assertEquals(payload, EntityUtils.toString(request.getEntity(), StandardCharsets.UTF_8));
@@ -210,7 +222,7 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
 
     new EvsOpenSearchRequestLoggingInterceptor().process(request, context);
 
-    final String logMessage = appender.list.get(0).getFormattedMessage();
+    final String logMessage = getLoggedMessage();
     assertTrue(logMessage.contains(payload));
     assertEquals(payload, EntityUtils.toString(request.getEntity(), StandardCharsets.UTF_8));
   }
@@ -224,7 +236,7 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
 
     new EvsOpenSearchRequestLoggingInterceptor().process(request, context);
 
-    final String logMessage = appender.list.get(0).getFormattedMessage();
+    final String logMessage = getLoggedMessage();
     assertTrue(logMessage.contains("method = GET"));
     assertTrue(logMessage.contains("url = http://localhost:9201/_cluster/health"));
     assertTrue(logMessage.contains("parameters = <none>"));
