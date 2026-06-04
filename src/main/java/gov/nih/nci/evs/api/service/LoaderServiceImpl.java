@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -273,9 +274,15 @@ public class LoaderServiceImpl {
               cmd.getOptionValue("d"),
               cmd.getOptionValue("t"),
               config.isForceDeleteIndex());
+      if (loadService instanceof BaseLoaderService) {
+        ((BaseLoaderService) loadService).resetStatistics(term);
+      }
       termAudit.setTerminology(term.getTerminology());
       termAudit.setVersion(term.getVersion());
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
+      if (loadService instanceof BaseLoaderService) {
+        ((BaseLoaderService) loadService).computeHierarchyStatistics(term, hierarchy);
+      }
       final Map<String, List<Map<String, String>>> historyMap =
           loadService.updateHistoryMap(term, config.getLocation());
       int totalConcepts = 0;
@@ -304,6 +311,12 @@ public class LoaderServiceImpl {
       termAudit.setEndDate(endDate);
       termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
       termAudit.setLogLevel("INFO");
+      if (loadService instanceof BaseLoaderService) {
+        final TerminologyStats stats = ((BaseLoaderService) loadService).getStatistics();
+        if (stats != null && !stats.isEmpty()) {
+          termAudit.setStats(new TerminologyStats(stats));
+        }
+      }
       logger.info("  audit = {}", termAudit);
       // only add new audit if concepts were added
       if (totalConcepts > 0) {

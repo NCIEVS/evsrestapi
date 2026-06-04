@@ -119,6 +119,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
 
+    ensureStatistics(terminology);
     logger.debug("Load concepts - index = {}, type = {}", terminology.getIndexName());
 
     boolean result =
@@ -291,6 +292,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                   // logger.info(" extensions " + c.getCode() + " = " +
                   // c.getExtensions());
                   // }
+                  recordConceptStatistics(c);
                 });
         logger.info("    finish computing extensions {} to {}", start + 1, end);
 
@@ -412,6 +414,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
     if (terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
+      computeHierarchyStatistics(terminology, hierarchy);
       OpensearchObject hierarchyObject = new OpensearchObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
       operationsService.index(hierarchyObject, indexName, OpensearchObject.class);

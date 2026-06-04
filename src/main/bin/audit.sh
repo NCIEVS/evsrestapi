@@ -43,6 +43,7 @@ print_help() {
   echo ""
   echo "Report Types (Required):"
   echo "  load                Terminology loading and indexing metrics"
+  echo "  stats               Terminology load statistics"
   echo "  error               Audit records with ERROR log level"
   echo "  warning             Audit records with WARN log level"
   echo "  all                 All audit records"
@@ -60,6 +61,7 @@ print_help() {
   echo "Examples:"
   echo "  $0 load                      # Load report to console"
   echo "  $0 --csv load ncit           # CSV report for NCIt"
+  echo "  $0 stats ncit                # Load statistics for NCIt"
   echo "  $0 -r -c all                 # Recent records for all types in CSV"
   echo "  $0 all -T medrt              # Use explicit flag for terminology"
   exit 1
@@ -132,10 +134,15 @@ fi
 
 case $report_type in
   load)
-    header="Terminology\tVersion\tElapsed Time\tCount\tDate"
+    header="Terminology\tVersion\tElapsed Time\tCount\tCodes\tProperties\tTree Positions\tMax Parents\tMax Children\tDate"
     q="process:(MetaOpensearchLoadServiceImpl OR MetaSourceOpensearchLoadServiceImpl OR LoaderServiceImpl OR GraphOpensearchLoadServiceImpl) AND NOT elapsedTime:0"
-    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | def pad: tostring | if length == 1 then "0" + . else . end; ($s/3600|floor|pad) + ":" + (($s%3600)/60|floor|pad) + ":" + ($s%60|pad) end; .hits.hits[] | [._source.terminology, ._source.version, (._source.elapsedTime | f), ._source.count, (._source.date // ._source.startDate)] | @tsv'
+    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | def pad: tostring | if length == 1 then "0" + . else . end; ($s/3600|floor|pad) + ":" + (($s%3600)/60|floor|pad) + ":" + ($s%60|pad) end; def cc($x): if $x == null then "" else (($x.code // "") + ":" + (($x.count // 0)|tostring)) end; .hits.hits[] | [._source.terminology, ._source.version, (._source.elapsedTime | f), ._source.count, (._source.stats.codeCount // ""), (._source.stats.propertyCount // ""), (._source.stats.hierarchy.treePositionCount // ""), cc(._source.stats.hierarchy.maxParents), cc(._source.stats.hierarchy.maxChildren), (._source.date // ._source.startDate)] | @tsv'
     #filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | ($s/3600|floor) as $h | (($s%3600)/60|floor) as $m | ($s%60) as $sec | (if $h>0 then ($h|tostring)+"h " else "" end) + (if $m>0 or $h>0 then ($m|tostring)+"m " else "" end) + ($sec|tostring)+"s" end; .hits.hits[] | [._source.terminology, ._source.version, (._source.elapsedTime | f), ._source.count, (._source.date // ._source.startDate)] | @tsv'
+    ;;
+  stats)
+    header="Terminology\tVersion\tConcepts\tCodes\tActive\tInactive\tSynonyms\tDefinitions\tProperties\tParents\tChildren\tAssociations\tInverse Associations\tRoles\tInverse Roles\tMaps\tHierarchy Codes\tTree Positions\tRoots\tMin Paths\tMax Paths\tMax Children\tMax Parents\tDate"
+    q="process:(MetaOpensearchLoadServiceImpl OR MetaSourceOpensearchLoadServiceImpl OR LoaderServiceImpl OR GraphOpensearchLoadServiceImpl) AND NOT elapsedTime:0"
+    filter='def cc($x): if $x == null then "" else (($x.code // "") + ":" + (($x.count // 0)|tostring)) end; .hits.hits[] | select(._source.stats != null) | ._source as $s | [$s.terminology, $s.version, ($s.stats.conceptCount // ""), ($s.stats.codeCount // ""), ($s.stats.activeConceptCount // ""), ($s.stats.inactiveConceptCount // ""), ($s.stats.synonymCount // ""), ($s.stats.definitionCount // ""), ($s.stats.propertyCount // ""), ($s.stats.parentReferenceCount // ""), ($s.stats.childReferenceCount // ""), ($s.stats.associationCount // ""), ($s.stats.inverseAssociationCount // ""), ($s.stats.roleCount // ""), ($s.stats.inverseRoleCount // ""), ($s.stats.mapCount // ""), ($s.stats.hierarchy.codeCount // ""), ($s.stats.hierarchy.treePositionCount // ""), ($s.stats.hierarchy.rootCount // ""), cc($s.stats.hierarchy.minPaths), cc($s.stats.hierarchy.maxPaths), cc($s.stats.hierarchy.maxChildren), cc($s.stats.hierarchy.maxParents), ($s.date // $s.startDate)] | @tsv'
     ;;
   error)
     header="Terminology\tVersion\tProcess\tDetails\tDate"
@@ -165,8 +172,8 @@ fi
 
 # recent flag restricts only to audits that happened in the last 24 hours
 if [[ $recent -eq 1 ]]; then
-    start_date=$(date -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
-    end_date=$(date +%Y-%m-%dT%H:%M:%SZ)
+    start_date=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+    end_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     q="$q AND (date:[$start_date TO $end_date] OR startDate:[$start_date TO $end_date])"
 fi
 

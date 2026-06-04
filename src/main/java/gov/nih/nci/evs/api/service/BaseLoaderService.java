@@ -6,10 +6,12 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.IOException;
@@ -67,8 +69,119 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   @Value("${nci.evs.bulkload.graphDbs}")
   private String dbs;
 
+  /** The load statistics. */
+  private TerminologyStats statistics = new TerminologyStats();
+
   public TerminologyUtils getTerminologyUtils() {
     return termUtils;
+  }
+
+  /**
+   * Returns the load statistics.
+   *
+   * @return the load statistics
+   */
+  public TerminologyStats getStatistics() {
+    return statistics;
+  }
+
+  /**
+   * Resets the load statistics.
+   *
+   * @param terminology the terminology
+   */
+  protected void resetStatistics(final Terminology terminology) {
+    statistics = new TerminologyStats();
+    if (terminology != null) {
+      statistics.setTerminology(terminology.getTerminology());
+      statistics.setVersion(terminology.getVersion());
+    }
+  }
+
+  /**
+   * Ensures load statistics are initialized for the terminology.
+   *
+   * @param terminology the terminology
+   */
+  protected void ensureStatistics(final Terminology terminology) {
+    if (statistics == null
+        || terminology != null
+            && (!StringUtils.equals(statistics.getTerminology(), terminology.getTerminology())
+                || !StringUtils.equals(statistics.getVersion(), terminology.getVersion()))) {
+      resetStatistics(terminology);
+    }
+  }
+
+  /**
+   * Records concept statistics.
+   *
+   * @param concept the concept
+   */
+  protected void recordConceptStatistics(final Concept concept) {
+    if (statistics == null) {
+      resetStatistics(null);
+    }
+    statistics.recordConcept(concept);
+  }
+
+  /**
+   * Computes hierarchy statistics.
+   *
+   * @param terminology the terminology
+   * @param hierarchy the hierarchy
+   * @throws Exception the exception
+   */
+  protected void computeHierarchyStatistics(
+      final Terminology terminology, final HierarchyUtils hierarchy) throws Exception {
+
+    ensureStatistics(terminology);
+
+    final TerminologyStats.HierarchyStats hierarchyStats = statistics.getHierarchy();
+    if (terminology == null
+        || terminology.getMetadata() == null
+        || terminology.getMetadata().getHierarchy() == null
+        || !terminology.getMetadata().getHierarchy()
+        || hierarchy == null) {
+      hierarchyStats.setApplicable(false);
+      return;
+    }
+
+    hierarchyStats.setApplicable(true);
+    final HierarchyUtils.PathStats pathStats = hierarchy.getPathStats(terminology);
+    hierarchyStats.setCodeCount(pathStats == null ? 0 : pathStats.getCodeCount());
+    hierarchyStats.setRootCount(hierarchy.getHierarchyRoots().size());
+    hierarchyStats.setTreePositionCount(pathStats == null ? 0 : pathStats.getTreePositionCount());
+    hierarchyStats.setMinPaths(
+        pathStats == null
+            ? null
+            : codeCount(pathStats.getMinPathsCode(), hierarchy, pathStats.getMinPathCount()));
+    hierarchyStats.setMaxPaths(
+        pathStats == null
+            ? null
+            : codeCount(pathStats.getMaxPathsCode(), hierarchy, pathStats.getMaxPathCount()));
+
+    final String maxChildrenCode = hierarchy.getCodeWithMaxChildren(terminology);
+    hierarchyStats.setMaxChildren(
+        codeCount(maxChildrenCode, hierarchy, hierarchy.getChildCount(maxChildrenCode)));
+
+    final String maxParentsCode = hierarchy.getCodeWithMaxParents(terminology);
+    hierarchyStats.setMaxParents(
+        codeCount(maxParentsCode, hierarchy, hierarchy.getParentCount(maxParentsCode)));
+  }
+
+  /**
+   * Returns a code count object.
+   *
+   * @param code the code
+   * @param hierarchy the hierarchy
+   * @param count the count
+   * @return the code count object
+   */
+  private TerminologyStats.CodeCount codeCount(
+      final String code, final HierarchyUtils hierarchy, final long count) {
+    return code == null
+        ? null
+        : new TerminologyStats.CodeCount(code, hierarchy.getName(code), count);
   }
 
   /**

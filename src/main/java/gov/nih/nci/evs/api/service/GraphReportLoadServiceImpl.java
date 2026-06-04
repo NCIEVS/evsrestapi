@@ -6,6 +6,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -69,6 +70,7 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
       Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
 
+    ensureStatistics(terminology);
     final String resource = "metadata/" + terminology.getTerminology() + ".txt";
 
     // Load samples from file
@@ -88,6 +90,7 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
 
     logReport("  ", "concepts without codes = " + concepts.size());
+    concepts.forEach(this::recordConceptStatistics);
     int ct = 0;
     for (final Concept concept : concepts) {
       if (++ct < 3 || samples.contains(concept.getCode())) {
@@ -102,6 +105,7 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
     // Get all concepts
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
     logReport("  ", "concepts with codes = " + concepts.size());
+    concepts.forEach(this::recordConceptStatistics);
     ct = 0;
     for (final Concept concept : concepts) {
       if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
@@ -130,40 +134,7 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
     if (terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
       try {
-        // Report total paths in the pathsMap
-        logReport("  ", "hierarchy = " + hierarchy.getPathsMap(terminology).size());
-
-        // Report hierarchy roots
-        logReport("  ", "roots = " + hierarchy.getHierarchyRoots());
-
-        // Report min paths statistics
-        final String minPathsCode = hierarchy.getCodeWithMinPaths(terminology);
-        logReport(
-            "  ",
-            "  min paths = "
-                + minPathsCode
-                + ", "
-                + hierarchy.getPathsMap(terminology).get(minPathsCode).size());
-
-        // Report max paths statistics
-        final String maxPathsCode = hierarchy.getCodeWithMaxPaths(terminology);
-        logReport(
-            "  ",
-            "  max paths = "
-                + maxPathsCode
-                + ", "
-                + hierarchy.getPathsMap(terminology).get(maxPathsCode).size());
-
-        // Report max children statistics
-        final String maxChildrenCode = hierarchy.getCodeWithMaxChildren(terminology);
-        logReport(
-            "  ",
-            "  max children = "
-                + maxChildrenCode
-                + ", "
-                + (maxChildrenCode == null
-                    ? "0"
-                    : hierarchy.getChildNodes(maxChildrenCode, 0).size()));
+        logHierarchyStatistics(terminology, hierarchy);
       } catch (Exception e) {
         logReport("  ", "hierarchy = error retrieving statistics: " + e.getMessage());
         logger.error("Error retrieving hierarchy statistics", e);
@@ -346,32 +317,41 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(final Terminology term) throws Exception {
-    final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtilsCache(term);
-    logReport("  ", "hierarchy = " + hierarchy.getPathsMap(term).size());
-    logReport("  ", "roots = " + hierarchy.getHierarchyRoots());
-    final String minPathsCode = hierarchy.getCodeWithMinPaths(term);
-    logReport(
-        "  ",
-        "  min paths = "
-            + minPathsCode
-            + ", "
-            + hierarchy.getPathsMap(term).get(minPathsCode).size());
-    final String maxPathsCode = hierarchy.getCodeWithMaxPaths(term);
-    logReport(
-        "  ",
-        "  max paths = "
-            + maxPathsCode
-            + ", "
-            + hierarchy.getPathsMap(term).get(maxPathsCode).size());
-    final String maxChildrenCode = hierarchy.getCodeWithMaxChildren(term);
-    logReport(
-        "  ",
-        "  max children = "
-            + maxChildrenCode
-            + ", "
-            + (maxChildrenCode == null ? "0" : hierarchy.getChildNodes(maxChildrenCode, 0).size()));
+    return sparqlQueryManagerService.getHierarchyUtilsCache(term);
+  }
 
-    return hierarchy;
+  /**
+   * Log hierarchy statistics.
+   *
+   * @param terminology the terminology
+   * @param hierarchy the hierarchy
+   * @throws Exception the exception
+   */
+  private void logHierarchyStatistics(final Terminology terminology, final HierarchyUtils hierarchy)
+      throws Exception {
+    computeHierarchyStatistics(terminology, hierarchy);
+    final TerminologyStats.HierarchyStats hierarchyStats = getStatistics().getHierarchy();
+    if (!Boolean.TRUE.equals(hierarchyStats.getApplicable())) {
+      logReport("  ", "hierarchy = not applicable");
+      return;
+    }
+    logReport("  ", "hierarchy = " + hierarchyStats.getCodeCount());
+    logReport("  ", "tree positions = " + hierarchyStats.getTreePositionCount());
+    logReport("  ", "roots = " + hierarchy.getHierarchyRoots());
+    logReport("  ", "  min paths = " + formatCodeCount(hierarchyStats.getMinPaths()));
+    logReport("  ", "  max paths = " + formatCodeCount(hierarchyStats.getMaxPaths()));
+    logReport("  ", "  max children = " + formatCodeCount(hierarchyStats.getMaxChildren()));
+    logReport("  ", "  max parents = " + formatCodeCount(hierarchyStats.getMaxParents()));
+  }
+
+  /**
+   * Format a code count.
+   *
+   * @param codeCount the code count
+   * @return the formatted code count
+   */
+  private String formatCodeCount(final TerminologyStats.CodeCount codeCount) {
+    return codeCount == null ? "none, 0" : codeCount.getCode() + ", " + codeCount.getCount();
   }
 
   /**
