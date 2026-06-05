@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.configuration;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
@@ -50,15 +51,10 @@ final class EvsOpenSearchRequestLoggingInterceptor implements HttpRequestInterce
     final String payload = getPayload(request);
 
     logger.debug(
-        "opensearch request:"
-            + "\n  method = {}"
-            + "\n  url = {}"
-            + "\n  parameters = {}"
-            + "\n  index = {}"
-            + "\n  payload =\n{}",
+        "opensearch request = " + "\n    {} {}" + "\n    {} = {}",
         request.getRequestLine().getMethod(),
         getRequestUrl(requestUri, context),
-        getRequestParameters(requestUri),
+        // getRequestParameters(requestUri),
         getRequestIndex(requestPath),
         payload);
   }
@@ -177,6 +173,7 @@ final class EvsOpenSearchRequestLoggingInterceptor implements HttpRequestInterce
    * @param requestUri the URI from the request line
    * @return the raw query-string parameters, or {@code <none>} when absent
    */
+  @SuppressWarnings("unused")
   private String getRequestParameters(final String requestUri) {
     final int queryIndex = requestUri.indexOf('?');
     if (queryIndex < 0 || queryIndex == requestUri.length() - 1) {
