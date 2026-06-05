@@ -414,7 +414,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
     if (terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
-      computeHierarchyStatistics(terminology, hierarchy);
       OpensearchObject hierarchyObject = new OpensearchObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
       operationsService.index(hierarchyObject, indexName, OpensearchObject.class);

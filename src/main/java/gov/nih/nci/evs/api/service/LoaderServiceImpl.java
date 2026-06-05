@@ -280,9 +280,6 @@ public class LoaderServiceImpl {
       termAudit.setTerminology(term.getTerminology());
       termAudit.setVersion(term.getVersion());
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
-      if (loadService instanceof BaseLoaderService) {
-        ((BaseLoaderService) loadService).computeHierarchyStatistics(term, hierarchy);
-      }
       final Map<String, List<Map<String, String>>> historyMap =
           loadService.updateHistoryMap(term, config.getLocation());
       int totalConcepts = 0;
@@ -311,8 +308,10 @@ public class LoaderServiceImpl {
       termAudit.setEndDate(endDate);
       termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
       termAudit.setLogLevel("INFO");
-      if (loadService instanceof BaseLoaderService) {
-        final TerminologyStats stats = ((BaseLoaderService) loadService).getStatistics();
+      if (loadService instanceof BaseLoaderService && totalConcepts > 0) {
+        final BaseLoaderService baseLoaderService = (BaseLoaderService) loadService;
+        baseLoaderService.computeHierarchyStatistics(term, hierarchy);
+        final TerminologyStats stats = baseLoaderService.getStatistics();
         if (stats != null && !stats.isEmpty()) {
           termAudit.setStats(new TerminologyStats(stats));
         }
