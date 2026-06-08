@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.model.sparql;
 
+import java.util.Arrays;
+
 public class Results {
   private Bindings[] bindings;
 
@@ -13,6 +15,6 @@ public class Results {
 
   @Override
   public String toString() {
-    return "ClassPojo [bindings = " + bindings + "]";
+    return "ClassPojo [bindings = " + Arrays.toString(bindings) + "]";
   }
 }

@@ -1016,7 +1016,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
           "(" + targetTerminology.getName() + ") " + targetTerminology.getVersion();
     }
     String welcomeText =
-        """
+"""
 This is a manual EVS mapping of concepts with equivalent meaning in the source and target terminology versions shown below:
 <br><br>
 &nbsp;&nbsp;&nbsp;Source: NCIt (NCI Thesaurus) %s

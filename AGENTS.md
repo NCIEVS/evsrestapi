@@ -2,7 +2,7 @@
 
 ## Global Architecture Overview
 
-EVS REST API is a Java 17, Gradle, Spring Boot application using a Maven-standard
+EVS REST API is a Java 25, Gradle, Spring Boot application using a Maven-standard
 `src/main` and `src/test` directory layout. The API exposes EVS terminology data through
 Spring MVC REST controllers and HAPI FHIR R4/R5 endpoints.
 

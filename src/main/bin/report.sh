@@ -192,7 +192,7 @@ else
         exit 1
     fi
 
-    export JAVA_HOME="${JAVA_HOME:-/usr/local/corretto-jdk21}"
+    export JAVA_HOME="${JAVA_HOME:-/usr/local/corretto-jdk25}"
     export PATH="${JAVA_HOME}/bin:$PATH"
     # Handle the local setup
     local=""

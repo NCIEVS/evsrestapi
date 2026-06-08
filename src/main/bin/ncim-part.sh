@@ -144,7 +144,7 @@ fi
 
 # Handle the local setup
 echo ""
-export JAVA_HOME="${JAVA_HOME:-/usr/local/corretto-jdk21}"
+export JAVA_HOME="${JAVA_HOME:-/usr/local/corretto-jdk25}"
 export PATH="${JAVA_HOME}/bin:$PATH"
 local=""
 jar="../lib/evsrestapi.jar"

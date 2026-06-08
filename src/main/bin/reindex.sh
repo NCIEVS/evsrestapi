@@ -113,7 +113,7 @@ if [[ $force -eq 1 ]]; then
 fi
 
 # Setup java environment
-export JAVA_HOME="${JAVA_HOME:-/usr/local/corretto-jdk21}"
+export JAVA_HOME="${JAVA_HOME:-/usr/local/corretto-jdk25}"
 export PATH="${JAVA_HOME}/bin:$PATH"
 # Handle the local setup
 local=""
