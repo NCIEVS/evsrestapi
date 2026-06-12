@@ -166,9 +166,12 @@ public class RrfFileCopier {
     try (final BufferedReader in = new BufferedReader(new FileReader(inputFile));
         PrintWriter out = new PrintWriter(new FileWriter(outputFile)); ) {
       String line;
+      long lineNumber = 0;
       OUTER:
       while ((line = in.readLine()) != null) {
+        lineNumber++;
         final String[] fields = line.split("\\|", -1);
+        validateFieldCount(inputFile, key, fields, lineNumber, getPreFilterRequiredFieldCount(key));
 
         // If MRCUI and it is a DEL entry, then keep
         if (key == Keys.MRCUI && "DEL".equals(fields[2])) {
@@ -176,8 +179,16 @@ public class RrfFileCopier {
           continue;
         }
 
+        validateFieldCount(
+            inputFile, key, fields, lineNumber, getRequiredFieldCount(key, cuis, codeSabCopyScope));
+
+        // In code/SAB mode, keep only matching atoms and downstream rows scoped to those atoms.
+        if (codeSabCopyScope != null && !matchesCodeSabScope(key, fields, codeSabCopyScope)) {
+          continue;
+        }
+
         // Skip non-matching CUI
-        if (cuiFields != null && cuis != null && !cuis.isEmpty()) {
+        if (codeSabCopyScope == null && cuiFields != null && cuis != null && !cuis.isEmpty()) {
           for (final int i : cuiFields) {
             if (!cuis.contains(fields[i])) {
               continue OUTER;
