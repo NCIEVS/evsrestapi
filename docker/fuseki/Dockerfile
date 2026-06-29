@@ -1,7 +1,7 @@
-FROM bellsoft/liberica-openjre-alpine:17.0.13
+FROM azul/zulu-openjdk-alpine:25
 
 # Set environment variables
-ENV FUSEKI_VERSION=5.3.0
+ENV FUSEKI_VERSION=6.1.0
 ENV JENA_HOME=/opt/jena
 ENV FUSEKI_HOME=/opt/fuseki
 ENV FUSEKI_BASE=/opt/fuseki/run
