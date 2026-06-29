@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start the fuseki-server (foreground runner, backgrounded here)
-export JAVA_OPTIONS="-Xmx8000M"
+JAVA_OPTIONS="-Xmx8000M -Djdk.xml.maxElementDepth=1000"
 export DEBUG=1
 ./fuseki-server &
 FUSEKI_PID=$!
