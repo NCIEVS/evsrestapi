@@ -90,7 +90,6 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
 
     logReport("  ", "concepts without codes = " + concepts.size());
-    concepts.forEach(this::recordConceptStatistics);
     int ct = 0;
     for (final Concept concept : concepts) {
       if (++ct < 3 || samples.contains(concept.getCode())) {
@@ -105,7 +104,6 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
     // Get all concepts
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
     logReport("  ", "concepts with codes = " + concepts.size());
-    concepts.forEach(this::recordConceptStatistics);
     ct = 0;
     for (final Concept concept : concepts) {
       if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
