@@ -72,7 +72,8 @@ public class TerminologyStatsCollector {
 
     ensure(terminology);
 
-    final TerminologyStats.HierarchyStats hierarchyStats = statistics.getHierarchy();
+    final TerminologyStats.HierarchyStats hierarchyStats = new TerminologyStats.HierarchyStats();
+    statistics.setHierarchy(hierarchyStats);
     if (terminology == null
         || terminology.getMetadata() == null
         || terminology.getMetadata().getHierarchy() == null
