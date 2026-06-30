@@ -201,11 +201,18 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     // create the audit index if it doesn't exist
     boolean createdAudit =
         operationsService.createIndex(OpensearchOperationsService.AUDIT_INDEX, false);
-    if (createdAudit) {
+    try {
       operationsService
           .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(OpensearchOperationsService.AUDIT_INDEX))
           .putMapping(Audit.class);
+    } catch (Exception e) {
+      if (createdAudit) {
+        throw e;
+      }
+      logger.warn(
+          "Unable to update existing audit index mapping; existing dynamic mappings may remain: {}",
+          e.getMessage());
     }
   }
 
