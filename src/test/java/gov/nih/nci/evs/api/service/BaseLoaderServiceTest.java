@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
@@ -79,6 +80,39 @@ public class BaseLoaderServiceTest {
     assertEquals(0, hierarchyStats.getCodeCount());
     assertEquals(0, hierarchyStats.getTreePositionCount());
     assertEquals(0, hierarchyStats.getRootCount());
+    assertNull(hierarchyStats.getMinPaths());
+    assertNull(hierarchyStats.getMaxPaths());
+    assertNull(hierarchyStats.getMaxChildren());
+    assertNull(hierarchyStats.getMaxParents());
+  }
+
+  /**
+   * Test compute hierarchy statistics clears stale hierarchy values.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testComputeHierarchyStatisticsClearsStaleValues() throws Exception {
+    final Terminology terminology = terminology(true);
+    final HierarchyUtils hierarchy =
+        new HierarchyUtils(
+            terminology,
+            Arrays.asList(
+                "A\tRoot A\tB\tChild B", "A\tRoot A\tC\tChild C", "B\tChild B\tD\tChild D"));
+    final TestLoaderService loader = new TestLoaderService();
+
+    loader.computeHierarchyStatistics(terminology, hierarchy);
+    assertNotNull(loader.getStatistics().getHierarchy().getMaxPaths());
+
+    terminology.getMetadata().setHierarchy(false);
+    loader.computeHierarchyStatistics(terminology, hierarchy);
+
+    final TerminologyStats.HierarchyStats hierarchyStats = loader.getStatistics().getHierarchy();
+    assertEquals(false, hierarchyStats.getApplicable());
+    assertEquals(0, hierarchyStats.getCodeCount());
+    assertNull(hierarchyStats.getMaxPaths());
+    assertNull(hierarchyStats.getMaxChildren());
+    assertNull(hierarchyStats.getMaxParents());
   }
 
   /**
