@@ -83,6 +83,19 @@ java {
 
 }
 
+tasks.register('eclipseWebXml', Copy) {
+  from(layout.projectDirectory.file('src/eclipse/WEB-INF/web.xml'))
+  into(layout.projectDirectory.dir('WEB-INF'))
+}
+
+tasks.named('eclipse') {
+  finalizedBy('eclipseWebXml')
+}
+
+tasks.named('eclipseWtp') {
+  finalizedBy('eclipseWebXml')
+}
+
 dependencies {
 
   implementation "org.springframework.boot:spring-boot-starter-web"
