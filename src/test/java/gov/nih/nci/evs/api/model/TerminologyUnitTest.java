@@ -42,6 +42,12 @@ public class TerminologyUnitTest {
   /** The tm 2. */
   private TerminologyMetadata tm2;
 
+  /** The ts 1. */
+  private TerminologyStats ts1;
+
+  /** The ts 2. */
+  private TerminologyStats ts2;
+
   /**
    * Setup.
    *
@@ -59,6 +65,15 @@ public class TerminologyUnitTest {
     final ProxyTester tester = new ProxyTester(new TerminologyMetadata());
     tm1 = (TerminologyMetadata) tester.createObject(1);
     tm2 = (TerminologyMetadata) tester.createObject(2);
+
+    ts1 = new TerminologyStats();
+    ts1.setTerminology("ncit");
+    ts1.setVersion("1");
+    ts1.setConceptCount(1);
+    ts2 = new TerminologyStats();
+    ts2.setTerminology("go");
+    ts2.setVersion("2");
+    ts2.setConceptCount(2);
   }
 
   /**
@@ -73,6 +88,8 @@ public class TerminologyUnitTest {
     tester.proxy(Map.class, 2, m2);
     tester.proxy(TerminologyMetadata.class, 1, tm1);
     tester.proxy(TerminologyMetadata.class, 2, tm2);
+    tester.proxy(TerminologyStats.class, 1, ts1);
+    tester.proxy(TerminologyStats.class, 2, ts2);
 
     tester.test();
   }
@@ -102,6 +119,8 @@ public class TerminologyUnitTest {
     tester.proxy(Map.class, 2, m2);
     tester.proxy(TerminologyMetadata.class, 1, tm1);
     tester.proxy(TerminologyMetadata.class, 2, tm2);
+    tester.proxy(TerminologyStats.class, 1, ts1);
+    tester.proxy(TerminologyStats.class, 2, ts2);
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
@@ -121,6 +140,7 @@ public class TerminologyUnitTest {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
     tester.proxy(Map.class, 1, m1);
     tester.proxy(TerminologyMetadata.class, 1, tm1);
+    tester.proxy(TerminologyStats.class, 1, ts1);
     assertTrue(tester.testCopyConstructor(Terminology.class));
   }
 
@@ -134,6 +154,7 @@ public class TerminologyUnitTest {
     final SerializationTester tester = new SerializationTester(object);
     tester.proxy(Map.class, 1, m1);
     tester.proxy(TerminologyMetadata.class, 1, tm1);
+    tester.proxy(TerminologyStats.class, 1, ts1);
     assertTrue(tester.testJsonSerialization());
   }
 }

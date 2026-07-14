@@ -79,6 +79,10 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   @Field(type = FieldType.Object, enabled = false)
   private TerminologyMetadata metadata;
 
+  /** The computed terminology statistics. */
+  @Field(type = FieldType.Object, enabled = false)
+  private TerminologyStats stats;
+
   /** The flag for using sparql searches. */
   private Boolean sparqlFlag;
 
@@ -117,6 +121,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
     indexName = other.getIndexName();
     objectIndexName = other.getObjectIndexName();
     metadata = other.getMetadata();
+    stats = other.getStats();
     sparqlFlag = other.getSparqlFlag();
   }
 
@@ -314,6 +319,25 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    */
   public void setMetadata(TerminologyMetadata metadata) {
     this.metadata = metadata;
+  }
+
+  /**
+   * Returns the computed terminology statistics.
+   *
+   * @return the computed terminology statistics
+   */
+  @Schema(description = "Computed terminology statistics from the latest load")
+  public TerminologyStats getStats() {
+    return stats;
+  }
+
+  /**
+   * Sets the computed terminology statistics.
+   *
+   * @param stats the computed terminology statistics
+   */
+  public void setStats(final TerminologyStats stats) {
+    this.stats = stats;
   }
 
   /**
