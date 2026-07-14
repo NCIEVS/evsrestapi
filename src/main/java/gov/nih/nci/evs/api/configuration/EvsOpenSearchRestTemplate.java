@@ -35,8 +35,12 @@ public class EvsOpenSearchRestTemplate extends OpenSearchRestTemplate {
   @Override
   public <T> SearchHits<T> search(
       final Query query, final Class<T> clazz, final IndexCoordinates index) {
-    if (logger.isDebugEnabled() && ((NativeSearchQuery) query).getQuery() != null) {
-      logger.debug("  opensearch query = \n" + ((NativeSearchQuery) query).getQuery());
+    // Keep the original Spring Data query log for NativeSearchQuery callers. The HTTP interceptor
+    // logs the full replayable OpenSearch request after this query has been serialized.
+    if (logger.isDebugEnabled()
+        && query instanceof NativeSearchQuery nativeSearchQuery
+        && nativeSearchQuery.getQuery() != null) {
+      logger.debug("  opensearch query = \n{}", nativeSearchQuery.getQuery());
     }
 
     return super.search(query, clazz, index);
