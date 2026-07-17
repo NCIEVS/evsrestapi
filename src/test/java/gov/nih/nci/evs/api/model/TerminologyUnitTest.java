@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.model;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gov.nih.nci.evs.api.CopyConstructorTester;
@@ -8,6 +10,7 @@ import gov.nih.nci.evs.api.GetterSetterTester;
 import gov.nih.nci.evs.api.ProxyTester;
 import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -156,5 +159,30 @@ public class TerminologyUnitTest {
     tester.proxy(TerminologyMetadata.class, 1, tm1);
     tester.proxy(TerminologyStats.class, 1, ts1);
     assertTrue(tester.testJsonSerialization());
+  }
+
+  /**
+   * Test API cleanup.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCleanForApi() throws Exception {
+    final Terminology term = new Terminology();
+    term.setSource("source");
+    term.setIndexName("concept_index");
+    term.setObjectIndexName("object_index");
+    term.setStats(ts1);
+    final TerminologyMetadata metadata = new TerminologyMetadata();
+    metadata.setWelcomeText("welcome");
+    term.setMetadata(metadata);
+
+    term.cleanForApi();
+
+    assertNull(term.getSource());
+    assertNull(term.getStats());
+    assertNull(metadata.getWelcomeText());
+    final String json = ThreadLocalMapper.get().writeValueAsString(term);
+    assertFalse(json.contains("\"stats\""));
   }
 }

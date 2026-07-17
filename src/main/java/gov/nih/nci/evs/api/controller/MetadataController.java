@@ -5,7 +5,6 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
@@ -131,15 +130,7 @@ public class MetadataController extends BaseController {
       }
 
       for (final Terminology term : terms) {
-        // For internal use
-        term.setSource(null);
-        term.setIndexName(null);
-        term.setObjectIndexName(null);
-        final TerminologyMetadata meta = term.getMetadata();
-        // Some terminologies may not have metadata
-        if (meta != null) {
-          meta.cleanForApi();
-        }
+        term.cleanForApi();
       }
 
       return terms;

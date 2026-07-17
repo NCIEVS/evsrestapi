@@ -340,6 +340,17 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
     this.stats = stats;
   }
 
+  /** Cleans values that should not be sent through the general terminology list API. */
+  public void cleanForApi() {
+    setSource(null);
+    setIndexName(null);
+    setObjectIndexName(null);
+    setStats(null);
+    if (metadata != null) {
+      metadata.cleanForApi();
+    }
+  }
+
   /**
    * Returns the tags.
    *
