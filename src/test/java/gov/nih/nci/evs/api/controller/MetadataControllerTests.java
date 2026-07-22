@@ -2204,8 +2204,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url + "ncit/stats")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("ncit stats content = " + content);
-    TerminologyStats ncitStats =
-        ThreadLocalMapper.get().readValue(content, TerminologyStats.class);
+    TerminologyStats ncitStats = ThreadLocalMapper.get().readValue(content, TerminologyStats.class);
     assertThat(ncitStats).isNotNull();
     assertThat(ncitStats.getTerminology()).isEqualTo("ncit");
     assertThat(ncitStats.getConceptCount()).isGreaterThan(0L);
@@ -2214,8 +2213,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url + "ncim/stats")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("ncim stats content = " + content);
-    TerminologyStats ncimStats =
-        ThreadLocalMapper.get().readValue(content, TerminologyStats.class);
+    TerminologyStats ncimStats = ThreadLocalMapper.get().readValue(content, TerminologyStats.class);
     assertThat(ncimStats).isNotNull();
     assertThat(ncimStats.getTerminology()).isEqualTo("ncim");
     assertThat(ncimStats.getConceptCount()).isGreaterThan(0L);
