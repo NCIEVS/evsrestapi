@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -2186,6 +2187,38 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(sourceStats.isEmpty());
+  }
+
+  /**
+   * Test terminology stats for ncit and ncim.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTerminologyStats() throws Exception {
+    String url = "/api/v1/metadata/";
+    MvcResult result = null;
+    String content = null;
+
+    // Test ncit terminology stats
+    result = mvc.perform(get(url + "ncit/stats")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("ncit stats content = " + content);
+    TerminologyStats ncitStats =
+        ThreadLocalMapper.get().readValue(content, TerminologyStats.class);
+    assertThat(ncitStats).isNotNull();
+    assertThat(ncitStats.getTerminology()).isEqualTo("ncit");
+    assertThat(ncitStats.getConceptCount()).isGreaterThan(0L);
+
+    // Test ncim terminology stats
+    result = mvc.perform(get(url + "ncim/stats")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("ncim stats content = " + content);
+    TerminologyStats ncimStats =
+        ThreadLocalMapper.get().readValue(content, TerminologyStats.class);
+    assertThat(ncimStats).isNotNull();
+    assertThat(ncimStats.getTerminology()).isEqualTo("ncim");
+    assertThat(ncimStats.getConceptCount()).isGreaterThan(0L);
   }
 
   /**
