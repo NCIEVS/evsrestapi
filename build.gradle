@@ -45,7 +45,7 @@ ext['log4j2.version'] = '2.25.4'
 // Override Spring Boot BOM's commons-lang3 (3.17.0) to pick up CVE-2025-48924 fix.
 // Applies BOM-wide, so the spotbugs configuration also gets 3.18.0.
 ext['commons-lang3.version'] = '3.18.0'
-// Explicit override for Jackson CVEs (CVE-2026-54512, CVE-2026-54513)
+// Override Boot BOM Jackson version to fix CVE-2026-54512 / CVE-2026-54513 (HIGH)
 ext['jackson-bom.version'] = '2.21.4'
 
 // Extra Properties
@@ -81,6 +81,19 @@ java {
     languageVersion = JavaLanguageVersion.of(17)
   }
 
+}
+
+tasks.register('eclipseWebXml', Copy) {
+  from(layout.projectDirectory.file('src/eclipse/WEB-INF/web.xml'))
+  into(layout.projectDirectory.dir('WEB-INF'))
+}
+
+tasks.named('eclipse') {
+  finalizedBy('eclipseWebXml')
+}
+
+tasks.named('eclipseWtp') {
+  finalizedBy('eclipseWebXml')
 }
 
 dependencies {
@@ -187,6 +200,7 @@ dependencies {
   */
   compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   // Use spring-boot-starter-test defaults
   // testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
   // testImplementation "org.junit.jupiter:junit-jupiter-params:5.10.5"
