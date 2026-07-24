@@ -60,6 +60,9 @@ ext {
   if (!project.hasProperty("terminology")) {
     terminology = "na"
   }
+  if (!project.hasProperty("copyMode")) {
+    copyMode = "codesab"
+  }
 }
 
 /* Version info */
@@ -278,13 +281,13 @@ spotbugsTest {
 }
 
 // # for this, the cuis with listed sources will have hierarchies computed
-// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META
+// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META [-PcopyMode=codesab|cui]
 tasks.register('rrfSample', JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
   main = "gov.nih.nci.evs.api.service.SamplingApplication"
   systemProperties System.getProperties()
   // arguments to pass to the application
-  args("rrfSample", inputPath, listFile, terminology)
+  args("rrfSample", inputPath, listFile, terminology, copyMode)
   jvmArgs "-Xmx8G"
 }
 
