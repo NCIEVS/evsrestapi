@@ -40,6 +40,9 @@ public class RrfSampleGenerator {
   /** The distance one. */
   private boolean distanceOne = true;
 
+  /** The cui mode. */
+  private boolean cuiMode = false;
+
   /** The chd par map. */
   private Map<String, Set<String>> chdParMap = new HashMap<>();
 
@@ -99,6 +102,7 @@ public class RrfSampleGenerator {
       logger.info("  terminologies = " + terminologies);
       logger.info("  keepDescendants = " + keepDescendants);
       logger.info("  distanceOne = " + distanceOne);
+      logger.info("  cuiMode = " + cuiMode);
 
       // Verify input path
       final File file = new File(inputPath);
@@ -263,17 +267,21 @@ public class RrfSampleGenerator {
       cuis.addAll(inputCuis);
 
       logger.info("    cuis = " + cuis.size());
+      final Set<String> nonNullCodesabs =
+          codesabs.stream().filter(s -> s != null).collect(Collectors.toSet());
+      logger.info("    codesabs = " + nonNullCodesabs.size());
 
       readers.closeReaders();
 
       // Copy Files
       final RrfFileCopier copier = new RrfFileCopier();
-      // Parameterize this!
       final File outputDir = new File(inputPath, "/RRF-subset/");
       copier.setActiveOnly(false);
-      // NOTE: we probably should pass in codesabs here and keep atoms
-      // that match them and then other downstream data matching those AUIs only.
-      copier.copyFiles(new File(inputPath), outputDir, terminologies, cuis);
+      if (cuiMode) {
+        copier.copyFiles(new File(inputPath), outputDir, terminologies, cuis);
+      } else {
+        copier.copyFilesByCodeSabs(new File(inputPath), outputDir, terminologies, nonNullCodesabs);
+      }
 
       logger.info("Done ...");
 
@@ -503,6 +511,15 @@ public class RrfSampleGenerator {
    */
   public void setDistanceOne(final boolean distanceOne) {
     this.distanceOne = distanceOne;
+  }
+
+  /**
+   * Sets the CUI mode.
+   *
+   * @param cuiMode the CUI mode
+   */
+  public void setCuiMode(final boolean cuiMode) {
+    this.cuiMode = cuiMode;
   }
 
   /**

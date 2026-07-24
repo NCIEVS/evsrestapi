@@ -58,6 +58,9 @@ ext {
   if (!project.hasProperty("terminology")) {
     terminology = "na"
   }
+  if (!project.hasProperty("copyMode")) {
+    copyMode = "codesab"
+  }
 }
 
 /* Version info */
@@ -79,6 +82,19 @@ java {
     languageVersion = JavaLanguageVersion.of(17)
   }
 
+}
+
+tasks.register('eclipseWebXml', Copy) {
+  from(layout.projectDirectory.file('src/eclipse/WEB-INF/web.xml'))
+  into(layout.projectDirectory.dir('WEB-INF'))
+}
+
+tasks.named('eclipse') {
+  finalizedBy('eclipseWebXml')
+}
+
+tasks.named('eclipseWtp') {
+  finalizedBy('eclipseWebXml')
 }
 
 dependencies {
@@ -185,6 +201,7 @@ dependencies {
   */
   compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   // Use spring-boot-starter-test defaults
   // testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
   // testImplementation "org.junit.jupiter:junit-jupiter-params:5.10.5"
@@ -262,13 +279,13 @@ spotbugsTest {
 }
 
 // # for this, the cuis with listed sources will have hierarchies computed
-// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META
+// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META [-PcopyMode=codesab|cui]
 tasks.register('rrfSample', JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
   main = "gov.nih.nci.evs.api.service.SamplingApplication"
   systemProperties System.getProperties()
   // arguments to pass to the application
-  args("rrfSample", inputPath, listFile, terminology)
+  args("rrfSample", inputPath, listFile, terminology, copyMode)
   jvmArgs "-Xmx8G"
 }
 

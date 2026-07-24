@@ -5253,6 +5253,104 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test contains searches that combine a concept code with name or synonym text.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeAndNameSearches() throws Exception {
+    assertCodeAndNameSearch("hl7v30", "91 typhoid", "91-11258", "typhoid");
+    assertCodeAndNameSearch("hl7v30", "typhoid 91", "91-11258", "typhoid");
+
+    assertCodeAndNameSearch("ncit", "C3224 melanoma", "C3224", "melanoma");
+    assertCodeAndNameSearch("ncit", "melanoma C3224", "C3224", "melanoma");
+    assertCodeAndNameSearch("ncit", "C3224 malignant melanoma", "C3224", "malignant", "melanoma");
+    assertCodeAndNameSearch("ncit", "malignant melanoma C3224", "C3224", "malignant", "melanoma");
+  }
+
+  /**
+   * Assert code and name search.
+   *
+   * @param terminology the terminology
+   * @param term the search term
+   * @param expectedCode the expected top result code
+   * @param expectedWords the words expected in the top result name or one synonym
+   * @throws Exception the exception
+   */
+  private void assertCodeAndNameSearch(
+      final String terminology,
+      final String term,
+      final String expectedCode,
+      final String... expectedWords)
+      throws Exception {
+    final MvcResult result =
+        mvc.perform(
+                get(baseUrl)
+                    .param("terminology", terminology)
+                    .param("term", term)
+                    .param("type", "contains")
+                    .param("include", "summary,synonyms")
+                    .param("pageSize", "10"))
+            .andExpect(status().isOk())
+            .andReturn();
+    final String content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+
+    final ConceptResultList list =
+        ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts()).isNotEmpty();
+
+    log.info("Top results for code and name search '{}':", term);
+    for (int i = 0; i < Math.min(5, list.getConcepts().size()); i++) {
+      final Concept concept = list.getConcepts().get(i);
+      log.info("  {}. {} ({})", i + 1, concept.getName(), concept.getCode());
+    }
+
+    final Concept topResult = list.getConcepts().get(0);
+    assertThat(topResult.getCode()).isEqualTo(expectedCode);
+    assertThat(nameOrSynonymContainsAllWords(topResult, expectedWords))
+        .as("Expected top result name or synonym to contain %s for term '%s'", expectedWords, term)
+        .isTrue();
+  }
+
+  /**
+   * Indicates whether a concept name or one synonym contains all expected words.
+   *
+   * @param concept the concept
+   * @param expectedWords the expected words
+   * @return true if the concept name or one synonym contains all expected words
+   */
+  private boolean nameOrSynonymContainsAllWords(
+      final Concept concept, final String... expectedWords) {
+    if (containsAllWords(concept.getName(), expectedWords)) {
+      return true;
+    }
+    return concept.getSynonyms().stream()
+        .anyMatch(synonym -> containsAllWords(synonym.getName(), expectedWords));
+  }
+
+  /**
+   * Indicates whether a value contains all expected words.
+   *
+   * @param value the value
+   * @param expectedWords the expected words
+   * @return true if the value contains all expected words
+   */
+  private boolean containsAllWords(final String value, final String... expectedWords) {
+    if (value == null) {
+      return false;
+    }
+    final String lowerValue = value.toLowerCase();
+    for (final String expectedWord : expectedWords) {
+      if (!lowerValue.contains(expectedWord.toLowerCase())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response
