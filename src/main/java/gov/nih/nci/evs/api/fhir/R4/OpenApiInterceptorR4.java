@@ -190,8 +190,6 @@ public class OpenApiInterceptorR4 {
     addResourcePathToClasspath("/swagger-ui/index.html", "swagger-ui/index.html");
     addResourcePathToClasspath("/swagger-ui/EVSRESTAPI.png", "swagger-ui/EVSRESTAPI.png");
     addResourcePathToClasspath("/swagger-ui/index.css", "swagger-ui/index.css");
-    addResourcePathToClasspath(
-        "/swagger-ui/documentation-links.css", "swagger-ui/documentation-links.css");
 
     myExtensionToContentType.put(".png", "image/png");
     myExtensionToContentType.put(".css", "text/css; charset=UTF-8");
