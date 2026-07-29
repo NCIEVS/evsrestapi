@@ -180,6 +180,33 @@ public class MetadataControllerTests {
   }
 
   /**
+   * Test terminology list responses do not include terminology stats.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetTerminologyListDoesNotIncludeStats() throws Exception {
+
+    final String url = baseUrl + "/terminologies";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url).param("terminology", "ncit")).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Terminology> list =
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
+    assertThat(list).isNotEmpty();
+    assertThat(content).doesNotContain("\"stats\"");
+    assertThat(list).allMatch(terminology -> terminology.getStats() == null);
+  }
+
+  /**
    * Test get metadata overview.
    *
    * @throws Exception the exception
