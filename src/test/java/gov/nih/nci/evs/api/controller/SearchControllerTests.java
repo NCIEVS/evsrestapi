@@ -2005,7 +2005,7 @@ public class SearchControllerTests {
         }
       }
 
-      final int expectedMaxIndex = "Medulloblastoma, NEC".equals(term) ? 0 : 2;
+      final int expectedMaxIndex = "Medulloblastoma, NEC".equals(term) ? 0 : 1;
       assertThat(medulloblastomaIndex)
           .as("C3222 should be near the top for term '%s'", term)
           .isBetween(0, expectedMaxIndex);
