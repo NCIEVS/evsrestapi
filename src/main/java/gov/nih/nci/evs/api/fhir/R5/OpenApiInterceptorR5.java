@@ -197,6 +197,8 @@ public class OpenApiInterceptorR5 {
     addResourcePathToClasspath("/swagger-ui/index.html", "swagger-ui/index.html");
     addResourcePathToClasspath("/swagger-ui/EVSRESTAPI.png", "swagger-ui/EVSRESTAPI.png");
     addResourcePathToClasspath("/swagger-ui/index.css", "swagger-ui/index.css");
+    addResourcePathToClasspath(
+        "/swagger-ui/documentation-links.css", "swagger-ui/documentation-links.css");
 
     myExtensionToContentType.put(".png", "image/png");
     myExtensionToContentType.put(".css", "text/css; charset=UTF-8");
@@ -456,6 +458,7 @@ public class OpenApiInterceptorR5 {
     context.setVariable("BANNER_IMAGE_URL", getBannerImage());
     context.setVariable("OPENAPI_DOCS", baseUrl + "/api-docs");
     context.setVariable("FHIR_VERSION", cs.getFhirVersion().toCode());
+    context.setVariable("CURRENT_API", "FHIR R5 API");
     context.setVariable("ADDITIONAL_CSS_TEXT", getCssText());
     context.setVariable("USE_RESOURCE_PAGES", isUseResourcePages());
     context.setVariable(
@@ -1064,10 +1067,7 @@ public class OpenApiInterceptorR5 {
           populateOperation(
               theFhirContext, theOpenApi, null, operationDefinition, operation, false);
           operation.setSummary(operationDefinition.getCode());
-          operation.setSummary(
-              unCamelCase(theResourceType)
-                  + " operation to perform "
-                  + operationDefinition.getCode());
+          operation.setSummary("System operation to perform " + operationDefinition.getCode());
         }
       }
     }

@@ -1,0 +1,37 @@
+.apiDocumentationNavigation {
+  align-items: center;
+  background: #f5f7f8;
+  border-bottom: 1px solid #d9e1e6;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem max(1rem, calc((100% - 1460px) / 2));
+}
+
+.apiDocumentationLink {
+  border: 1px solid #236192;
+  border-radius: 4px;
+  color: #236192;
+  font-family: sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  text-decoration: none;
+}
+
+.apiDocumentationLink:hover,
+.apiDocumentationLink:focus {
+  background: #e6f0f5;
+  text-decoration: underline;
+}
+
+.apiDocumentationLinkSelected {
+  background: #236192;
+  color: #ffffff;
+}
+
+.apiDocumentationLinkSelected:hover,
+.apiDocumentationLinkSelected:focus {
+  background: #17466b;
+  color: #ffffff;
+}

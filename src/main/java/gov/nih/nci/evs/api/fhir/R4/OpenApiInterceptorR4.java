@@ -190,6 +190,8 @@ public class OpenApiInterceptorR4 {
     addResourcePathToClasspath("/swagger-ui/index.html", "swagger-ui/index.html");
     addResourcePathToClasspath("/swagger-ui/EVSRESTAPI.png", "swagger-ui/EVSRESTAPI.png");
     addResourcePathToClasspath("/swagger-ui/index.css", "swagger-ui/index.css");
+    addResourcePathToClasspath(
+        "/swagger-ui/documentation-links.css", "swagger-ui/documentation-links.css");
 
     myExtensionToContentType.put(".png", "image/png");
     myExtensionToContentType.put(".css", "text/css; charset=UTF-8");
@@ -453,6 +455,7 @@ public class OpenApiInterceptorR4 {
     context.setVariable("BANNER_IMAGE_URL", getBannerImage());
     context.setVariable("OPENAPI_DOCS", baseUrl + "/api-docs");
     context.setVariable("FHIR_VERSION", cs.getFhirVersion().toCode());
+    context.setVariable("CURRENT_API", "FHIR R4 API");
     context.setVariable("ADDITIONAL_CSS_TEXT", getCssText());
     context.setVariable("USE_RESOURCE_PAGES", isUseResourcePages());
     context.setVariable(
