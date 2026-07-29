@@ -6,7 +6,6 @@
     set('elasticsearch.version', '7.12.1')
   }
   repositories {
-    jcenter()
     maven { url "https://repo.spring.io/release" }
     maven { url "https://repo.spring.io/milestone" }
     maven { url "https://repo.spring.io/snapshot" }
@@ -32,7 +31,6 @@ plugins {
 
 repositories {
   mavenLocal()
-  jcenter()
   maven { url "https://repo.spring.io/release" }
   maven { url "https://repo.spring.io/milestone" }
   maven { url "https://repo.spring.io/snapshot" }

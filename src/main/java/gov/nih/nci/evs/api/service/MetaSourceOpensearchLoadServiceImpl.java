@@ -511,6 +511,7 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
       HierarchyUtils hierarchy,
       Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
+    ensureStatistics(terminology);
     logger.info("Loading Concepts (index batch size = " + INDEX_BATCH_SIZE + ")");
 
     // Put the mapping
@@ -1450,6 +1451,7 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
     // Put concept lists in natural sort order
     concept.sortLists();
 
+    recordConceptStatistics(concept);
     batch.add(concept);
 
     int conceptSize = concept.toString().length();
