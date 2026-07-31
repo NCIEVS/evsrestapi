@@ -84,15 +84,30 @@ jobs:
       - name: Build application image
         run: make docker DOCKER_IMAGE=evsrestapi:ci
 
-      - name: Strictly scan application image
+      - name: Scan application image
+        id: image-trivy-scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: image
           image-ref: evsrestapi:ci
           scanners: vuln
           severity: HIGH,CRITICAL
-          format: table
-          exit-code: '1'
+          format: json
+          output: trivy_image_report.json
+          exit-code: '0'
         env:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
+
+      - name: Check and output image vulnerabilities
+        id: check-image-vulnerabilities
+        run: |
+          vuln_count=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' trivy_image_report.json)
+          echo "Image vulnerability count: $vuln_count"
+          if [ "$vuln_count" -gt 0 ]; then
+            echo "High or Critical image vulnerabilities found!"
+            jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL") | "\(.VulnerabilityID): \(.PkgName) - Severity: \(.Severity) - Installed Version: \(.InstalledVersion) - Fixed Version: \(.FixedVersion)"' trivy_image_report.json
+            exit 1
+          else
+            echo "No high or critical image vulnerabilities found."
+          fi
