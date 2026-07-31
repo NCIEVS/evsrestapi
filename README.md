@@ -88,8 +88,8 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 * `make docker` builds the application and creates `evsrestapi:<version>`.
 * The image starts the executable WAR, which runs the REST API entry point; the executable JAR is reserved for loader and reindex operations.
-* `make scandocker` scans that image with Trivy and writes `report-docker.html`.
-* `make rundocker` runs the image on port 8082 using the `local` Spring profile. It assumes Jena/Fuseki and OpenSearch are already running on the host, and uses `host.docker.internal` to reach them from the container.
+* `make scandocker` and `make scan` print HIGH/CRITICAL vulnerability tables and write full HTML reports. Their `scandocker-strict` and `scan-strict` counterparts also fail when HIGH or CRITICAL findings exist, for use in CI.
+* `make rundocker` runs the image on port 8082 using the `local` Spring profile. It assumes Jena/Fuseki and OpenSearch are already running on the host, uses `host.docker.internal` on Docker Desktop, and adds the host-gateway mapping automatically on Linux.
 * Before running it, create the ignored `.docker-secrets` directory. Each file is mounted read-only at `/run/secrets` and is imported by Spring Boot using its filename as the property name. Put credentials and secrets in `NCI_EVS_ADMIN_KEY`, `MAIL_USER`, `MAIL_PASSWORD`, and `RECAPTCHA_SECRET`; write each value without a trailing newline. Non-sensitive settings such as `MAIL_HOST`, `MAIL_PORT`, and `RECAPTCHA_KEY` continue to be forwarded from the host environment.
 * The secret values are not passed as container environment variables, so they do not appear in `docker inspect`. Docker daemon administrators can still access a running container and must remain trusted.
 * Override the service hosts or published port when necessary, for example:
