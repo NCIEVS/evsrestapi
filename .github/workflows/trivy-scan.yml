@@ -28,8 +28,6 @@ jobs:
 
       - name: Setup Gradle cache
         uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-provider: basic
 
       - name: Generate dependency lock for scanning
         run: ./gradlew dependencies --write-locks
@@ -82,11 +80,19 @@ jobs:
 
       - name: Setup Gradle cache
         uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-provider: basic
 
-      - name: Build and strictly scan application image
-        run: make scandocker-strict
+      - name: Build application image
+        run: make docker DOCKER_IMAGE=evsrestapi:ci
+
+      - name: Strictly scan application image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: evsrestapi:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: '1'
         env:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db

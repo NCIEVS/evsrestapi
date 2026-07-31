@@ -23,8 +23,6 @@ jobs:
 
       - name: Setup Gradle cache
         uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-provider: basic
 
       - name: Run Tests for PR
         run: make test
