@@ -29,11 +29,13 @@ GRADLEW                 ?= ./gradlew
 
 ifeq ($(OS),Windows_NT)
 DOCKER                  ?= docker.exe
+DOCKER_HOST_GATEWAY_ARG :=
 else
 DOCKER                  ?= docker
+DOCKER_HOST_GATEWAY_ARG := --add-host host.docker.internal:host-gateway
 endif
 
-.PHONY: build docker scandocker rundocker check-docker-secrets
+.PHONY: build docker scandocker scandocker-strict rundocker check-docker-secrets scan scan-strict
 
 # consider also "docker save..." and "docker load..." to avoid registry.
 clean:
@@ -57,6 +59,13 @@ scandocker: docker
 	trivy image "$(DOCKER_IMAGE)" --scanners vuln --severity HIGH,CRITICAL --format table
 	trivy image "$(DOCKER_IMAGE)" --scanners vuln --format template -o report-docker.html --template "@config/trivy/html.tpl"
 
+# Produce the same report as scandocker, then fail if HIGH or CRITICAL vulnerabilities are found.
+scandocker-strict: docker
+	@status=0; \
+	trivy image "$(DOCKER_IMAGE)" --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format table || status=$$?; \
+	trivy image "$(DOCKER_IMAGE)" --scanners vuln --format template -o report-docker.html --template "@config/trivy/html.tpl" || exit $$?; \
+	exit $$status
+
 # Require a local, ignored directory of Spring Boot config-tree secret files.
 check-docker-secrets:
 	@test -d "$(DOCKER_SECRETS_DIR)" || (echo "ERROR: Create $(DOCKER_SECRETS_DIR) and add secret files before running rundocker." && exit 1)
@@ -65,7 +74,7 @@ check-docker-secrets:
 # Secrets are mounted read-only and imported from /run/secrets rather than passed as environment variables.
 # Override DOCKER_ES_HOST, DOCKER_GRAPH_DB_HOST, ports, or the secrets directory as needed.
 rundocker: docker check-docker-secrets
-	$(DOCKER) run --rm --name "$(SERVICE)" -p "$(DOCKER_PORT):8082" \
+	$(DOCKER) run --rm --name "$(SERVICE)" -p "$(DOCKER_PORT):8082" $(DOCKER_HOST_GATEWAY_ARG) \
 		--mount type=bind,src="$(DOCKER_SECRETS_DIR)",dst=/run/secrets,readonly \
 		-e SPRING_CONFIG_IMPORT=optional:configtree:/run/secrets/ \
 		-e SPRING_PROFILES_ACTIVE=local \
@@ -111,10 +120,19 @@ devreset: build
 	./src/main/bin/devreset.sh ../data/UnitTestData > log 2>&1 &
 
 # Report all HIGH and CRITICAL dependency vulnerabilities with installed and fixed versions.
-# The complete HTML report is written to report.html.
+# The complete HTML report is written to report.html. Generated dependency locks are always removed.
 scan:
-	$(GRADLEW) dependencies --write-locks
-	trivy fs gradle.lockfile --scanners vuln --severity HIGH,CRITICAL --format table
+	@set -e; \
+	trap 'rm -rf gradle/dependency-locks gradle.lockfile' EXIT; \
+	$(GRADLEW) dependencies --write-locks; \
+	trivy fs gradle.lockfile --scanners vuln --severity HIGH,CRITICAL --format table; \
 	trivy fs gradle.lockfile --scanners vuln --format template -o report.html --template "@config/trivy/html.tpl"
-	/bin/rm -rf gradle/dependency-locks
-	/bin/rm gradle.lockfile
+
+# Produce the same report as scan, then fail if HIGH or CRITICAL vulnerabilities are found.
+scan-strict:
+	@trap 'rm -rf gradle/dependency-locks gradle.lockfile' EXIT; \
+	$(GRADLEW) dependencies --write-locks || exit $$?; \
+	status=0; \
+	trivy fs gradle.lockfile --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format table || status=$$?; \
+	trivy fs gradle.lockfile --scanners vuln --format template -o report.html --template "@config/trivy/html.tpl" || exit $$?; \
+	exit $$status
