@@ -146,7 +146,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-mail"
 
   // Security override: CVE-2026-41695
-  implementation "org.springframework.data:spring-data-commons:3.5.11"
+  implementation "org.springframework.data:spring-data-commons:3.5.12"
 
   // Security override: CVE-2026-41006 and CVE-2026-41007.
   implementation "org.springframework.hateoas:spring-hateoas:2.5.3"
