@@ -106,9 +106,11 @@ version:
 devreset: build
 	./src/main/bin/devreset.sh ../data/UnitTestData > log 2>&1 &
 
+# Report all HIGH and CRITICAL dependency vulnerabilities with installed and fixed versions.
+# The complete HTML report is written to report.html.
 scan:
-			$(GRADLEW) dependencies --write-locks
-			trivy fs gradle.lockfile --format template -o report.html --template "@config/trivy/html.tpl"
-			grep CRITICAL report.html
-			/bin/rm -rf gradle/dependency-locks
-			/bin/rm gradle.lockfile
+	$(GRADLEW) dependencies --write-locks
+	trivy fs gradle.lockfile --scanners vuln --severity HIGH,CRITICAL --format table
+	trivy fs gradle.lockfile --scanners vuln --format template -o report.html --template "@config/trivy/html.tpl"
+	/bin/rm -rf gradle/dependency-locks
+	/bin/rm gradle.lockfile
