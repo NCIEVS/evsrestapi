@@ -45,6 +45,9 @@ ext['log4j2.version'] = '2.25.4'
 ext['commons-lang3.version'] = '3.18.0'
 // Override Boot BOM Jackson version to fix CVE-2026-54512 / CVE-2026-54513 (HIGH)
 ext['jackson-bom.version'] = '2.21.4'
+// Override Boot BOM Spring Framework version to fix CVE-2026-41850 (spring-expression),
+// CVE-2026-41842 / CVE-2026-41845 (spring-webmvc) (HIGH)
+ext['spring-framework.version'] = '6.2.19'
 
 // Extra Properties
 ext {

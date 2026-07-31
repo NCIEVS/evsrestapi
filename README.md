@@ -83,3 +83,17 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ### Run application from command line
 * Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*.jar`
+
+### Build, scan, and run the application image
+
+* `make docker` builds the application and creates `evsrestapi:<version>`.
+* The image starts the executable WAR, which runs the REST API entry point; the executable JAR is reserved for loader and reindex operations.
+* `make scandocker` scans that image with Trivy and writes `report-docker.html`.
+* `make rundocker` runs the image on port 8082 using the `local` Spring profile. It assumes Jena/Fuseki and OpenSearch are already running on the host, and uses `host.docker.internal` to reach them from the container.
+* Override the service hosts or published port when necessary, for example:
+
+  ```bash
+  make rundocker DOCKER_ES_HOST=host.docker.internal DOCKER_GRAPH_DB_HOST=host.docker.internal DOCKER_PORT=8082
+  ```
+
+  The existing `ES_PORT`, `ES_SCHEME`, `GRAPH_DB_PORT`, and `GRAPH_DB` settings are passed through to the container. Email, reCAPTCHA, and other applicable local configuration environment variables are also forwarded.
