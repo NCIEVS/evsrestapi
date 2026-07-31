@@ -23,6 +23,7 @@ GRAPH_DB                ?= NCIT2
 DOCKER_PORT             ?= 8082
 DOCKER_ES_HOST          ?= host.docker.internal
 DOCKER_GRAPH_DB_HOST    ?= host.docker.internal
+DOCKER_SECRETS_DIR      ?= $(CURDIR)/.docker-secrets
 
 GRADLEW                 ?= ./gradlew
 
@@ -32,7 +33,7 @@ else
 DOCKER                  ?= docker
 endif
 
-.PHONY: build docker scandocker rundocker
+.PHONY: build docker scandocker rundocker check-docker-secrets
 
 # consider also "docker save..." and "docker load..." to avoid registry.
 clean:
@@ -56,10 +57,17 @@ scandocker: docker
 	trivy image "$(DOCKER_IMAGE)" --scanners vuln --severity HIGH,CRITICAL --format table
 	trivy image "$(DOCKER_IMAGE)" --scanners vuln --format template -o report-docker.html --template "@config/trivy/html.tpl"
 
+# Require a local, ignored directory of Spring Boot config-tree secret files.
+check-docker-secrets:
+	@test -d "$(DOCKER_SECRETS_DIR)" || (echo "ERROR: Create $(DOCKER_SECRETS_DIR) and add secret files before running rundocker." && exit 1)
+
 # Run against Jena/Fuseki and OpenSearch services exposed on the Docker host.
-# Override DOCKER_ES_HOST, DOCKER_GRAPH_DB_HOST, ports, or any forwarded setting as needed.
-rundocker: docker
+# Secrets are mounted read-only and imported from /run/secrets rather than passed as environment variables.
+# Override DOCKER_ES_HOST, DOCKER_GRAPH_DB_HOST, ports, or the secrets directory as needed.
+rundocker: docker check-docker-secrets
 	$(DOCKER) run --rm --name "$(SERVICE)" -p "$(DOCKER_PORT):8082" \
+		--mount type=bind,src="$(DOCKER_SECRETS_DIR)",dst=/run/secrets,readonly \
+		-e SPRING_CONFIG_IMPORT=optional:configtree:/run/secrets/ \
 		-e SPRING_PROFILES_ACTIVE=local \
 		-e EVS_SERVER_PORT=8082 \
 		-e ES_HOST="$(DOCKER_ES_HOST)" \
@@ -68,17 +76,13 @@ rundocker: docker
 		-e GRAPH_DB_HOST="$(DOCKER_GRAPH_DB_HOST)" \
 		-e GRAPH_DB_PORT="$(GRAPH_DB_PORT)" \
 		-e GRAPH_DB="$(GRAPH_DB)" \
-		-e NCI_EVS_ADMIN_KEY \
 		-e CONFIG_BASE_URI \
 		-e MAIL_HOST \
 		-e MAIL_PORT \
-		-e MAIL_USER \
-		-e MAIL_PASSWORD \
 		-e MAIL_AUTH \
 		-e MAIL_TLS \
 		-e MAIL_RECIPIENT \
 		-e RECAPTCHA_KEY \
-		-e RECAPTCHA_SECRET \
 		"$(DOCKER_IMAGE)"
 
 test:
