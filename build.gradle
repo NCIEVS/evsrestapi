@@ -145,6 +145,12 @@ dependencies {
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
 
+  // Security override: CVE-2026-41695
+  implementation "org.springframework.data:spring-data-commons:3.5.11"
+
+  // Security override: CVE-2026-41006 and CVE-2026-41007.
+  implementation "org.springframework.hateoas:spring-hateoas:2.5.3"
+
   // aspectjweaver is now managed by Spring Boot BOM (1.9.25.1 in 3.5.x)
   implementation "org.aspectj:aspectjweaver"
   implementation "org.apache.commons:commons-text:1.10.0"
