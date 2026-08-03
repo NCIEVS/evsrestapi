@@ -24,6 +24,9 @@ DOCKER_PORT             ?= 8082
 DOCKER_ES_HOST          ?= host.docker.internal
 DOCKER_GRAPH_DB_HOST    ?= host.docker.internal
 DOCKER_SECRETS_DIR      ?= $(CURDIR)/.docker-secrets
+DOCKER_IMAGE_STAMP      := build/.docker-image-$(subst :,_,$(subst /,_,$(DOCKER_IMAGE)))
+DOCKER_BUILD_INPUTS     := Makefile Dockerfile .dockerignore build.gradle gradle.properties gradlew $(wildcard gradle/wrapper/gradle-wrapper.properties) $(shell git ls-files --cached --others --exclude-standard src/main)
+DOCKER_WAR              := $(wildcard build/libs/evsrestapi-*.war)
 
 GRADLEW                 ?= ./gradlew
 
@@ -49,9 +52,15 @@ build:
 run: build
 	java -Dspring.profiles.active=local -jar build/libs/evsrestapi*.war
 
-# Build the application image from the executable Spring Boot JAR.
-docker: build
+# Build the application image only when its runtime inputs have changed.
+docker: $(DOCKER_IMAGE_STAMP)
+	@$(DOCKER) image inspect "$(DOCKER_IMAGE)" > /dev/null 2>&1 || { rm -f "$(DOCKER_IMAGE_STAMP)"; $(MAKE) --no-print-directory "$(DOCKER_IMAGE_STAMP)"; }
+	@echo "Docker image $(DOCKER_IMAGE) is up to date."
+
+$(DOCKER_IMAGE_STAMP): $(DOCKER_BUILD_INPUTS) $(DOCKER_WAR)
+	$(GRADLEW) bootWar
 	$(DOCKER) build --tag "$(DOCKER_IMAGE)" .
+	@touch "$@"
 
 # Report all HIGH and CRITICAL image vulnerabilities with their installed and fixed versions.
 # The complete HTML report is written to report-docker.html.
