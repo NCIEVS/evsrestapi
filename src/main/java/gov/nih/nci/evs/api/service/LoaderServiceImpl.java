@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -273,12 +274,16 @@ public class LoaderServiceImpl {
               cmd.getOptionValue("d"),
               cmd.getOptionValue("t"),
               config.isForceDeleteIndex());
+      if (loadService instanceof BaseLoaderService) {
+        ((BaseLoaderService) loadService).resetStatistics(term);
+      }
       termAudit.setTerminology(term.getTerminology());
       termAudit.setVersion(term.getVersion());
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
       final Map<String, List<Map<String, String>>> historyMap =
           loadService.updateHistoryMap(term, config.getLocation());
       int totalConcepts = 0;
+      TerminologyStats stats = null;
       if (!cmd.hasOption("xl")) {
         logger.info("Loading terminology: {}", term.getTerminology());
         if (!cmd.hasOption("xc")) {
@@ -288,6 +293,9 @@ public class LoaderServiceImpl {
         if (!cmd.hasOption("xm")) {
           // Give load objects a chance to update terminology metadata
           loadService.loadObjects(config, term, hierarchy);
+          if (totalConcepts > 0) {
+            stats = computeStatistics(loadService, term, hierarchy);
+          }
           loadService.loadIndexMetadata(totalConcepts, term);
         }
         // reload history if the new version if ready and there's a valid history map
@@ -304,6 +312,12 @@ public class LoaderServiceImpl {
       termAudit.setEndDate(endDate);
       termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
       termAudit.setLogLevel("INFO");
+      if (stats == null && totalConcepts > 0) {
+        stats = computeStatistics(loadService, term, hierarchy);
+      }
+      if (stats != null) {
+        termAudit.setStats(new TerminologyStats(stats));
+      }
       logger.info("  audit = {}", termAudit);
       // only add new audit if concepts were added
       if (totalConcepts > 0) {
@@ -345,6 +359,34 @@ public class LoaderServiceImpl {
       logger.info("Finished, exit 0");
       System.exit(0);
     }
+  }
+
+  /**
+   * Computes and attaches terminology statistics.
+   *
+   * @param loadService the load service
+   * @param term the terminology
+   * @param hierarchy the hierarchy utilities
+   * @return a copy of the computed stats, or null if none were collected
+   * @throws Exception the exception
+   */
+  private static TerminologyStats computeStatistics(
+      final OpensearchLoadService loadService,
+      final Terminology term,
+      final HierarchyUtils hierarchy)
+      throws Exception {
+    if (!(loadService instanceof BaseLoaderService)) {
+      return null;
+    }
+    final BaseLoaderService baseLoaderService = (BaseLoaderService) loadService;
+    baseLoaderService.computeHierarchyStatistics(term, hierarchy);
+    final TerminologyStats stats = baseLoaderService.getStatistics();
+    if (stats == null || stats.isEmpty()) {
+      return null;
+    }
+    final TerminologyStats snapshot = new TerminologyStats(stats);
+    term.setStats(new TerminologyStats(snapshot));
+    return snapshot;
   }
 
   /**

@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.util;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -77,6 +78,9 @@ public class HierarchyUtils {
    * HierarchyUtils.
    */
   @Transient private Map<String, Set<String>> pathsMap = null;
+
+  /** The path statistics. */
+  @JsonIgnore @Transient private PathStats pathStats = null;
 
   /**
    * Gets the paths map.
@@ -437,6 +441,7 @@ public class HierarchyUtils {
       ((FileSystemMap) pathsMap).close();
     }
     pathsMap = null;
+    pathStats = null;
   }
 
   /**
@@ -454,7 +459,7 @@ public class HierarchyUtils {
 
       pathsMap = initPathsMap(terminology);
 
-      final Map<String, Integer> pathsMapCt = new HashMap<>();
+      final Map<String, Integer> pathCounts = new HashMap<>();
 
       // This finds paths for leaf nodes, and we need to turn into full paths
       // for each code. Write to a file because this can be a lot of data.
@@ -484,7 +489,7 @@ public class HierarchyUtils {
 
             if (changed) {
               uniquePathCt++;
-              pathsMapCt.put(key, pathsMap.get(key).size());
+              pathCounts.merge(key, 1, Integer::sum);
             }
           }
           if (pathCt % 100000 == 0) {
@@ -504,9 +509,10 @@ public class HierarchyUtils {
             uniquePathCt,
             pathsMap.size());
         logMemory();
+        pathStats = PathStats.fromPathCounts(pathCounts, uniquePathCt);
 
         // Report top 5 keys
-        pathsMapCt.entrySet().stream()
+        pathCounts.entrySet().stream()
             // Sort descending by the size of the Set
             .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
             // Take only the top 5
@@ -522,6 +528,21 @@ public class HierarchyUtils {
     }
 
     return pathsMap;
+  }
+
+  /**
+   * Returns the path statistics.
+   *
+   * @param terminology the terminology
+   * @return the path statistics
+   * @throws Exception the exception
+   */
+  public PathStats getPathStats(final Terminology terminology) throws Exception {
+    final Map<String, Set<String>> paths = getPathsMap(terminology);
+    if (pathStats == null && paths != null) {
+      pathStats = PathStats.fromPathsMap(paths);
+    }
+    return pathStats;
   }
 
   /**
@@ -627,16 +648,8 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public String getCodeWithMinPaths(Terminology terminology) throws Exception {
-    final Map<String, Set<String>> paths = getPathsMap(terminology);
-    int min = 100000;
-    String code = null;
-    for (final Map.Entry<String, Set<String>> entry : paths.entrySet()) {
-      if (entry.getValue().size() < min) {
-        min = entry.getValue().size();
-        code = entry.getKey();
-      }
-    }
-    return code;
+    final PathStats stats = getPathStats(terminology);
+    return stats == null ? null : stats.getMinPathsCode();
   }
 
   /**
@@ -647,16 +660,8 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public String getCodeWithMaxPaths(Terminology terminology) throws Exception {
-    final Map<String, Set<String>> paths = getPathsMap(terminology);
-    int max = 0;
-    String code = null;
-    for (final Map.Entry<String, Set<String>> entry : paths.entrySet()) {
-      if (entry.getValue().size() > max) {
-        max = entry.getValue().size();
-        code = entry.getKey();
-      }
-    }
-    return code;
+    final PathStats stats = getPathStats(terminology);
+    return stats == null ? null : stats.getMaxPathsCode();
   }
 
   /**
@@ -676,6 +681,47 @@ public class HierarchyUtils {
       }
     }
     return code;
+  }
+
+  /**
+   * Returns the code with max parents.
+   *
+   * @param terminology the terminology
+   * @return the code with max parents
+   * @throws Exception the exception
+   */
+  public String getCodeWithMaxParents(Terminology terminology) throws Exception {
+    int max = 0;
+    String code = null;
+    for (final Map.Entry<String, List<String>> entry : child2parent.entrySet()) {
+      if (entry.getValue().size() > max) {
+        max = entry.getValue().size();
+        code = entry.getKey();
+      }
+    }
+    return code;
+  }
+
+  /**
+   * Returns the child count.
+   *
+   * @param code the code
+   * @return the child count
+   */
+  public int getChildCount(final String code) {
+    final List<String> children = parent2child.get(code);
+    return children == null ? 0 : children.size();
+  }
+
+  /**
+   * Returns the parent count.
+   *
+   * @param code the code
+   * @return the parent count
+   */
+  public int getParentCount(final String code) {
+    final List<String> parents = child2parent.get(code);
+    return parents == null ? 0 : parents.size();
   }
 
   /**
@@ -859,6 +905,193 @@ public class HierarchyUtils {
    */
   public String getConceptNameFromCode(String conceptCode) {
     return this.code2label.get(conceptCode);
+  }
+
+  /** Hierarchy path count statistics. */
+  public static class PathStats {
+
+    /** Number of codes present in the path map. */
+    private long codeCount;
+
+    /** Number of unique tree positions across all paths. */
+    private long treePositionCount;
+
+    /** Code with the minimum number of paths. */
+    private String minPathsCode;
+
+    /** Minimum number of paths. */
+    private long minPathCount;
+
+    /** Code with the maximum number of paths. */
+    private String maxPathsCode;
+
+    /** Maximum number of paths. */
+    private long maxPathCount;
+
+    /**
+     * Builds path stats from path counts.
+     *
+     * @param pathCounts the path counts
+     * @param treePositionCount the tree position count
+     * @return the path stats
+     */
+    private static PathStats fromPathCounts(
+        final Map<String, Integer> pathCounts, final long treePositionCount) {
+      final PathStats stats = new PathStats();
+      if (pathCounts == null || pathCounts.isEmpty()) {
+        return stats;
+      }
+
+      stats.setCodeCount(pathCounts.size());
+      stats.setTreePositionCount(treePositionCount);
+
+      long min = Long.MAX_VALUE;
+      long max = 0;
+      for (final Map.Entry<String, Integer> entry : pathCounts.entrySet()) {
+        final int count = entry.getValue() == null ? 0 : entry.getValue();
+        if (count < min) {
+          min = count;
+          stats.setMinPathsCode(entry.getKey());
+          stats.setMinPathCount(count);
+        }
+        if (count > max) {
+          max = count;
+          stats.setMaxPathsCode(entry.getKey());
+          stats.setMaxPathCount(count);
+        }
+      }
+      return stats;
+    }
+
+    /**
+     * Builds path stats from a paths map.
+     *
+     * @param paths the paths map
+     * @return the path stats
+     */
+    private static PathStats fromPathsMap(final Map<String, Set<String>> paths) {
+      if (paths == null || paths.isEmpty()) {
+        return new PathStats();
+      }
+
+      final Map<String, Integer> pathCounts = new HashMap<>(paths.size());
+      long treePositionCount = 0;
+      for (final String code : paths.keySet()) {
+        final Set<String> codePaths = paths.get(code);
+        final int pathCount = codePaths == null ? 0 : codePaths.size();
+        pathCounts.put(code, pathCount);
+        treePositionCount += pathCount;
+      }
+      return fromPathCounts(pathCounts, treePositionCount);
+    }
+
+    /**
+     * Returns the code count.
+     *
+     * @return the code count
+     */
+    public long getCodeCount() {
+      return codeCount;
+    }
+
+    /**
+     * Sets the code count.
+     *
+     * @param codeCount the code count
+     */
+    public void setCodeCount(final long codeCount) {
+      this.codeCount = codeCount;
+    }
+
+    /**
+     * Returns the tree position count.
+     *
+     * @return the tree position count
+     */
+    public long getTreePositionCount() {
+      return treePositionCount;
+    }
+
+    /**
+     * Sets the tree position count.
+     *
+     * @param treePositionCount the tree position count
+     */
+    public void setTreePositionCount(final long treePositionCount) {
+      this.treePositionCount = treePositionCount;
+    }
+
+    /**
+     * Returns the min paths code.
+     *
+     * @return the min paths code
+     */
+    public String getMinPathsCode() {
+      return minPathsCode;
+    }
+
+    /**
+     * Sets the min paths code.
+     *
+     * @param minPathsCode the min paths code
+     */
+    public void setMinPathsCode(final String minPathsCode) {
+      this.minPathsCode = minPathsCode;
+    }
+
+    /**
+     * Returns the min path count.
+     *
+     * @return the min path count
+     */
+    public long getMinPathCount() {
+      return minPathCount;
+    }
+
+    /**
+     * Sets the min path count.
+     *
+     * @param minPathCount the min path count
+     */
+    public void setMinPathCount(final long minPathCount) {
+      this.minPathCount = minPathCount;
+    }
+
+    /**
+     * Returns the max paths code.
+     *
+     * @return the max paths code
+     */
+    public String getMaxPathsCode() {
+      return maxPathsCode;
+    }
+
+    /**
+     * Sets the max paths code.
+     *
+     * @param maxPathsCode the max paths code
+     */
+    public void setMaxPathsCode(final String maxPathsCode) {
+      this.maxPathsCode = maxPathsCode;
+    }
+
+    /**
+     * Returns the max path count.
+     *
+     * @return the max path count
+     */
+    public long getMaxPathCount() {
+      return maxPathCount;
+    }
+
+    /**
+     * Sets the max path count.
+     *
+     * @param maxPathCount the max path count
+     */
+    public void setMaxPathCount(final long maxPathCount) {
+      this.maxPathCount = maxPathCount;
+    }
   }
 
   /** Log memory. */

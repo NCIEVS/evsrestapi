@@ -6,6 +6,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
@@ -159,6 +160,23 @@ public class MetadataServiceImpl implements MetadataService {
     final List<Concept> properties = osQueryService.getProperties(term, ip);
 
     return ConceptUtils.applyList(properties, ip, list.orElse(null));
+  }
+
+  /**
+   * Returns the terminology stats.
+   *
+   * @param terminology the terminology
+   * @return the terminology stats
+   * @throws Exception the exception
+   */
+  @Override
+  public TerminologyStats getTerminologyStats(final String terminology) throws Exception {
+    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
+    if (term.getStats() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, "Terminology stats for " + terminology + " not found");
+    }
+    return term.getStats();
   }
 
   /**

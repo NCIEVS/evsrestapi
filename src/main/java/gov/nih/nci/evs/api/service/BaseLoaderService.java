@@ -6,10 +6,12 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.IOException;
@@ -67,8 +69,59 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   @Value("${nci.evs.bulkload.graphDbs}")
   private String dbs;
 
+  /** The load statistics collector. */
+  private final TerminologyStatsCollector statisticsCollector = new TerminologyStatsCollector();
+
   public TerminologyUtils getTerminologyUtils() {
     return termUtils;
+  }
+
+  /**
+   * Returns the load statistics.
+   *
+   * @return the load statistics
+   */
+  public TerminologyStats getStatistics() {
+    return statisticsCollector.getStatistics();
+  }
+
+  /**
+   * Resets the load statistics.
+   *
+   * @param terminology the terminology
+   */
+  protected void resetStatistics(final Terminology terminology) {
+    statisticsCollector.reset(terminology);
+  }
+
+  /**
+   * Ensures load statistics are initialized for the terminology.
+   *
+   * @param terminology the terminology
+   */
+  protected void ensureStatistics(final Terminology terminology) {
+    statisticsCollector.ensure(terminology);
+  }
+
+  /**
+   * Records concept statistics.
+   *
+   * @param concept the concept
+   */
+  protected void recordConceptStatistics(final Concept concept) {
+    statisticsCollector.recordConcept(concept);
+  }
+
+  /**
+   * Computes hierarchy statistics.
+   *
+   * @param terminology the terminology
+   * @param hierarchy the hierarchy
+   * @throws Exception the exception
+   */
+  protected void computeHierarchyStatistics(
+      final Terminology terminology, final HierarchyUtils hierarchy) throws Exception {
+    statisticsCollector.recordHierarchy(terminology, hierarchy);
   }
 
   /**
@@ -148,11 +201,18 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     // create the audit index if it doesn't exist
     boolean createdAudit =
         operationsService.createIndex(OpensearchOperationsService.AUDIT_INDEX, false);
-    if (createdAudit) {
+    try {
       operationsService
           .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(OpensearchOperationsService.AUDIT_INDEX))
           .putMapping(Audit.class);
+    } catch (Exception e) {
+      if (createdAudit) {
+        throw e;
+      }
+      logger.warn(
+          "Unable to update existing audit index mapping; existing dynamic mappings may remain: {}",
+          e.getMessage());
     }
   }
 
