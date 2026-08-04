@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '3.5.14'
+    springBootVersion = '3.5.16'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
@@ -39,12 +39,12 @@ repositories {
 
 // Avoid specifying version unless needed
 // Explicit override for medium-severity CVEs pulled in by OpenSearch 2.19.x
-ext['log4j2.version'] = '2.25.4'
+///ext['log4j2.version'] = '2.25.4'
 // Override Spring Boot BOM's commons-lang3 (3.17.0) to pick up CVE-2025-48924 fix.
 // Applies BOM-wide, so the spotbugs configuration also gets 3.18.0.
-ext['commons-lang3.version'] = '3.18.0'
+///ext['commons-lang3.version'] = '3.18.0'
 // Override Boot BOM Jackson version to fix CVE-2026-54512 / CVE-2026-54513 (HIGH)
-ext['jackson-bom.version'] = '2.21.4'
+///ext['jackson-bom.version'] = '2.21.4'
 
 // Extra Properties
 ext {

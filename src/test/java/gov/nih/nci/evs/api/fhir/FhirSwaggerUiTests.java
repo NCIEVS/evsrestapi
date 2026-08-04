@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,22 +26,27 @@ import org.springframework.web.util.UriComponentsBuilder;
 @ActiveProfiles("test")
 class FhirSwaggerUiTests {
 
+  /** The port. */
   @LocalServerPort private int port;
 
+  /** The rest template. */
   @Autowired private TestRestTemplate restTemplate;
 
+  /** Fhir open api documents are available. */
   @Test
   void fhirOpenApiDocumentsAreAvailable() {
     assertOpenApiDocument("r4");
     assertOpenApiDocument("r5");
   }
 
+  /** Fhir swagger pages contain all documentation links. */
   @Test
   void fhirSwaggerPagesContainAllDocumentationLinks() {
     assertFhirSwaggerPage("r4");
     assertFhirSwaggerPage("r5");
   }
 
+  /** Rest swagger page contains fhir documentation links. */
   @Test
   void restSwaggerPageContainsFhirDocumentationLinks() {
     final ResponseEntity<String> response =
@@ -56,10 +62,15 @@ class FhirSwaggerUiTests {
     assertNavigationStylesheetIsAvailable(baseUrl() + "/swagger-ui/documentation-links.css");
   }
 
+  /**
+   * Assert open api document.
+   *
+   * @param version the version
+   */
   private void assertOpenApiDocument(final String version) {
     final String fhirBaseUrl = baseUrl() + "/fhir/" + version;
     final URI uri =
-        UriComponentsBuilder.fromHttpUrl(fhirBaseUrl + "/api-docs")
+        UriComponentsBuilder.fromUriString(fhirBaseUrl + "/api-docs")
             .queryParam("baseUrl", fhirBaseUrl)
             .build()
             .encode()
@@ -70,10 +81,15 @@ class FhirSwaggerUiTests {
     assertThat(response.getBody()).contains("openapi:");
   }
 
+  /**
+   * Assert fhir swagger page.
+   *
+   * @param version the version
+   */
   private void assertFhirSwaggerPage(final String version) {
     final String fhirBaseUrl = baseUrl() + "/fhir/" + version;
     final URI uri =
-        UriComponentsBuilder.fromHttpUrl(fhirBaseUrl + "/swagger-ui/")
+        UriComponentsBuilder.fromUriString(fhirBaseUrl + "/swagger-ui/")
             .queryParam("baseUrl", fhirBaseUrl)
             .build()
             .encode()
@@ -90,6 +106,11 @@ class FhirSwaggerUiTests {
     assertNavigationStylesheetIsAvailable(fhirBaseUrl + "/swagger-ui/documentation-links.css");
   }
 
+  /**
+   * Assert navigation stylesheet is available.
+   *
+   * @param stylesheetUrl the stylesheet url
+   */
   private void assertNavigationStylesheetIsAvailable(final String stylesheetUrl) {
     final ResponseEntity<String> response = restTemplate.getForEntity(stylesheetUrl, String.class);
 
@@ -97,6 +118,11 @@ class FhirSwaggerUiTests {
     assertThat(response.getBody()).contains(".apiDocumentationNavigation");
   }
 
+  /**
+   * Base url.
+   *
+   * @return the string
+   */
   private String baseUrl() {
     return "http://localhost:" + port;
   }

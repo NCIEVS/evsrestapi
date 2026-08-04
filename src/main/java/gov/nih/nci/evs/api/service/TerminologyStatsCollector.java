@@ -1,10 +1,11 @@
 package gov.nih.nci.evs.api.service;
 
+import org.apache.commons.lang3.Strings;
+
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
-import org.apache.commons.lang3.StringUtils;
 
 /** Collects terminology statistics during a load. */
 public class TerminologyStatsCollector {
@@ -42,8 +43,8 @@ public class TerminologyStatsCollector {
   public void ensure(final Terminology terminology) {
     if (statistics == null
         || terminology != null
-            && (!StringUtils.equals(statistics.getTerminology(), terminology.getTerminology())
-                || !StringUtils.equals(statistics.getVersion(), terminology.getVersion()))) {
+            && (!Strings.CS.equals(statistics.getTerminology(), terminology.getTerminology())
+                || !Strings.CS.equals(statistics.getVersion(), terminology.getVersion()))) {
       reset(terminology);
     }
   }
