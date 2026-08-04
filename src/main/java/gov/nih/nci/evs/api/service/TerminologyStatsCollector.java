@@ -1,11 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
-import org.apache.commons.lang3.Strings;
-
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import org.apache.commons.lang3.Strings;
 
 /** Collects terminology statistics during a load. */
 public class TerminologyStatsCollector {
