@@ -510,7 +510,7 @@ public class OpenApiInterceptorR5 {
     String page;
     // If a page is specified in the request, use it
     if (isUseResourcePages()) {
-      page = extractPageName(theRequestDetails, PAGE_SYSTEM);
+      page = extractPageName(theRequestDetails, PAGE_ALL);
     } else {
       page = PAGE_ALL;
     }
