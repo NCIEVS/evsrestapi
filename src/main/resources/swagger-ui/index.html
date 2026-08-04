@@ -5,6 +5,7 @@
 <title>Swagger UI</title>
 <link rel="stylesheet" type="text/css" href="./swagger-ui.css" />
 <link rel="stylesheet" type="text/css" href="./index.css" />
+<link rel="stylesheet" type="text/css" href="./documentation-links.css" />
 <link rel="stylesheet" type="text/css" href="./swagger-ui-custom.css"
 	th:if="${ADDITIONAL_CSS_TEXT} != null" />
  <script type="text/javascript">
@@ -39,6 +40,13 @@
 				th:text="${SERVER_NAME}"></span>
 		</h1>
 	</div>
+	<nav class="apiDocumentationNavigation" aria-label="API documentation">
+		<a class="apiDocumentationLink" href="../../../swagger-ui/index.html#">NCI EVS REST API</a>
+		<a class="apiDocumentationLink" th:classappend="${CURRENT_API == 'FHIR R4 API'} ? 'apiDocumentationLinkSelected' : ''"
+			href="../../r4/swagger-ui/">FHIR R4 API</a>
+		<a class="apiDocumentationLink" th:classappend="${CURRENT_API == 'FHIR R5 API'} ? 'apiDocumentationLinkSelected' : ''"
+			href="../../r5/swagger-ui/">FHIR R5 API</a>
+	</nav>
 	<div class="banner2" style="border-bottom: none;">
 		<div>
 			API documentation for interacting with FHIR endpoints. To learn more

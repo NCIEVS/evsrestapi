@@ -6,15 +6,47 @@
     <title>Swagger UI</title>
     <link rel="stylesheet" type="text/css" href="./swagger-ui.css" />
     <link rel="stylesheet" type="text/css" href="index.css" />
+    <link rel="stylesheet" type="text/css" href="./documentation-links.css" />
     <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />
     <script async src="https://assets.adobedtm.com/6a4249cd0a2c/785de09de161/launch-70d67a6a40a8.min.js"></script>
   </head>
 
   <body>
+    <nav class="apiDocumentationNavigation" aria-label="API documentation">
+      <a class="apiDocumentationLink apiDocumentationLinkSelected" href="./index.html#">NCI EVS REST API</a>
+      <a class="apiDocumentationLink" href="../fhir/r4/swagger-ui/">FHIR R4 API</a>
+      <a class="apiDocumentationLink" href="../fhir/r5/swagger-ui/">FHIR R5 API</a>
+    </nav>
     <div id="swagger-ui"></div>
     <script src="./swagger-ui-bundle.js" charset="UTF-8"> </script>
     <script src="./swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
     <script src="./swagger-initializer.js" charset="UTF-8"> </script>
+    <script>
+      (function () {
+        const navigation = document.querySelector(".apiDocumentationNavigation");
+        const swaggerUi = document.querySelector("#swagger-ui");
+
+        function positionApiDocumentationNavigation() {
+          const swaggerTopBar = swaggerUi.querySelector(".topbar");
+
+          if (!swaggerTopBar) {
+            return false;
+          }
+
+          swaggerTopBar.insertAdjacentElement("afterend", navigation);
+          return true;
+        }
+
+        if (navigation && swaggerUi && !positionApiDocumentationNavigation()) {
+          const observer = new MutationObserver(function () {
+            if (positionApiDocumentationNavigation()) {
+              observer.disconnect();
+            }
+          });
+          observer.observe(swaggerUi, { childList: true, subtree: true });
+        }
+      })();
+    </script>
   </body>
 </html>
