@@ -45,6 +45,8 @@ ext['log4j2.version'] = '2.25.4'
 // Override Spring Boot BOM's commons-lang3 (3.17.0) to pick up CVE-2025-48924 fix.
 // Applies BOM-wide, so the spotbugs configuration also gets 3.18.0.
 ext['commons-lang3.version'] = '3.18.0'
+// Override Boot BOM Jackson version to fix CVE-2026-54512 / CVE-2026-54513 (HIGH)
+ext['jackson-bom.version'] = '2.21.4'
 
 // Extra Properties
 ext {
@@ -57,6 +59,9 @@ ext {
   }
   if (!project.hasProperty("terminology")) {
     terminology = "na"
+  }
+  if (!project.hasProperty("copyMode")) {
+    copyMode = "codesab"
   }
 }
 
@@ -81,6 +86,19 @@ java {
 
 }
 
+tasks.register('eclipseWebXml', Copy) {
+  from(layout.projectDirectory.file('src/eclipse/WEB-INF/web.xml'))
+  into(layout.projectDirectory.dir('WEB-INF'))
+}
+
+tasks.named('eclipse') {
+  finalizedBy('eclipseWebXml')
+}
+
+tasks.named('eclipseWtp') {
+  finalizedBy('eclipseWebXml')
+}
+
 dependencies {
 
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -99,15 +117,15 @@ dependencies {
   // 6.4.0 contains a vulnerability; 6.9.4 is the version co-packaged with HAPI FHIR that fixes it.
   // These overrides can only be removed by upgrading to HAPI FHIR 8.x (a major breaking-change migration).
   implementation "org.fhir:ucum:1.0.9"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.7"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.7"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.7"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.7"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.7"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.7"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.7"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.7"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.7"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.10"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   implementation "org.opensearch.client:spring-data-opensearch-starter:1.7.1"
@@ -185,6 +203,7 @@ dependencies {
   */
   compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   // Use spring-boot-starter-test defaults
   // testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
   // testImplementation "org.junit.jupiter:junit-jupiter-params:5.10.5"
@@ -262,13 +281,13 @@ spotbugsTest {
 }
 
 // # for this, the cuis with listed sources will have hierarchies computed
-// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META
+// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META [-PcopyMode=codesab|cui]
 tasks.register('rrfSample', JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
   main = "gov.nih.nci.evs.api.service.SamplingApplication"
   systemProperties System.getProperties()
   // arguments to pass to the application
-  args("rrfSample", inputPath, listFile, terminology)
+  args("rrfSample", inputPath, listFile, terminology, copyMode)
   jvmArgs "-Xmx8G"
 }
 

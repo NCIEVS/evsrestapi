@@ -1,7 +1,6 @@
 # MRMAP CUIs
 C3645705
 CL1777919
-CL1948316
 # CUIs from UnitTestData/NCIM (taken from prior CUI file and updated through MRCUI)
 C0000005
 C0000039
