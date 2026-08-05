@@ -29,17 +29,15 @@ jobs:
       - name: Generate dependency lock for scanning
         run: ./gradlew dependencies --write-locks
 
+      - name: Install Trivy
+        run: |
+          TRIVY_LATEST_VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq -r .tag_name)
+          wget https://github.com/aquasecurity/trivy/releases/download/${TRIVY_LATEST_VERSION}/trivy_${TRIVY_LATEST_VERSION#v}_Linux-64bit.deb
+          sudo dpkg -i trivy_${TRIVY_LATEST_VERSION#v}_Linux-64bit.deb
+
       - name: Run Trivy scan
         id: trivy-scan
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: fs
-          scan-ref: gradle.lockfile
-          scanners: vuln
-          severity: HIGH,CRITICAL
-          format: json
-          output: trivy_report.json
-          exit-code: '0'
+        run: trivy fs gradle.lockfile --scanners vuln --severity HIGH,CRITICAL --format json --output trivy_report.json --exit-code 0
         env:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
@@ -78,17 +76,15 @@ jobs:
       - name: Build application image
         run: make docker DOCKER_IMAGE=evsrestapi:ci
 
+      - name: Install Trivy
+        run: |
+          TRIVY_LATEST_VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq -r .tag_name)
+          wget https://github.com/aquasecurity/trivy/releases/download/${TRIVY_LATEST_VERSION}/trivy_${TRIVY_LATEST_VERSION#v}_Linux-64bit.deb
+          sudo dpkg -i trivy_${TRIVY_LATEST_VERSION#v}_Linux-64bit.deb
+
       - name: Scan application image
         id: image-trivy-scan
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: image
-          image-ref: evsrestapi:ci
-          scanners: vuln
-          severity: HIGH,CRITICAL
-          format: json
-          output: trivy_image_report.json
-          exit-code: '0'
+        run: trivy image evsrestapi:ci --scanners vuln --severity HIGH,CRITICAL --format json --output trivy_image_report.json --exit-code 0
         env:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
