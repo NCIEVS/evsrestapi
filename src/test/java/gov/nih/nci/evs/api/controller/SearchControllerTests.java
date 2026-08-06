@@ -1964,6 +1964,57 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test contains search with optional classification phrases.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchContainsOptionalPhrases() throws Exception {
+    for (final String term :
+        new String[] {
+          "Medulloblastoma, NEC",
+          "medulloblastoma, not elsewhere classified",
+          "Medulloblastoma, NOS",
+          "medulloblastoma, Not Otherwise Specified"
+        }) {
+      log.info("Testing optional search phrase term - {}", term);
+
+      final MvcResult result =
+          mvc.perform(
+                  get(baseUrl)
+                      .param("terminology", "ncit")
+                      .param("term", term)
+                      .param("type", "contains")
+                      .param("pageSize", "10")
+                      .param("include", "summary,synonyms"))
+              .andExpect(status().isOk())
+              .andReturn();
+
+      final String content = result.getResponse().getContentAsString();
+      log.info("  content = " + content);
+      final ConceptResultList list =
+          ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+
+      assertThat(list.getConcepts()).isNotEmpty();
+
+      int medulloblastomaIndex = -1;
+      for (int i = 0; i < list.getConcepts().size(); i++) {
+        if ("C3222".equals(list.getConcepts().get(i).getCode())) {
+          medulloblastomaIndex = i;
+          break;
+        }
+      }
+
+      final int expectedMaxIndex = "Medulloblastoma, NEC".equals(term) ? 0 : 1;
+      assertThat(medulloblastomaIndex)
+          .as("C3222 should be near the top for term '%s'", term)
+          .isBetween(0, expectedMaxIndex);
+      assertThat(list.getConcepts().get(medulloblastomaIndex).getName())
+          .isEqualTo("Medulloblastoma");
+    }
+  }
+
+  /**
    * Test search phrase.
    *
    * @throws Exception the exception
