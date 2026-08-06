@@ -58,6 +58,7 @@ docker: $(DOCKER_IMAGE_STAMP)
 
 $(DOCKER_IMAGE_STAMP): $(DOCKER_BUILD_INPUTS)
 	$(DOCKER) build --platform linux/amd64 --tag "$(DOCKER_IMAGE)" .
+	@mkdir -p "$(dir $@)"
 	@touch "$@"
 
 # Build and push a Linux/AMD64 image. Override DOCKER_IMAGE with a registry-qualified image name.
