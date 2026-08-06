@@ -86,9 +86,10 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ### Build, scan, and run the application image
 
-* `make docker` builds the application and creates `evsrestapi:<version>`.
+* `make docker` builds the WAR inside a Linux/AMD64 Docker build stage and creates `evsrestapi:<version>` without using a local Gradle installation.
 * The image starts the executable WAR, which runs the REST API entry point; the executable JAR is reserved for loader and reindex operations.
-* `make scandocker` and `make scan` print HIGH/CRITICAL vulnerability tables and write full HTML reports. Their `scandocker-strict` and `scan-strict` counterparts also fail when HIGH or CRITICAL findings exist, for use in CI.
+* `make scandocker` and `make scan` print HIGH/CRITICAL vulnerability tables and write full HTML reports. GitHub Actions enforces HIGH/CRITICAL findings in CI.
+* `make dockerpush DOCKER_IMAGE=<registry>/<image>:<tag>` builds and pushes a Linux/AMD64 image with Docker Buildx.
 * `make rundocker` runs the image on port 8082 using the `local` Spring profile. It assumes Jena/Fuseki and OpenSearch are already running on the host, uses `host.docker.internal` on Docker Desktop, and adds the host-gateway mapping automatically on Linux.
 * `make rundocker` is the supported way to start the image locally. A direct `docker run` must supply equivalent Spring profile, port, service-host, and secret configuration; otherwise the image uses the default application settings rather than the local setup.
 * Before running it, create the ignored `.docker-secrets` directory. Each file is mounted read-only at `/run/secrets` and is imported by Spring Boot using its filename as the property name. Put credentials and secrets in `NCI_EVS_ADMIN_KEY`, `MAIL_USER`, `MAIL_PASSWORD`, and `RECAPTCHA_SECRET`; write each value without a trailing newline. Non-sensitive settings such as `MAIL_HOST`, `MAIL_PORT`, and `RECAPTCHA_KEY` continue to be forwarded from the host environment.

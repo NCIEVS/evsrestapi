@@ -25,8 +25,7 @@ DOCKER_ES_HOST          ?= host.docker.internal
 DOCKER_GRAPH_DB_HOST    ?= host.docker.internal
 DOCKER_SECRETS_DIR      ?= $(CURDIR)/.docker-secrets
 DOCKER_IMAGE_STAMP      := build/.docker-image-$(subst :,_,$(subst /,_,$(DOCKER_IMAGE)))
-DOCKER_BUILD_INPUTS     := Makefile Dockerfile .dockerignore build.gradle gradle.properties gradlew $(wildcard gradle/wrapper/gradle-wrapper.properties) $(shell git ls-files --cached --others --exclude-standard src/main)
-DOCKER_WAR              := $(wildcard build/libs/evsrestapi-*.war)
+DOCKER_BUILD_INPUTS     := Makefile Dockerfile .dockerignore build.gradle gradle.properties $(shell git ls-files --cached --others --exclude-standard src/main)
 
 GRADLEW                 ?= ./gradlew
 
@@ -38,7 +37,7 @@ DOCKER                  ?= docker
 DOCKER_HOST_GATEWAY_ARG := --add-host host.docker.internal:host-gateway
 endif
 
-.PHONY: build docker scandocker scandocker-strict rundocker check-docker-secrets scan scan-strict
+.PHONY: build docker dockerpush scandocker rundocker check-docker-secrets scan
 
 # consider also "docker save..." and "docker load..." to avoid registry.
 clean:
@@ -52,15 +51,18 @@ build:
 run: build
 	java -Dspring.profiles.active=local -jar build/libs/evsrestapi*.war
 
-# Build the application image only when its runtime inputs have changed.
+# Build the application and image in an isolated Linux/AMD64 Docker build environment.
 docker: $(DOCKER_IMAGE_STAMP)
 	@$(DOCKER) image inspect "$(DOCKER_IMAGE)" > /dev/null 2>&1 || { rm -f "$(DOCKER_IMAGE_STAMP)"; $(MAKE) --no-print-directory "$(DOCKER_IMAGE_STAMP)"; }
 	@echo "Docker image $(DOCKER_IMAGE) is up to date."
 
-$(DOCKER_IMAGE_STAMP): $(DOCKER_BUILD_INPUTS) $(DOCKER_WAR)
-	$(GRADLEW) bootWar
-	$(DOCKER) build --tag "$(DOCKER_IMAGE)" .
+$(DOCKER_IMAGE_STAMP): $(DOCKER_BUILD_INPUTS)
+	$(DOCKER) build --platform linux/amd64 --tag "$(DOCKER_IMAGE)" .
 	@touch "$@"
+
+# Build and push a Linux/AMD64 image. Override DOCKER_IMAGE with a registry-qualified image name.
+dockerpush:
+	$(DOCKER) buildx build --platform linux/amd64 --tag "$(DOCKER_IMAGE)" --push .
 
 # Report all HIGH and CRITICAL image vulnerabilities with their installed and fixed versions.
 # The complete HTML report is written to report-docker.html.
@@ -68,12 +70,7 @@ scandocker: docker
 	trivy image "$(DOCKER_IMAGE)" --scanners vuln --severity HIGH,CRITICAL --format table
 	trivy image "$(DOCKER_IMAGE)" --scanners vuln --format template -o report-docker.html --template "@config/trivy/html.tpl"
 
-# Produce the same report as scandocker, then fail if HIGH or CRITICAL vulnerabilities are found.
-scandocker-strict: docker
-	@status=0; \
-	trivy image "$(DOCKER_IMAGE)" --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format table || status=$$?; \
-	trivy image "$(DOCKER_IMAGE)" --scanners vuln --format template -o report-docker.html --template "@config/trivy/html.tpl" || exit $$?; \
-	exit $$status
+
 
 # Require a local, ignored directory of Spring Boot config-tree secret files.
 check-docker-secrets:
@@ -136,12 +133,3 @@ scan:
 	$(GRADLEW) dependencies --write-locks; \
 	trivy fs gradle.lockfile --scanners vuln --severity HIGH,CRITICAL --format table; \
 	trivy fs gradle.lockfile --scanners vuln --format template -o report.html --template "@config/trivy/html.tpl"
-
-# Produce the same report as scan, then fail if HIGH or CRITICAL vulnerabilities are found.
-scan-strict:
-	@trap 'rm -rf gradle/dependency-locks gradle.lockfile' EXIT; \
-	$(GRADLEW) dependencies --write-locks || exit $$?; \
-	status=0; \
-	trivy fs gradle.lockfile --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format table || status=$$?; \
-	trivy fs gradle.lockfile --scanners vuln --format template -o report.html --template "@config/trivy/html.tpl" || exit $$?; \
-	exit $$status

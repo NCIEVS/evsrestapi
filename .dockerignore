@@ -11,10 +11,7 @@ config
 docker
 gradle
 node_modules
-src
-build/*
-!build/libs/
-!build/libs/evsrestapi-*.war
+build
 log
 report.html
 report-docker.html
