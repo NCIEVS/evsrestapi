@@ -25,7 +25,7 @@ DOCKER_ES_HOST          ?= host.docker.internal
 DOCKER_GRAPH_DB_HOST    ?= host.docker.internal
 DOCKER_SECRETS_DIR      ?= $(CURDIR)/.docker-secrets
 DOCKER_IMAGE_STAMP      := build/.docker-image-$(subst :,_,$(subst /,_,$(DOCKER_IMAGE)))
-DOCKER_BUILD_INPUTS     := Makefile Dockerfile .dockerignore build.gradle gradle.properties $(shell git ls-files --cached --others --exclude-standard src/main)
+DOCKER_BUILD_INPUTS     := Dockerfile .dockerignore build.gradle gradle.properties $(shell git ls-files --cached --others --exclude-standard src/main)
 
 GRADLEW                 ?= ./gradlew
 
