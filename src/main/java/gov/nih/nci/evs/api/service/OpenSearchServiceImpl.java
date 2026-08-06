@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -49,6 +50,12 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(OpenSearchServiceImpl.class);
+
+  /** Search phrases that should boost matching results without being required. */
+  private static final Pattern OPTIONAL_SEARCH_PHRASE_PATTERN =
+      Pattern.compile(
+          "\\b(?:not elsewhere classified|not otherwise specified|nec|nos)\\b",
+          Pattern.CASE_INSENSITIVE);
 
   /** The Opensearch operations service *. */
   @Autowired OpensearchOperationsService esOperationsService;
@@ -406,6 +413,27 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   private BoolQueryBuilder getContainsQuery(
       final SearchCriteria searchCriteria, final String term, boolean fuzzyFlag, boolean andFlag)
       throws Exception {
+    return getContainsQuery(searchCriteria, term, fuzzyFlag, andFlag, true);
+  }
+
+  /**
+   * Returns the contains query.
+   *
+   * @param searchCriteria the search criteria
+   * @param term the term
+   * @param fuzzyFlag the fuzzy flag
+   * @param andFlag the and flag
+   * @param addOptionalSearchPhraseQuery indicates whether the optional phrase query should be added
+   * @return the contains query
+   * @throws Exception the exception
+   */
+  private BoolQueryBuilder getContainsQuery(
+      final SearchCriteria searchCriteria,
+      final String term,
+      boolean fuzzyFlag,
+      boolean andFlag,
+      boolean addOptionalSearchPhraseQuery)
+      throws Exception {
 
     // Generate variants to search with
     final String type = searchCriteria.getType();
@@ -619,7 +647,54 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
       termQuery.should(nestedDefinitionQuery);
     }
+    if (addOptionalSearchPhraseQuery) {
+      addOptionalSearchPhraseQuery(termQuery, searchCriteria, normTerm, fuzzyFlag, andFlag);
+    }
     return (term.isBlank()) ? termQuery : termQuery.minimumShouldMatch(1);
+  }
+
+  /**
+   * Adds a reduced query when the search term includes optional search phrases.
+   *
+   * @param termQuery the query receiving the optional phrase clause
+   * @param searchCriteria the search criteria
+   * @param normTerm the normalized term
+   * @param fuzzyFlag the fuzzy flag
+   * @param andFlag the and flag
+   * @throws Exception the exception
+   */
+  private void addOptionalSearchPhraseQuery(
+      final BoolQueryBuilder termQuery,
+      final SearchCriteria searchCriteria,
+      final String normTerm,
+      final boolean fuzzyFlag,
+      final boolean andFlag)
+      throws Exception {
+    final String termWithoutOptionalPhrases = removeOptionalSearchPhrases(normTerm);
+    if (StringUtils.isBlank(termWithoutOptionalPhrases)
+        || termWithoutOptionalPhrases.equals(normTerm)) {
+      return;
+    }
+
+    termQuery.should(
+        getContainsQuery(searchCriteria, termWithoutOptionalPhrases, fuzzyFlag, andFlag, false));
+  }
+
+  /**
+   * Removes search phrases that should not be required to match.
+   *
+   * @param term the normalized search term
+   * @return the term without optional search phrases
+   */
+  private String removeOptionalSearchPhrases(final String term) {
+    if (StringUtils.isBlank(term)) {
+      return term;
+    }
+    return OPTIONAL_SEARCH_PHRASE_PATTERN
+        .matcher(term)
+        .replaceAll(" ")
+        .replaceAll("\\s+", " ")
+        .trim();
   }
 
   /**
