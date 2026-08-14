@@ -45,6 +45,9 @@ repositories {
 ///ext['commons-lang3.version'] = '3.18.0'
 // Override Boot BOM Jackson version to fix CVE-2026-54512 / CVE-2026-54513 (HIGH)
 ///ext['jackson-bom.version'] = '2.21.4'
+// Override Boot BOM httpcore5 version (5.3.6) to fix CVE-2026-54399 (HIGH).
+// Applies BOM-wide to httpcore5, httpcore5-h2 and httpcore5-reactive.
+ext['httpcore5.version'] = '5.4.3'
 
 // Extra Properties
 ext {
