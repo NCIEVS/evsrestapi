@@ -1502,6 +1502,7 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
 
       String line;
       Terminology term = new Terminology();
+      final Properties releaseMetadata = new Properties();
       while ((line = in.readLine()) != null) {
         // VCUI,RCUI,VSAB,RSAB,SON,SF,SVER,VSTART,VEND,IMETA,RMETA,SLC,SCC,SRL,
         // TFR,CFR,CXTY,TTYL,ATNL,LAT,CENC,CURVER,SABIN,SSN,SCIT
@@ -1509,11 +1510,10 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
         sourceMap.put(fields[3], fields[4]);
 
         if (fields[3].equals("NCIMTH")) {
-          Properties p = new Properties();
-          p.load(input);
+          releaseMetadata.load(input);
           term.setTerminology(terminology);
-          term.setVersion(p.getProperty("umls.release.name"));
-          term.setDate(p.getProperty("umls.release.date"));
+          term.setVersion(releaseMetadata.getProperty("umls.release.name"));
+          term.setDate(releaseMetadata.getProperty("umls.release.date"));
           // term.setName(line.split("\\|", -1)[4]);
           term.setDescription(line.split("\\|", -1)[24]);
           term.setGraph(null);
@@ -1547,7 +1547,11 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
         metadata.setLoader("rrf");
         metadata.setSources(sourceMap);
         metadata.setSourceCt(sourceMap.size());
-        metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
+        final Map<String, String> welcomeTextValues = new HashMap<>();
+        welcomeTextValues.put("umlsVersion", releaseMetadata.getProperty("umls.release.umls", ""));
+        welcomeTextValues.put(
+            "umlsNcitVersion", releaseMetadata.getProperty("umls.release.ncit", ""));
+        metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase(), welcomeTextValues));
         term.setMetadata(metadata);
 
       } catch (Exception e) {
