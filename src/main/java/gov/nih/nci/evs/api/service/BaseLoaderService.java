@@ -606,7 +606,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * @return interpolated welcome text
    */
   static String interpolateWelcomeText(final String welcomeText, final Map<String, String> values) {
-    return new StringSubstitutor(values).replace(welcomeText);
+    return StringSubstitutor.replace(welcomeText, values);
   }
 
   /* see superclass */

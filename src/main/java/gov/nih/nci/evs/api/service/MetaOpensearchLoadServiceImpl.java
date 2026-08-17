@@ -1547,10 +1547,10 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
         metadata.setLoader("rrf");
         metadata.setSources(sourceMap);
         metadata.setSourceCt(sourceMap.size());
-        final Map<String, String> welcomeTextValues = new HashMap<>();
-        welcomeTextValues.put("umlsVersion", releaseMetadata.getProperty("umls.release.umls", ""));
-        welcomeTextValues.put(
-            "umlsNcitVersion", releaseMetadata.getProperty("umls.release.ncit", ""));
+        final Map<String, String> welcomeTextValues =
+            Map.of(
+                "umlsVersion", releaseMetadata.getProperty("umls.release.umls", ""),
+                "umlsNcitVersion", releaseMetadata.getProperty("umls.release.ncit", ""));
         metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase(), welcomeTextValues));
         term.setMetadata(metadata);
 
