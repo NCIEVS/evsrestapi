@@ -114,6 +114,7 @@ fi
 
 # Setup java environment
 export PATH="/usr/local/corretto-jdk17/bin:$PATH"
+JAVA_OPTS="${JAVA_OPTS:--Xmx4096M}"
 # Handle the local setup
 local=""
 jar="../lib/evsrestapi.jar"
@@ -514,8 +515,8 @@ for x in `cat /tmp/y.$$.txt`; do
             historyClause=" -d $historyFile"
         fi
 
-        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
-        java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
+        echo "    java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
+        java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "pwd = `pwd`"
             echo "ERROR: unexpected error building indexes"
@@ -581,8 +582,8 @@ if [[ $terminologyOverride ]]; then
 else
     export EVS_SERVER_PORT="8083"
     echo "    Generate mapping indexes"
-    echo "      java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology mapping"
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+    echo "      java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -jar $jar --terminology mapping"
+    java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology mapping
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building mapping indexes"
         exit 1

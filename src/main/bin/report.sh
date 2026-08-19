@@ -193,6 +193,7 @@ else
     fi
 
     export PATH="/usr/local/corretto-jdk17/bin:$PATH"
+    JAVA_OPTS="${JAVA_OPTS:--Xmx4096M}"
     # Handle the local setup
     local=""
     jar="../lib/evsrestapi.jar"
@@ -205,8 +206,8 @@ else
     echo "  Generate report for $db $terminology $version...`/bin/date`"
     export GRAPH_DB=$db
     export EVS_SERVER_PORT="8083"
-    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report" | sed 's/^/      /'
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report
+    echo "java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -jar $jar --terminology ${terminology}_$version --report" | sed 's/^/      /'
+    java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -jar $jar --terminology ${terminology}_$version --report
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building indexes"
         exit 1
