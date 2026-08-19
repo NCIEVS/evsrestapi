@@ -145,6 +145,7 @@ fi
 # Handle the local setup
 echo ""
 export PATH="/usr/local/corretto-jdk17/bin/:$PATH"
+JAVA_OPTS="${JAVA_OPTS:--Xmx4096M}"
 local=""
 jar="../lib/evsrestapi.jar"
 if [[ $config -eq 0 ]]; then
@@ -183,8 +184,8 @@ if [[ $skip -eq 0 ]]; then
     echo "  Generate indexes"
     # need to override this setting to make sure it's not too big
     export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=1000
-    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
+    echo "java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
+    java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building indexes"
         exit 1
