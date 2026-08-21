@@ -2,26 +2,23 @@
 #
 # This script reconciles the elasticsearch indexes against what is loded
 # into graph db.  The --noconfig flag is for running in the dev environment
-# where the setenv.sh file does not exist.  The --force flag is used
-# to recompute indexes that already exist rather than skipping them.
+# where the setenv.sh file does not exist.
 #
 config=1
-force=0
 historyFileOverride=
 terminologyOverride=
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
-  --force) force=1;;
   --history) historyFileOverride=$2; shift;;
   --terminology) terminologyOverride=$2; shift;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
 if [ ${#arr[@]} -ne 0 ]; then
-  echo "Usage: $0 [--noconfig] [--force] [--history <history file>] [--terminology <terminology>]"
+  echo "ERROR: unsupported parameter(s): ${arr[@]}"
+  echo "Usage: $0 [--noconfig] [--history <history file>] [--terminology <terminology>]"
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
-  echo "  e.g. $0 --force"
   echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.12e.txt"
   echo "  e.g. $0 --terminology medrt"
   exit 1
@@ -107,10 +104,7 @@ if [[ -z $metadata_config_url ]]; then
     exit 1
 fi
 
-# Report configuration  
-if [[ $force -eq 1 ]]; then
-    echo "  force = 1"
-fi
+
 
 # Setup java environment
 export PATH="/usr/local/corretto-jdk17/bin:$PATH"
@@ -490,21 +484,7 @@ for x in `cat /tmp/y.$$.txt`; do
       historyClause=" -d $historyFile"
     fi
     
-    if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
-
-        if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
-            echo "    FOUND indexes for $term $version, force reindex anyway"        
-
-            # Remove if this already exists
-            version=`echo $cv | perl -pe 's/.*_//;'`
-            echo "    Remove indexes for $term $version"
-            $DIR/remove.sh $term $version > /tmp/x.$$ 2>&1
-            if [[ $? -ne 0 ]]; then
-                cat /tmp/x.$$ | sed 's/^/    /'
-                echo "ERROR: removing $term $version indexes"
-                exit 1
-            fi
-        fi
+    if [[ $exists -eq 0 ]]; then
 
         # Run reindexing process (choose a port other than the one that it runs on)
         echo "    Generate indexes for $GRAPH_DB ${term} $version"
