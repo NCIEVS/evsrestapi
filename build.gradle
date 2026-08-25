@@ -219,7 +219,10 @@ dependencies {
 }
 
 test {
-  useJUnitPlatform{}
+  useJUnitPlatform{
+    // Perf tests are excluded from the normal run; invoke explicitly via `./gradlew perfTest`
+    excludeTags 'perf'
+  }
   // Args to pass when running the tests to ensure the cglib can be accessed and avoid InaccessibleObjectException
   jvmArgs("-Xmx8G", "--add-opens", "java.base/java.lang=ALL-UNNAMED")
   // Set the active profile to use our application-test.yml file from test resources
@@ -229,6 +232,18 @@ test {
    * of the test JVM(s) on the console
    */
   testLogging.showStandardStreams = true
+}
+
+// Perf-tagged tests against a live local graphdb/opensearch stack.
+// Excluded from the default `test` task; run explicitly with `./gradlew perfTest`.
+task perfTest(type: Test) {
+  useJUnitPlatform{
+    includeTags 'perf'
+  }
+  jvmArgs("-Xmx8G", "--add-opens", "java.base/java.lang=ALL-UNNAMED")
+  systemProperty("spring.profiles.active", "test")
+  testLogging.showStandardStreams = true
+  outputs.upToDateWhen { false }
 }
 
 // Format the code using google-java-format: https://github.com/diffplug/spotless/blob/main/plugin-gradle/README.md

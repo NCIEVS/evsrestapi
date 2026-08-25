@@ -441,17 +441,16 @@ public class ValueSetProviderR5 implements IResourceProvider {
               500);
         }
         final List<Association> invAssoc = conceptOpt.get().getInverseAssociations();
-        for (final Association assn : invAssoc) {
-          final Concept member =
-              osQueryService
-                  .getConcept(
-                      assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
-                      includeParam)
-                  .orElse(null);
-          if (member != null) {
-            subsetMembers.add(member);
-          }
+        // Batch fetch all members in a single query instead of one getConcept call per
+        // member (was O(n) round trips for an n-member subset).
+        final List<String> relatedCodes =
+            invAssoc.stream().map(Association::getRelatedCode).collect(Collectors.toList());
+        if (!relatedCodes.isEmpty()) {
+          subsetMembers.addAll(
+              osQueryService.getConcepts(
+                  relatedCodes,
+                  termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                  includeParam));
         }
         vsExpansion.setTotal(subsetMembers.size());
       } else {
@@ -768,17 +767,16 @@ public class ValueSetProviderR5 implements IResourceProvider {
               500);
         }
         final List<Association> invAssoc = conceptOpt.get().getInverseAssociations();
-        for (final Association assn : invAssoc) {
-          final Concept member =
-              osQueryService
-                  .getConcept(
-                      assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
-                      includeParam)
-                  .orElse(null);
-          if (member != null) {
-            subsetMembers.add(member);
-          }
+        // Batch fetch all members in a single query instead of one getConcept call per
+        // member (was O(n) round trips for an n-member subset).
+        final List<String> relatedCodes =
+            invAssoc.stream().map(Association::getRelatedCode).collect(Collectors.toList());
+        if (!relatedCodes.isEmpty()) {
+          subsetMembers.addAll(
+              osQueryService.getConcepts(
+                  relatedCodes,
+                  termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                  includeParam));
         }
         vsExpansion.setTotal(subsetMembers.size());
       } else {
@@ -1688,46 +1686,96 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     // Handle direct concept inclusion
     if (include.hasConcept()) {
-      for (ValueSet.ConceptReferenceComponent concept : include.getConcept()) {
-        // Always look up the concept in the terminology service first
-        String authoritativeDisplay = lookupConceptDisplay(include.getSystem(), concept.getCode());
+      final Terminology conceptTerminology =
+          termUtils.getIndexedTerminologies(osQueryService).stream()
+              .filter(term -> term.getMetadata().getFhirUri().equals(include.getSystem()))
+              .findFirst()
+              .orElse(null);
 
-        if (authoritativeDisplay == null) {
-          logger.warn("Skipping invalid concept: {}#{}", include.getSystem(), concept.getCode());
-          continue; // Skip invalid concepts - they don't exist in the terminology
+      if (conceptTerminology == null) {
+        logger.warn("No terminology found for system: {}", include.getSystem());
+      } else {
+        // Batch fetch every requested concept once, instead of up to 3 getConcept calls per
+        // concept (display lookup, active check, designations/definitions) -- was O(n) round
+        // trips.
+        final IncludeParam conceptIncludeParam = new IncludeParam();
+        if (includeDesignations) {
+          conceptIncludeParam.setSynonyms(true);
         }
-
-        // Check if input display matches authoritative display
-        if (concept.hasDisplay() && !concept.getDisplay().equals(authoritativeDisplay)) {
-          logger.warn(
-              "Display mismatch for {}#{}: input='{}', authoritative='{}'",
-              include.getSystem(),
-              concept.getCode(),
-              concept.getDisplay(),
-              authoritativeDisplay);
-          // Continue with authoritative display, but log the mismatch
+        if (includeDefinitions) {
+          conceptIncludeParam.setDefinitions(true);
         }
+        final List<String> requestedCodes =
+            include.getConcept().stream()
+                .map(ValueSet.ConceptReferenceComponent::getCode)
+                .collect(Collectors.toList());
+        final Map<String, Concept> fetchedConcepts =
+            osQueryService.getConceptsAsMap(
+                requestedCodes, conceptTerminology, conceptIncludeParam);
 
-        ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
-        contains.setSystem(include.getSystem());
-        contains.setCode(concept.getCode());
-        contains.setDisplay(authoritativeDisplay); // Always use authoritative display
+        for (ValueSet.ConceptReferenceComponent concept : include.getConcept()) {
+          final Concept fetched = fetchedConcepts.get(concept.getCode());
 
-        // Apply filters
-        if (passesTextFilter(contains, textFilter)
-            && passesActiveFilter(contains, activeOnly)
-            && passesVersion(contains, include.getVersion())) {
-          // Add designations if requested
-          if (includeDesignations || includeDefinitions) {
-            addDesignationsAndDefinitions(
-                contains,
+          if (fetched == null) {
+            logger.warn("Skipping invalid concept: {}#{}", include.getSystem(), concept.getCode());
+            continue; // Skip invalid concepts - they don't exist in the terminology
+          }
+          final String authoritativeDisplay = fetched.getName();
+
+          // Check if input display matches authoritative display
+          if (concept.hasDisplay() && !concept.getDisplay().equals(authoritativeDisplay)) {
+            logger.warn(
+                "Display mismatch for {}#{}: input='{}', authoritative='{}'",
                 include.getSystem(),
                 concept.getCode(),
-                includeDesignations,
-                includeDefinitions);
+                concept.getDisplay(),
+                authoritativeDisplay);
+            // Continue with authoritative display, but log the mismatch
           }
-          concepts.add(contains);
+
+          ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
+          contains.setSystem(include.getSystem());
+          contains.setCode(concept.getCode());
+          contains.setDisplay(authoritativeDisplay); // Always use authoritative display
+
+          // Apply filters
+          final boolean passesActive =
+              !activeOnly || (fetched.getActive() != null && fetched.getActive());
+          if (passesTextFilter(contains, textFilter)
+              && passesActive
+              && passesVersion(contains, include.getVersion())) {
+            // Add designations/definitions directly from the batch-fetched concept
+            if (includeDesignations && fetched.getSynonyms() != null) {
+              for (Synonym term : fetched.getSynonyms()) {
+                if (term.getTermType() != null && term.getName() != null) {
+                  ConceptReferenceDesignationComponent designation =
+                      new ConceptReferenceDesignationComponent()
+                          .setLanguage("en")
+                          .setUse(new Coding(term.getUri(), term.getTermType(), term.getName()))
+                          .setValue(term.getName());
+                  contains.addDesignation(designation);
+                }
+              }
+            }
+            if (includeDefinitions) {
+              addConceptProperty(contains, fetched, "definition");
+            }
+            concepts.add(contains);
+          }
         }
+      }
+    }
+
+    // Handle value set inclusion -- must run before filter-based inclusion below, so that a
+    // property/exclusion filter combined with a valueSet reference on the same include actually
+    // restricts the valueSet's concepts (previously this combination silently dropped the
+    // filter, since it ran only over whatever hasConcept()/conceptFilters had already added).
+    if (include.hasValueSet()) {
+      for (CanonicalType valueSetUrl : include.getValueSet()) {
+        List<ValueSetExpansionContainsComponent> referencedConcepts =
+            expandReferencedValueSet(
+                valueSetUrl, textFilter, activeOnly, includeDesignations, includeDefinitions);
+        concepts.addAll(referencedConcepts);
       }
     }
 
@@ -1822,6 +1870,16 @@ public class ValueSetProviderR5 implements IResourceProvider {
               throw exception;
             }
 
+            // Batch fetch properties for every remaining candidate once, instead of one
+            // getConcept call per candidate per filter (was O(n * filters) round trips).
+            final Map<String, Concept> propertyLookup =
+                osQueryService.getConceptsAsMap(
+                    concepts.stream()
+                        .map(ValueSetExpansionContainsComponent::getCode)
+                        .collect(Collectors.toList()),
+                    selectedTerminology,
+                    new IncludeParam("properties"));
+
             for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
               logger.debug(
                   "Applying property filter '{}' {} '{}' to {} concepts",
@@ -1835,20 +1893,15 @@ public class ValueSetProviderR5 implements IResourceProvider {
                       .filter(
                           concept -> {
                             try {
+                              final Concept fetched = propertyLookup.get(concept.getCode());
                               if ("=".equals(filter.getOp().toCode())) {
                                 return conceptHasPropertyValue(
-                                    concept,
-                                    selectedTerminology,
-                                    filter.getProperty(),
-                                    filter.getValue().trim());
+                                    fetched, filter.getProperty(), filter.getValue().trim());
                               } else if ("exists".equals(filter.getOp().toCode())) {
                                 boolean shouldExist =
                                     "true".equalsIgnoreCase(filter.getValue().trim());
                                 return conceptHasProperty(
-                                    concept,
-                                    selectedTerminology,
-                                    filter.getProperty(),
-                                    shouldExist);
+                                    fetched, filter.getProperty(), shouldExist);
                               }
                               return false;
                             } catch (Exception e) {
@@ -1904,16 +1957,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       }
     }
 
-    // Handle value set inclusion
-    if (include.hasValueSet()) {
-      for (CanonicalType valueSetUrl : include.getValueSet()) {
-        List<ValueSetExpansionContainsComponent> referencedConcepts =
-            expandReferencedValueSet(
-                valueSetUrl, textFilter, activeOnly, includeDesignations, includeDefinitions);
-        concepts.addAll(referencedConcepts);
-      }
-    }
-
     return concepts;
   }
 
@@ -1941,36 +1984,57 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     // Handle direct concept exclusion
     if (exclude.hasConcept()) {
-      for (ValueSet.ConceptReferenceComponent concept : exclude.getConcept()) {
-        // Always look up the concept in the terminology service first
-        String authoritativeDisplay = lookupConceptDisplay(exclude.getSystem(), concept.getCode());
+      final Terminology conceptTerminology =
+          termUtils.getIndexedTerminologies(osQueryService).stream()
+              .filter(term -> term.getMetadata().getFhirUri().equals(exclude.getSystem()))
+              .findFirst()
+              .orElse(null);
 
-        if (authoritativeDisplay == null) {
-          logger.warn(
-              "Skipping invalid exclude concept: {}#{}", exclude.getSystem(), concept.getCode());
-          continue; // Skip invalid concepts - they don't exist in the terminology
-        }
+      if (conceptTerminology == null) {
+        logger.warn("No terminology found for system: {}", exclude.getSystem());
+      } else {
+        // Batch fetch every requested concept once, instead of one getConcept call per
+        // concept for display plus another for the active check -- was O(n) round trips.
+        final List<String> requestedCodes =
+            exclude.getConcept().stream()
+                .map(ValueSet.ConceptReferenceComponent::getCode)
+                .collect(Collectors.toList());
+        final Map<String, Concept> fetchedConcepts =
+            osQueryService.getConceptsAsMap(
+                requestedCodes, conceptTerminology, new IncludeParam("minimal"));
 
-        // Check if input display matches authoritative display
-        if (concept.hasDisplay() && !concept.getDisplay().equals(authoritativeDisplay)) {
-          logger.warn(
-              "Display mismatch for exclude {}#{}: input='{}', authoritative='{}'",
-              exclude.getSystem(),
-              concept.getCode(),
-              concept.getDisplay(),
-              authoritativeDisplay);
-          // Continue with authoritative display, but log the mismatch
-        }
+        for (ValueSet.ConceptReferenceComponent concept : exclude.getConcept()) {
+          final Concept fetched = fetchedConcepts.get(concept.getCode());
 
-        ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
-        contains.setSystem(exclude.getSystem());
-        contains.setCode(concept.getCode());
-        contains.setDisplay(authoritativeDisplay); // Always use authoritative display
+          if (fetched == null) {
+            logger.warn(
+                "Skipping invalid exclude concept: {}#{}", exclude.getSystem(), concept.getCode());
+            continue; // Skip invalid concepts - they don't exist in the terminology
+          }
+          final String authoritativeDisplay = fetched.getName();
 
-        // Apply filters
-        if (passesActiveFilter(contains, activeOnly)
-            && passesVersion(contains, exclude.getVersion())) {
-          concepts.add(contains);
+          // Check if input display matches authoritative display
+          if (concept.hasDisplay() && !concept.getDisplay().equals(authoritativeDisplay)) {
+            logger.warn(
+                "Display mismatch for exclude {}#{}: input='{}', authoritative='{}'",
+                exclude.getSystem(),
+                concept.getCode(),
+                concept.getDisplay(),
+                authoritativeDisplay);
+            // Continue with authoritative display, but log the mismatch
+          }
+
+          ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
+          contains.setSystem(exclude.getSystem());
+          contains.setCode(concept.getCode());
+          contains.setDisplay(authoritativeDisplay); // Always use authoritative display
+
+          // Apply filters
+          final boolean passesActive =
+              !activeOnly || (fetched.getActive() != null && fetched.getActive());
+          if (passesActive && passesVersion(contains, exclude.getVersion())) {
+            concepts.add(contains);
+          }
         }
       }
     }
@@ -2047,39 +2111,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
 
     return concepts;
-  }
-
-  /**
-   * Lookup concept display.
-   *
-   * @param system the system
-   * @param code the code
-   * @return the string
-   * @throws Exception the exception
-   */
-  private String lookupConceptDisplay(String system, String code) throws Exception {
-    Terminology selectedTerminology =
-        termUtils.getIndexedTerminologies(osQueryService).stream()
-            .filter(term -> term.getMetadata().getFhirUri().equals(system))
-            .findFirst()
-            .orElse(null);
-
-    if (selectedTerminology == null) {
-      logger.warn("No terminology found for system: {}", system);
-      return null; // This will cause the concept to be filtered out
-    }
-
-    Optional<Concept> conceptOpt =
-        osQueryService.getConcept(code, selectedTerminology, new IncludeParam("minimal"));
-
-    if (!conceptOpt.isPresent()) {
-      logger.warn("Concept not found: {}#{}", system, code);
-      return null; // This will cause the concept to be filtered out
-    }
-
-    Concept concept = conceptOpt.get();
-    logger.debug("Looking up display for {}#{}", system, code);
-    return concept.getName();
   }
 
   /**
@@ -2458,60 +2489,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
   }
 
-  /**
-   * Adds the designations and definitions.
-   *
-   * @param contains the contains
-   * @param system the system
-   * @param code the code
-   * @param includeDesignations the include designations
-   * @param includeDefinition the include definition
-   * @throws Exception the exception
-   */
-  private void addDesignationsAndDefinitions(
-      ValueSetExpansionContainsComponent contains,
-      String system,
-      String code,
-      boolean includeDesignations,
-      boolean includeDefinition)
-      throws Exception {
-    Terminology selectedTerminology =
-        termUtils.getIndexedTerminologies(osQueryService).stream()
-            .filter(term -> term.getMetadata().getFhirUri().equals(system))
-            .findFirst()
-            .orElse(null);
-    IncludeParam includeParam = new IncludeParam();
-    if (includeDesignations) {
-      includeParam.setSynonyms(true);
-    }
-    if (includeDefinition) {
-      includeParam.setDefinitions(true);
-    }
-
-    Optional<Concept> conceptOpt =
-        osQueryService.getConcept(code, selectedTerminology, includeParam);
-    if (!conceptOpt.isPresent()) {
-      logger.warn("Concept not found for code: {}", code);
-      return;
-    }
-    Concept concept = conceptOpt.get();
-    for (Synonym term : concept.getSynonyms()) {
-      if (term.getTermType() != null && term.getName() != null) {
-        ConceptReferenceDesignationComponent designation =
-            new ConceptReferenceDesignationComponent()
-                .setLanguage("en")
-                .setUse(new Coding(term.getUri(), term.getTermType(), term.getName()))
-                .setValue(term.getName());
-
-        contains.addDesignation(designation);
-      }
-    }
-    if (includeDefinition) {
-      addConceptProperty(contains, concept, "definition");
-    }
-    logger.debug("Adding designations for {}#{}", system, code);
-  }
-
   // Utility methods
 
   /**
@@ -2530,50 +2507,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return (contains.getCode() != null && contains.getCode().toLowerCase().contains(lowerFilter))
         || (contains.getDisplay() != null
             && contains.getDisplay().toLowerCase().contains(lowerFilter));
-  }
-
-  /**
-   * Passes active filter.
-   *
-   * @param contains the contains
-   * @param activeOnly the active only
-   * @return true, if successful
-   * @throws Exception the exception
-   */
-  private boolean passesActiveFilter(
-      ValueSetExpansionContainsComponent contains, boolean activeOnly) throws Exception {
-    if (!activeOnly) {
-      return true;
-    }
-
-    Terminology selectedTerminology =
-        termUtils.getIndexedTerminologies(osQueryService).stream()
-            .filter(term -> term.getMetadata().getFhirUri().equals(contains.getSystem()))
-            .findFirst()
-            .orElse(null);
-
-    if (selectedTerminology == null) {
-      logger.warn("No terminology found for system: {}", contains.getSystem());
-      return false; // Filter out concepts from unknown systems
-    }
-
-    Optional<Concept> conceptOpt =
-        osQueryService.getConcept(
-            contains.getCode(), selectedTerminology, new IncludeParam("minimal"));
-
-    if (!conceptOpt.isPresent()) {
-      logger.warn(
-          "Concept not found during active filter: {}#{}",
-          contains.getSystem(),
-          contains.getCode());
-      return false; // Filter out non-existent concepts
-    }
-
-    Concept concept = conceptOpt.get();
-    Boolean active = concept.getActive();
-
-    // If active status is null, treat as inactive when activeOnly is true
-    return active != null && active;
   }
 
   /**
@@ -2857,110 +2790,50 @@ public class ValueSetProviderR5 implements IResourceProvider {
   }
 
   /**
-   * Check if concept has property value.
+   * Check if a pre-fetched concept has property value. The concept must already have been fetched
+   * with the "properties" include (e.g. via a batch {@code getConceptsAsMap} call) -- this method
+   * makes no OpenSearch calls itself.
    *
-   * @param contains the contains component
-   * @param terminology the terminology
+   * @param concept the already-fetched concept, or null if not found
    * @param propertyName the property name
    * @param propertyValue the property value
    * @return true if concept has the property with matching value
-   * @throws Exception the exception
    */
   private boolean conceptHasPropertyValue(
-      ValueSetExpansionContainsComponent contains,
-      Terminology terminology,
-      String propertyName,
-      String propertyValue)
-      throws Exception {
+      Concept concept, String propertyName, String propertyValue) {
 
-    // Get the full concept details including properties
-    Optional<Concept> conceptOpt =
-        osQueryService.getConcept(contains.getCode(), terminology, new IncludeParam("properties"));
-
-    if (!conceptOpt.isPresent()) {
-      logger.debug(
-          "Concept {} not found in terminology {}",
-          contains.getCode(),
-          terminology.getTerminology());
-      return false;
-    }
-
-    Concept concept = conceptOpt.get();
-    if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
-      logger.debug("Concept {} has no properties", contains.getCode());
+    if (concept == null || concept.getProperties() == null || concept.getProperties().isEmpty()) {
       return false;
     }
 
     // Check if any property matches the specified name and value
-    boolean hasMatch =
-        concept.getProperties().stream()
-            .anyMatch(
-                prop ->
-                    propertyName.equals(prop.getType()) && propertyValue.equals(prop.getValue()));
-
-    logger.debug(
-        "Concept {} property '{}' = '{}': {}",
-        contains.getCode(),
-        propertyName,
-        propertyValue,
-        hasMatch ? "MATCH" : "NO MATCH");
-
-    return hasMatch;
+    return concept.getProperties().stream()
+        .anyMatch(
+            prop -> propertyName.equals(prop.getType()) && propertyValue.equals(prop.getValue()));
   }
 
   /**
-   * Check if concept has property.
+   * Check if a pre-fetched concept has property. The concept must already have been fetched with
+   * the "properties" include (e.g. via a batch {@code getConceptsAsMap} call) -- this method makes
+   * no OpenSearch calls itself.
    *
-   * @param contains the contains component
-   * @param terminology the terminology
+   * @param concept the already-fetched concept, or null if not found
    * @param propertyName the property name
    * @param shouldExist true if property should exist, false if it should not exist
    * @return true if the existence condition is met
-   * @throws Exception the exception
    */
-  private boolean conceptHasProperty(
-      ValueSetExpansionContainsComponent contains,
-      Terminology terminology,
-      String propertyName,
-      boolean shouldExist)
-      throws Exception {
+  private boolean conceptHasProperty(Concept concept, String propertyName, boolean shouldExist) {
 
-    // Get the full concept details including properties
-    Optional<Concept> conceptOpt =
-        osQueryService.getConcept(contains.getCode(), terminology, new IncludeParam("properties"));
-
-    if (!conceptOpt.isPresent()) {
-      logger.debug(
-          "Concept {} not found in terminology {}",
-          contains.getCode(),
-          terminology.getTerminology());
-      // If concept doesn't exist, it certainly doesn't have the property
-      return !shouldExist;
-    }
-
-    Concept concept = conceptOpt.get();
-
-    // Check if the concept has any properties at all
-    if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
-      logger.debug("Concept {} has no properties", contains.getCode());
-      return !shouldExist; // No properties = property doesn't exist
-    }
-
-    // Check if the specific property exists (has at least one value)
+    // No concept or no properties at all => property doesn't exist
     boolean hasProperty =
-        concept.getProperties().stream()
-            .anyMatch(
-                prop ->
-                    propertyName.equals(prop.getType())
-                        && prop.getValue() != null
-                        && !prop.getValue().toString().trim().isEmpty());
-
-    logger.debug(
-        "Concept {} property '{}' exists: {} (expected: {})",
-        contains.getCode(),
-        propertyName,
-        hasProperty,
-        shouldExist);
+        concept != null
+            && concept.getProperties() != null
+            && concept.getProperties().stream()
+                .anyMatch(
+                    prop ->
+                        propertyName.equals(prop.getType())
+                            && prop.getValue() != null
+                            && !prop.getValue().toString().trim().isEmpty());
 
     return hasProperty == shouldExist;
   }
@@ -3080,17 +2953,26 @@ public class ValueSetProviderR5 implements IResourceProvider {
     String operation = filter.getOp().toCode();
     String value = filter.getValue();
 
+    // Batch fetch properties for every candidate once, instead of one getConcept call per
+    // candidate (was O(n) round trips).
+    final Map<String, Concept> propertyLookup =
+        osQueryService.getConceptsAsMap(
+            concepts.stream()
+                .map(ValueSetExpansionContainsComponent::getCode)
+                .collect(Collectors.toList()),
+            terminology,
+            new IncludeParam("properties"));
+
     for (ValueSetExpansionContainsComponent expansionConcept : concepts) {
       boolean shouldInclude = false;
 
       try {
+        final Concept fetched = propertyLookup.get(expansionConcept.getCode());
         if ("=".equals(operation)) {
-          shouldInclude =
-              conceptHasPropertyValue(expansionConcept, terminology, propertyName, value.trim());
+          shouldInclude = conceptHasPropertyValue(fetched, propertyName, value.trim());
         } else if ("exists".equals(operation)) {
           boolean shouldExist = "true".equalsIgnoreCase(value.trim());
-          shouldInclude =
-              conceptHasProperty(expansionConcept, terminology, propertyName, shouldExist);
+          shouldInclude = conceptHasProperty(fetched, propertyName, shouldExist);
         }
       } catch (Exception e) {
         logger.warn(
