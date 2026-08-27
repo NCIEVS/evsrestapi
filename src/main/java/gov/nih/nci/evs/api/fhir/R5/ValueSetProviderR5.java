@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,7 @@ import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -87,6 +89,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /** The term utils. */
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
+
+  /** Maximum referenced ValueSet members to materialize for internal compose processing. */
+  @Value("${nci.evs.fhir.maxInternalReferencedValueSetExpansion:10000}")
+  private int maxInternalReferencedValueSetExpansion;
 
   /**
    * Returns the type of resource for this provider.
@@ -1770,13 +1776,18 @@ public class ValueSetProviderR5 implements IResourceProvider {
     // property/exclusion filter combined with a valueSet reference on the same include actually
     // restricts the valueSet's concepts (previously this combination silently dropped the
     // filter, since it ran only over whatever hasConcept()/conceptFilters had already added).
+    //
+    // FHIR R5 changed the repeated include.valueSet rule from R4/R4B: multiple value sets inside
+    // the same compose.include are an intersection. Separate compose.include elements are still
+    // unioned by expandCompose.
     if (include.hasValueSet()) {
-      for (CanonicalType valueSetUrl : include.getValueSet()) {
-        List<ValueSetExpansionContainsComponent> referencedConcepts =
-            expandReferencedValueSet(
-                valueSetUrl, textFilter, activeOnly, includeDesignations, includeDefinitions);
-        concepts.addAll(referencedConcepts);
-      }
+      concepts.addAll(
+          expandReferencedValueSetIntersection(
+              include.getValueSet(),
+              textFilter,
+              activeOnly,
+              includeDesignations,
+              includeDefinitions));
     }
 
     // Handle filter-based inclusion
@@ -1958,6 +1969,55 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
 
     return concepts;
+  }
+
+  /**
+   * Expand one or more referenced value sets for a single R5 include.
+   *
+   * <p>FHIR R5 defines repeated {@code ValueSet.compose.include.valueSet} entries in one include as
+   * an intersection of the referenced value sets. This is intentionally different from the R4/R4B
+   * provider, where the same repeated entries remain a union per the R4/R4B definitions.
+   *
+   * @param valueSetUrls the value set URLs from one include
+   * @param textFilter the text filter
+   * @param activeOnly the active only
+   * @param includeDesignations the include designations
+   * @param includeDefinitions the include definitions
+   * @return the concepts shared by every referenced value set
+   * @throws Exception the exception
+   */
+  private List<ValueSetExpansionContainsComponent> expandReferencedValueSetIntersection(
+      List<CanonicalType> valueSetUrls,
+      String textFilter,
+      boolean activeOnly,
+      boolean includeDesignations,
+      boolean includeDefinitions)
+      throws Exception {
+
+    List<ValueSetExpansionContainsComponent> intersection = null;
+
+    for (CanonicalType valueSetUrl : valueSetUrls) {
+      final List<ValueSetExpansionContainsComponent> referencedConcepts =
+          expandReferencedValueSet(
+              valueSetUrl, textFilter, activeOnly, includeDesignations, includeDefinitions);
+
+      if (intersection == null) {
+        intersection = deduplicateAndSort(referencedConcepts);
+      } else {
+        final Set<String> referencedConceptKeys =
+            referencedConcepts.stream().map(this::valueSetConceptKey).collect(Collectors.toSet());
+        intersection =
+            intersection.stream()
+                .filter(concept -> referencedConceptKeys.contains(valueSetConceptKey(concept)))
+                .collect(Collectors.toList());
+      }
+
+      if (intersection.isEmpty()) {
+        break;
+      }
+    }
+
+    return intersection != null ? intersection : new ArrayList<>();
   }
 
   /**
@@ -2188,20 +2248,23 @@ public class ValueSetProviderR5 implements IResourceProvider {
     } else
     // concept is in filter list
     if ("concept".equals(filter.getProperty()) && "in".equals(filter.getOp().toCode())) {
-      // Parse the comma-separated list of codes
-      String[] codes = filter.getValue().split(",");
+      final List<String> codes =
+          Arrays.stream(filter.getValue().split(","))
+              .map(String::trim)
+              .collect(Collectors.toList());
+      final Map<String, Concept> fetchedConcepts =
+          osQueryService.getConceptsAsMap(codes, selectedTerminology, includeParam);
 
-      for (String code : codes) {
-        String trimmedCode = code.trim();
-        // Look up each concept by code
-        Optional<Concept> concept =
-            osQueryService.getConcept(trimmedCode, selectedTerminology, includeParam);
-        if (concept.isPresent()) {
+      for (String trimmedCode : codes) {
+        final Concept concept = fetchedConcepts.get(trimmedCode);
+        if (concept != null) {
           ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
           contains.setSystem(system);
           contains.setCode(trimmedCode);
-          contains.setDisplay(concept.get().getName());
+          contains.setDisplay(concept.getName());
           compList.add(contains);
+        } else {
+          logger.warn("Concept not found for 'in' filter: {}", trimmedCode);
         }
       }
     } else {
@@ -2355,6 +2418,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ValueSet.ValueSetExpansionComponent vsExpansion =
           new ValueSet.ValueSetExpansionComponent();
       String system = "";
+      final String includeValue =
+          createReferencedValueSetIncludeValue(includeDesignations, includeDefinitions);
       if (valueSetUrl.getValue().contains("?fhir_vs=")) {
         system = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
         Optional<Concept> conceptOpt =
@@ -2371,17 +2436,12 @@ public class ValueSetProviderR5 implements IResourceProvider {
         // Collect all related codes for batch fetching (performance optimization)
         List<String> relatedCodes =
             invAssoc.stream().map(Association::getRelatedCode).collect(Collectors.toList());
+        throwIfReferencedValueSetTooCostly(valueSetUrl, relatedCodes.size());
 
         // Batch fetch all concepts at once instead of individual queries
         // Include designations/definitions in the batch fetch to avoid additional N+1 queries
         if (!relatedCodes.isEmpty()) {
-          IncludeParam includeParam = new IncludeParam("minimal");
-          if (includeDesignations) {
-            includeParam.setSynonyms(true);
-          }
-          if (includeDefinitions) {
-            includeParam.setDefinitions(true);
-          }
+          IncludeParam includeParam = new IncludeParam(includeValue);
 
           List<Concept> members =
               osQueryService.getConcepts(
@@ -2392,17 +2452,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
         }
 
       } else {
-        final List<Terminology> terminologies = new ArrayList<>();
-        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
-        final SearchCriteria sc = new SearchCriteria();
-        sc.setPageSize(1000);
-        sc.setFromRecord(0);
-        sc.setTerm(textFilter != null && !textFilter.isEmpty() ? textFilter : null);
-        sc.setType("contains");
-        sc.setTerminology(
-            terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
-        ConceptResultList subsetMembersList = searchService.findConcepts(terminologies, sc);
-        subsetMembers.addAll(subsetMembersList.getConcepts());
+        subsetMembers.addAll(
+            expandSearchBackedReferencedValueSet(valueSetUrl, vs, textFilter, includeValue));
 
         system = valueSetUrl.getValue().replace("?fhir_vs", "");
       }
@@ -2487,6 +2538,114 @@ public class ValueSetProviderR5 implements IResourceProvider {
       throw new Exception(
           "Failed to expand referenced ValueSet: " + valueSetUrl + ". " + e.getMessage());
     }
+  }
+
+  /**
+   * Expand a referenced ValueSet represented by a search-backed {@code ?fhir_vs} URL.
+   *
+   * @param valueSetUrl the referenced value set URL
+   * @param valueSet the resolved value set
+   * @param textFilter the text filter
+   * @param includeValue the include value for concept hydration
+   * @return the referenced value set members
+   * @throws Exception the exception
+   */
+  private List<Concept> expandSearchBackedReferencedValueSet(
+      UriType valueSetUrl, ValueSet valueSet, String textFilter, String includeValue)
+      throws Exception {
+    final Terminology terminology =
+        termUtils.getIndexedTerminology(valueSet.getTitle(), osQueryService, true);
+    final List<Terminology> terminologies = new ArrayList<>();
+    terminologies.add(terminology);
+
+    final SearchCriteria preflightCriteria =
+        createReferencedValueSetSearchCriteria(terminology, textFilter, includeValue, 1);
+    final ConceptResultList preflight =
+        searchService.findConcepts(terminologies, preflightCriteria);
+    final long total =
+        preflight.getTotal() != null ? preflight.getTotal() : preflight.getConcepts().size();
+    throwIfReferencedValueSetTooCostly(valueSetUrl, total);
+
+    if (total == 0) {
+      return new ArrayList<>();
+    }
+
+    final SearchCriteria fetchCriteria =
+        createReferencedValueSetSearchCriteria(
+            terminology, textFilter, includeValue, Math.toIntExact(total));
+    final ConceptResultList subsetMembersList =
+        searchService.findConcepts(terminologies, fetchCriteria);
+    return subsetMembersList.getConcepts();
+  }
+
+  /**
+   * Create search criteria for expanding search-backed referenced ValueSets.
+   *
+   * @param terminology the terminology
+   * @param textFilter the text filter
+   * @param includeValue the include value
+   * @param pageSize the page size
+   * @return the search criteria
+   */
+  private SearchCriteria createReferencedValueSetSearchCriteria(
+      Terminology terminology, String textFilter, String includeValue, int pageSize) {
+    final SearchCriteria sc = new SearchCriteria();
+    sc.setPageSize(pageSize);
+    sc.setFromRecord(0);
+    sc.setTerm(textFilter != null && !textFilter.isEmpty() ? textFilter : null);
+    sc.setType("contains");
+    sc.setInclude(includeValue);
+    sc.setTerminology(List.of(terminology.getTerminology()));
+    return sc;
+  }
+
+  /**
+   * Create the include value for referenced ValueSet concept hydration.
+   *
+   * @param includeDesignations the include designations
+   * @param includeDefinitions the include definitions
+   * @return the include value
+   */
+  private String createReferencedValueSetIncludeValue(
+      boolean includeDesignations, boolean includeDefinitions) {
+    final List<String> includeList = new ArrayList<>();
+    includeList.add("minimal");
+    if (includeDesignations) {
+      includeList.add("synonyms");
+    }
+    if (includeDefinitions) {
+      includeList.add("definitions");
+    }
+    return String.join(",", includeList);
+  }
+
+  /**
+   * Throw a FHIR too-costly exception when a referenced ValueSet is too large to materialize
+   * safely.
+   *
+   * @param valueSetUrl the value set URL
+   * @param total the total referenced concepts
+   */
+  private void throwIfReferencedValueSetTooCostly(UriType valueSetUrl, long total) {
+    if (total <= maxInternalReferencedValueSetExpansion) {
+      return;
+    }
+
+    final String diagnostics =
+        "Referenced ValueSet expansion is too costly ("
+            + total
+            + " concepts exceed internal limit of "
+            + maxInternalReferencedValueSetExpansion
+            + "): "
+            + valueSetUrl;
+    final InvalidRequestException exception = new InvalidRequestException(diagnostics);
+    final OperationOutcome oo = new OperationOutcome();
+    final OperationOutcome.OperationOutcomeIssueComponent issue = oo.addIssue();
+    issue.setCode(IssueType.TOOCOSTLY);
+    issue.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+    issue.setDiagnostics(diagnostics);
+    exception.setOperationOutcome(oo);
+    throw exception;
   }
 
   // Utility methods
@@ -2662,6 +2821,16 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return allConcepts.stream()
         .filter(concept -> !excludeSet.contains(concept.getSystem() + "|" + concept.getCode()))
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the identity key for an expansion member.
+   *
+   * @param concept the expansion member
+   * @return the system/code key
+   */
+  private String valueSetConceptKey(ValueSetExpansionContainsComponent concept) {
+    return concept.getSystem() + "|" + concept.getCode();
   }
 
   /**
@@ -2857,6 +3026,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
     String operation = filter.getOp().toCode();
     String value = filter.getValue().trim();
 
+    final Set<String> isACodes =
+        "is-not-a".equals(operation) ? getSelfAndDescendantCodes(value, terminology) : Set.of();
+
     for (ValueSetExpansionContainsComponent concept : concepts) {
       boolean shouldExclude = false;
 
@@ -2864,7 +3036,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         if ("not-in".equals(operation)) {
           shouldExclude = conceptIsInList(concept.getCode(), value);
         } else if ("is-not-a".equals(operation)) {
-          shouldExclude = conceptIsA(concept.getCode(), value, terminology);
+          shouldExclude = isACodes.contains(concept.getCode());
         }
       } catch (Exception e) {
         logger.warn(
@@ -2911,26 +3083,28 @@ public class ValueSetProviderR5 implements IResourceProvider {
   }
 
   /**
-   * Check if concept has is-a relationship with the specified concept.
+   * Get a concept code and all descendant codes for is-a membership checks.
    *
-   * @param conceptCode the concept code to check
    * @param parentCode the parent concept code
    * @param terminology the terminology
-   * @return true if concept is-a descendant of parent
-   * @throws Exception the exception
+   * @return the parent concept code and descendant codes
    */
-  private boolean conceptIsA(String conceptCode, String parentCode, Terminology terminology)
-      throws Exception {
-    // Check if conceptCode is the same as parentCode (concept is-a itself)
-    if (conceptCode.equals(parentCode)) {
-      return true;
+  private Set<String> getSelfAndDescendantCodes(String parentCode, Terminology terminology) {
+    final Set<String> codes = new HashSet<>();
+    if (parentCode == null) {
+      return codes;
+    }
+    final String trimmedParentCode = parentCode.trim();
+    if (trimmedParentCode.isEmpty()) {
+      return codes;
     }
 
-    // Get all descendants of the parent concept
-    List<Concept> descendants = osQueryService.getDescendants(parentCode, terminology);
-
-    // Check if conceptCode is among the descendants
-    return descendants.stream().anyMatch(descendant -> conceptCode.equals(descendant.getCode()));
+    codes.add(trimmedParentCode);
+    codes.addAll(
+        osQueryService.getDescendants(trimmedParentCode, terminology).stream()
+            .map(Concept::getCode)
+            .collect(Collectors.toSet()));
+    return codes;
   }
 
   /**

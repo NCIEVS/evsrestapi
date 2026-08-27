@@ -23,12 +23,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
@@ -75,6 +75,9 @@ public class FhirR4ValueSetExpandTests {
   /** The fhir VS path. */
   private final String fhirVSPath = "/fhir/r4/ValueSet";
 
+  /** The fhir CS path. */
+  private final String fhirCSPath = "/fhir/r4/CodeSystem";
+
   /** The parser. */
   private static IParser parser;
 
@@ -92,6 +95,50 @@ public class FhirR4ValueSetExpandTests {
   @BeforeEach
   public void setUp() {
     // n/a
+  }
+
+  /**
+   * Gets the loaded NCIt terminology version used by ValueSet include.version filtering.
+   *
+   * @return the current NCIt version
+   */
+  private String getCurrentNcitVersionForExpansion() {
+    final String codeSystemContent =
+        restTemplate.getForObject(localHost + port + fhirCSPath, String.class);
+    final Bundle codeSystemBundle = parser.parseResource(Bundle.class, codeSystemContent);
+    final Optional<String> codeSystemVersion =
+        codeSystemBundle.getEntry().stream()
+            .map(Bundle.BundleEntryComponent::getResource)
+            .filter(CodeSystem.class::isInstance)
+            .map(CodeSystem.class::cast)
+            .filter(cs -> "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(cs.getUrl()))
+            .map(CodeSystem::getVersion)
+            .filter(version -> version != null && !version.isBlank())
+            .findFirst();
+
+    if (codeSystemVersion.isPresent()) {
+      return codeSystemVersion.get();
+    }
+
+    final String valueSetContent =
+        restTemplate.getForObject(localHost + port + fhirVSPath, String.class);
+    final Bundle valueSetBundle = parser.parseResource(Bundle.class, valueSetContent);
+    final Optional<String> valueSetVersion =
+        valueSetBundle.getEntry().stream()
+            .map(Bundle.BundleEntryComponent::getResource)
+            .filter(ValueSet.class::isInstance)
+            .map(ValueSet.class::cast)
+            .filter(
+                vs ->
+                    vs.hasUrl()
+                        && vs.getUrl()
+                            .contains("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"))
+            .map(ValueSet::getVersion)
+            .filter(version -> version != null && !version.isBlank())
+            .findFirst();
+
+    assertTrue(valueSetVersion.isPresent(), "Could not determine loaded NCIt version");
+    return valueSetVersion.get();
   }
 
   /**
@@ -819,6 +866,41 @@ public class FhirR4ValueSetExpandTests {
     nciExclude.addConcept(excludeGene);
 
     compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+    return inputValueSet;
+  }
+
+  /**
+   * Helper method to create ValueSet with only a "concept in" filter.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithConceptInFilterOnly(
+      final String id, final String name, final String title, final String description) {
+    final ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    final ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
+    include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    final ValueSet.ConceptSetFilterComponent inFilter = new ValueSet.ConceptSetFilterComponent();
+    inFilter.setProperty("concept");
+    inFilter.setOp(ValueSet.FilterOperator.IN);
+    inFilter.setValue(" C21282, C21283, C2991, C176707, INVALID123, C21282 ");
+    include.addFilter(inFilter);
+
+    compose.addInclude(include);
     inputValueSet.setCompose(compose);
     return inputValueSet;
   }
@@ -1932,6 +2014,53 @@ public class FhirR4ValueSetExpandTests {
   }
 
   /**
+   * Test value set expand with exact NCI thesaurus "in" filter results.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithConceptInFilterReturnsExactConceptSet() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final ValueSet inputValueSet =
+        createNCITestValueSetWithConceptInFilterOnly(
+            "nci-in-filter-exact-test",
+            "NCIInFilterExactTest",
+            "NCI Thesaurus In Filter Exact Test",
+            "Test ValueSet with exact 'in' filter results");
+
+    final String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
+
+    final HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    final HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    final ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    final ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    final ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    final List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    final Set<String> actualCodes =
+        contains.stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toSet());
+    final Set<String> expectedCodes = Set.of("C176707", "C21282", "C21283", "C2991");
+
+    assertEquals(expectedCodes, actualCodes);
+    assertEquals(expectedCodes.size(), contains.size());
+    assertEquals(expectedCodes.size(), expansion.getTotal());
+  }
+
+  /**
    * Test value set expand with NCI thesaurus "in" filter include and exclude.
    *
    * @throws Exception the exception
@@ -2774,6 +2903,16 @@ public class FhirR4ValueSetExpandTests {
         "Disease or Disorder (C2991) should be included as it's not a gene");
     log.info("C2991 (Disease or Disorder) correctly included - not a gene");
 
+    final Set<String> actualCodes =
+        contains.stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toSet());
+    final Set<String> expectedCodes = Set.of("C2991", "C48670", "C48672");
+
+    assertEquals(expectedCodes, actualCodes);
+    assertEquals(expectedCodes.size(), contains.size());
+    assertEquals(expectedCodes.size(), expansion.getTotal());
+
     // Assert - Should NOT contain gene concepts
     // C21282 (Lyase Gene) should be excluded as it's a gene (is-a Gene)
     final Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseResult =
@@ -3276,38 +3415,8 @@ public class FhirR4ValueSetExpandTests {
    */
   @Test
   public void testValueSetExpandWithIncludeVersionDirectConceptsCurrent() throws Exception {
-    // Arrange - Get current NCIt version
-    String content;
-    final String endpoint = localHost + port + fhirVSPath;
-
-    // Get list of NCIt ValueSets to find a valid ID and current version
-    content = this.restTemplate.getForObject(endpoint, String.class);
-    final Bundle data = parser.parseResource(Bundle.class, content);
-    final List<Resource> valueSets =
-        data.getEntry().stream()
-            .map(Bundle.BundleEntryComponent::getResource)
-            .filter(resource -> resource instanceof ValueSet)
-            .filter(
-                resource -> {
-                  final ValueSet vs = (ValueSet) resource;
-                  return vs.hasUrl()
-                      && vs.getUrl().contains("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-                })
-            .toList();
-    final String firstValueSetId = valueSets.get(0).getIdPart();
-
-    // Get current version
-    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
-    final ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
-    String currentNCItVersion = currentValueSet.getVersion();
-
-    if (currentNCItVersion == null) {
-      log.warn("Could not determine current NCIt version, using fallback");
-      currentNCItVersion = "24.01d"; // Fallback to a recent version
-    }
-
-    // NOTE: new ticket - investigate why currentNCItVersion as 26.01a doesn't match concepts
-    currentNCItVersion = "25.12e";
+    // Arrange - Get loaded NCIt version
+    final String currentNCItVersion = getCurrentNcitVersionForExpansion();
     log.info("Using current NCIt version: {} for R4 include.version test", currentNCItVersion);
 
     final String expandEndpoint =
@@ -3426,37 +3535,8 @@ public class FhirR4ValueSetExpandTests {
    */
   @Test
   public void testValueSetExpandWithIncludeVersionFilterBasedCurrent() throws Exception {
-    // Arrange - Get current NCIt version
-    String content;
-    final String endpoint = localHost + port + fhirVSPath;
-
-    // Get list of NCIt ValueSets to find a valid ID and current version
-    content = this.restTemplate.getForObject(endpoint, String.class);
-    final Bundle data = parser.parseResource(Bundle.class, content);
-    final List<Resource> valueSets =
-        data.getEntry().stream()
-            .map(Bundle.BundleEntryComponent::getResource)
-            .filter(resource -> resource instanceof ValueSet)
-            .filter(
-                resource -> {
-                  final ValueSet vs = (ValueSet) resource;
-                  return vs.hasUrl()
-                      && vs.getUrl().contains("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-                })
-            .toList();
-    final String firstValueSetId = valueSets.get(0).getIdPart();
-
-    // Get current version
-    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
-    final ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
-    String currentNCItVersion = currentValueSet.getVersion();
-
-    if (currentNCItVersion == null) {
-      log.warn("Could not determine current NCIt version, using fallback");
-      currentNCItVersion = "24.01d"; // Fallback to a recent version
-    }
-    // NOTE: new ticket - investigate why currentNCI
-    currentNCItVersion = "25.12e";
+    // Arrange - Get loaded NCIt version
+    final String currentNCItVersion = getCurrentNcitVersionForExpansion();
     log.info(
         "Using current NCIt version: {} for R4 include.version filter test", currentNCItVersion);
 
@@ -4087,30 +4167,230 @@ public class FhirR4ValueSetExpandTests {
   }
 
   /**
+   * Test value set expand with a search-backed referenced ValueSet that is below the internal
+   * materialization limit.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithSearchBackedIncludeValueSetBelowInternalLimit()
+      throws Exception {
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    final ValueSet inputValueSet =
+        createValueSetWithSingleSearchBackedIncludeValueSet(
+            "r4-search-backed-include-valueset-below-limit",
+            "http://www.nlm.nih.gov/research/umls/umlssemnet.owl",
+            "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs");
+    final Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(10000));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    final HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    final String parametersJson = parser.encodeResourceToString(parameters);
+    log.info("  parameters = " + parametersJson);
+    final HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    final ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    final ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+    assertTrue(expandedValueSet.hasExpansion());
+    assertTrue(expandedValueSet.getExpansion().getTotal() > 0);
+    assertEquals(
+        expandedValueSet.getExpansion().getTotal(),
+        expandedValueSet.getExpansion().getContains().size());
+  }
+
+  /**
+   * Test value set expand with a referenced full terminology ValueSet that is too costly to
+   * materialize for compose processing.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithLargeSearchBackedIncludeValueSetReturnsTooCostly()
+      throws Exception {
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    final ValueSet inputValueSet =
+        createNCITestValueSetWithValueSetsOnSameInclude(
+            "r4-large-search-backed-include-valueset-too-costly",
+            "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs");
+    final Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    final HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    final String parametersJson = parser.encodeResourceToString(parameters);
+    log.info("  parameters = " + parametersJson);
+    final HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    final ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+    final OperationOutcome outcome =
+        parser.parseResource(OperationOutcome.class, response.getBody());
+    final OperationOutcomeIssueComponent issue = outcome.getIssueFirstRep();
+    assertEquals(OperationOutcome.IssueType.TOOCOSTLY, issue.getCode());
+    assertTrue(issue.getDiagnostics().contains("Referenced ValueSet expansion is too costly"));
+    assertTrue(issue.getDiagnostics().contains("internal limit of 10000"));
+  }
+
+  /**
+   * Creates a test value set with one search-backed referenced ValueSet.
+   *
+   * @param id the value set id
+   * @param system the include system
+   * @param valueSetUrl the referenced value set URL
+   * @return the value set
+   */
+  private ValueSet createValueSetWithSingleSearchBackedIncludeValueSet(
+      final String id, final String system, final String valueSetUrl) {
+    final ValueSet inputValueSet =
+        createEmptyNCITestValueSet(id, "Test ValueSet with Search-Backed Include ValueSet");
+
+    final ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
+    include.setSystem(system);
+    include.addValueSet(valueSetUrl);
+    compose.addInclude(include);
+    inputValueSet.setCompose(compose);
+    return inputValueSet;
+  }
+
+  /**
    * Creates the NCI test value set with include value set.
    *
    * @return the value set
    */
   private ValueSet createNCITestValueSetWithIncludeValueSet() {
-    final ValueSet inputValueSet = new ValueSet();
-    inputValueSet.setId("test-include-valueset");
-    inputValueSet.setUrl("http://example.org/test-include-valueset");
-    inputValueSet.setName("TestIncludeValueSet");
-    inputValueSet.setTitle("Test ValueSet with Include ValueSet");
-    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    return createNCITestValueSetWithValueSetsOnSameInclude(
+        "test-include-valueset",
+        "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54452");
+  }
+
+  /**
+   * Creates an NCI test value set whose referenced value sets are all on one include.
+   *
+   * @param id the value set id
+   * @param valueSetUrls the referenced value set URLs
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithValueSetsOnSameInclude(
+      final String id, final String... valueSetUrls) {
+    final ValueSet inputValueSet =
+        createEmptyNCITestValueSet(id, "Test ValueSet with Same-Include ValueSets");
 
     final ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
-
-    // Include a ValueSet by canonical URL
     final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
-    // Use the NCI Thesaurus ValueSet URL and the UMLS semnet set
-    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459");
-    include.addValueSet("http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs");
+    include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    for (final String valueSetUrl : valueSetUrls) {
+      include.addValueSet(valueSetUrl);
+    }
 
     compose.addInclude(include);
     inputValueSet.setCompose(compose);
-
     return inputValueSet;
+  }
+
+  /**
+   * Creates an NCI test value set with each referenced value set on a separate include.
+   *
+   * @param id the value set id
+   * @param valueSetUrls the referenced value set URLs
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithValueSetsOnSeparateIncludes(
+      final String id, final String... valueSetUrls) {
+    final ValueSet inputValueSet =
+        createEmptyNCITestValueSet(id, "Test ValueSet with Separate-Include ValueSets");
+
+    final ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    for (final String valueSetUrl : valueSetUrls) {
+      final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
+      include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+      include.addValueSet(valueSetUrl);
+      compose.addInclude(include);
+    }
+
+    inputValueSet.setCompose(compose);
+    return inputValueSet;
+  }
+
+  /**
+   * Creates an empty NCI test value set wrapper for compose-based expansion tests.
+   *
+   * @param id the value set id
+   * @param title the value set title
+   * @return the value set
+   */
+  private ValueSet createEmptyNCITestValueSet(final String id, final String title) {
+    final ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/" + id);
+    inputValueSet.setName(id.replace("-", ""));
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    return inputValueSet;
+  }
+
+  /**
+   * Expands a posted ValueSet resource through the R4 $expand operation.
+   *
+   * @param inputValueSet the input value set
+   * @param count the count
+   * @param offset the offset
+   * @return the expanded value set
+   */
+  private ValueSet expandPostedValueSet(
+      final ValueSet inputValueSet, final int count, final int offset) {
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(count));
+    parameters.addParameter("offset", new IntegerType(offset));
+
+    final HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    final HttpEntity<String> entity =
+        new HttpEntity<>(parser.encodeResourceToString(parameters), headers);
+
+    final ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    assertEquals(
+        HttpStatus.OK,
+        response.getStatusCode(),
+        "Expected ValueSet expansion to succeed: " + response.getBody());
+
+    return parser.parseResource(ValueSet.class, response.getBody());
+  }
+
+  /**
+   * Returns expansion member identity keys.
+   *
+   * @param valueSet the expanded value set
+   * @return the expansion member keys
+   */
+  private Set<String> expansionMemberKeys(final ValueSet valueSet) {
+    assertNotNull(valueSet);
+    assertTrue(valueSet.hasExpansion());
+    return valueSet.getExpansion().getContains().stream()
+        .map(concept -> concept.getSystem() + "|" + concept.getCode())
+        .collect(Collectors.toSet());
   }
 
   /**
@@ -4345,6 +4625,84 @@ public class FhirR4ValueSetExpandTests {
         finalCount < originalCount, "Final count should be less than original due to exclusion");
 
     log.info("Include C54452 and exclude C54459 ValueSet test completed successfully");
+  }
+
+  /**
+   * Test the R4-specific rule for repeated valueSet references within one include.
+   *
+   * <p>FHIR R4/R4B say multiple {@code compose.include.valueSet} entries in the same include are a
+   * union. This deliberately differs from the R5 test, where repeated valueSet references in one
+   * include are an intersection.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithMultipleValueSetsUsesR4UnionInSameInclude() throws Exception {
+    final String c54452ValueSet =
+        "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54452";
+    final String c54459ValueSet =
+        "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+
+    final Set<String> c54452Members =
+        expansionMemberKeys(
+            expandPostedValueSet(
+                createNCITestValueSetWithValueSetsOnSameInclude(
+                    "r4-c54452-reference-baseline", c54452ValueSet),
+                10000,
+                0));
+    final Set<String> c54459Members =
+        expansionMemberKeys(
+            expandPostedValueSet(
+                createNCITestValueSetWithValueSetsOnSameInclude(
+                    "r4-c54459-reference-baseline", c54459ValueSet),
+                10000,
+                0));
+
+    final Set<String> expectedIntersection = new HashSet<>(c54452Members);
+    expectedIntersection.retainAll(c54459Members);
+    assertFalse(
+        expectedIntersection.isEmpty(),
+        "C54452 and C54459 fixture ValueSets should overlap so union behavior is testable");
+
+    final Set<String> expectedUnion = new HashSet<>(c54452Members);
+    expectedUnion.addAll(c54459Members);
+    assertTrue(
+        expectedUnion.size() > expectedIntersection.size(),
+        "Fixture ValueSets should not be identical; otherwise union/intersection are indistinct");
+
+    final ValueSet sameIncludeExpansion =
+        expandPostedValueSet(
+            createNCITestValueSetWithValueSetsOnSameInclude(
+                "r4-same-include-valueset-union", c54452ValueSet, c54459ValueSet),
+            10000,
+            0);
+    final Set<String> sameIncludeMembers = expansionMemberKeys(sameIncludeExpansion);
+
+    assertEquals(
+        expectedUnion,
+        sameIncludeMembers,
+        "R4/R4B require multiple valueSet references in one include to expand to their union");
+    assertEquals(
+        expectedUnion.size(),
+        sameIncludeExpansion.getExpansion().getTotal(),
+        "R4 same-include union total should match the union member set");
+
+    final ValueSet separateIncludeExpansion =
+        expandPostedValueSet(
+            createNCITestValueSetWithValueSetsOnSeparateIncludes(
+                "r4-separate-include-valueset-union", c54452ValueSet, c54459ValueSet),
+            10000,
+            0);
+    final Set<String> separateIncludeMembers = expansionMemberKeys(separateIncludeExpansion);
+
+    assertEquals(
+        expectedUnion,
+        separateIncludeMembers,
+        "R4/R4B also union separate compose.include elements");
+    assertEquals(
+        expectedUnion.size(),
+        separateIncludeExpansion.getExpansion().getTotal(),
+        "R4 separate-include union total should match the union member set");
   }
 
   /**
