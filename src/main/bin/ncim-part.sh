@@ -156,8 +156,9 @@ export EVS_SERVER_PORT="8083"
 # Compute version (remove '.' from lcterm)
 lcterm=`echo $terminology | perl -ne 's/\.//; print lc($_);'`
 if [[ $terminology == "ncim" ]]; then
-    # check both places for good measure
-    version=`grep umls.release.name $dir/../release.dat $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+    # Match the release.dat read by the NCIM Java loader. Reading both the parent and META
+    # files produces a newline-separated version string when both are present.
+    version=`grep '^umls.release.name=' "$dir/release.dat" | head -1 | perl -pe 's/.*=//; s/\r//;'`
 else
     search=$terminology
     if [[ $terminology == "hl7v30" ]]; then
