@@ -1496,7 +1496,19 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
     if (!this.getFilepath().exists()) {
       throw new Exception("Given filepath does not exist");
     }
-    try (InputStream input = new FileInputStream(this.getFilepath() + "/release.dat");
+
+    // Release.dat is either at "${filepath}/release.dat" or at "${filepath}/..release.dat"
+    // e.g. "META/release.dat" or just "release.dat"
+    final File releaseDat;
+    if (new File(this.getFilepath() + "/release.dat").exists()) {
+      releaseDat = new File(this.getFilepath() + "/release.dat");
+    } else if (new File(this.getFilepath() + "/../release.dat").exists()) {
+      releaseDat = new File(this.getFilepath() + "/../release.dat");
+    } else {
+      throw new Exception("Unable to find release.dat in " + getFilepath());
+    }
+
+    try (InputStream input = new FileInputStream(releaseDat);
         final BufferedReader in =
             new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF")); ) {
 
