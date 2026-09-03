@@ -106,7 +106,7 @@ dependencies {
 
   // Use version 2 with spring boot 3
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
-  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0"
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17"
 
   implementation "org.springframework.boot:spring-boot-devtools"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -137,13 +137,21 @@ dependencies {
 
   // other explicit vulnerability overrides
   implementation "org.apache.commons:commons-lang3:3.18.0"
-  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.55"
-  implementation "org.apache.thrift:libthrift:0.23.0"
+  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.59"
+  implementation "org.apache.thrift:libthrift:0.24.0"
+  implementation "org.apache.httpcomponents.core5:httpcore5:5.4.3"
+  implementation "org.apache.httpcomponents.core5:httpcore5-h2:5.4.3"
   implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
   implementation "org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE"
 
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
+
+  // Security override: CVE-2026-41695
+  implementation "org.springframework.data:spring-data-commons:3.5.12"
+
+  // Security override: CVE-2026-41006 and CVE-2026-41007.
+  implementation "org.springframework.hateoas:spring-hateoas:2.5.3"
 
   // aspectjweaver is now managed by Spring Boot BOM (1.9.25.1 in 3.5.x)
   implementation "org.aspectj:aspectjweaver"
