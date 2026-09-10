@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import gov.nih.nci.evs.api.model.Association;
@@ -12,6 +13,13 @@ import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.LogicalDefinition;
+import gov.nih.nci.evs.api.model.LogicalDefinition.Element;
+import gov.nih.nci.evs.api.model.LogicalDefinition.Parent;
+import gov.nih.nci.evs.api.model.LogicalDefinition.Restriction;
+import gov.nih.nci.evs.api.model.LogicalDefinition.RoleGroup;
+import gov.nih.nci.evs.api.model.LogicalDefinition.RoleSet;
+import gov.nih.nci.evs.api.model.LogicalDefinition.RoleUnion;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
@@ -42,6 +50,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -555,6 +564,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Map<String, List<Role>> complexRoleMap = hierarchy.getRoleMap();
     final Map<String, List<Role>> complexInverseRoleMap = hierarchy.getInverseRoleMap();
     final Map<String, List<DisjointWith>> disjointWithMap = new HashMap<>();
+    final Map<String, LogicalDefinition> logicalDefinitionMap = new HashMap<>();
 
     executor.submit(
         () -> {
@@ -664,6 +674,21 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                     + axiomMap.values().stream().mapToInt(List::size).sum());
           } catch (final Exception e) {
             log.error("Unexpected error on axioms", e);
+            exceptions.add(e);
+          }
+        });
+
+    // Logical definitions are currently an NCIt-only indexed concept field.
+    executor.submit(
+        () -> {
+          try {
+            if ("ncit".equalsIgnoreCase(terminology.getTerminology())) {
+              log.info("      start logical definitions");
+              logicalDefinitionMap.putAll(getLogicalDefinitions(conceptCodes, terminology));
+              log.info("      finish logical definitions = " + logicalDefinitionMap.size());
+            }
+          } catch (final Exception e) {
+            log.error("Unexpected error on logical definitions", e);
             exceptions.add(e);
           }
         });
@@ -815,6 +840,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setRoles(roleMap.get(conceptCode));
       if (concept.getRoles().size() == 0) {
         concept.setRoles(roleMap.get(concept.getUri()));
+      }
+
+      if (logicalDefinitionMap.containsKey(conceptCode)) {
+        concept.setLogicalDefinition(logicalDefinitionMap.get(conceptCode));
       }
 
       // Set inverse roles - check via codes and URIs
@@ -2990,6 +3019,254 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
     }
     return map;
+  }
+
+  /* see superclass */
+  @Override
+  public LogicalDefinition getLogicalDefinition(
+      final String conceptCode, final Terminology terminology) throws Exception {
+    return getLogicalDefinitions(Collections.singletonList(conceptCode), terminology)
+        .get(conceptCode);
+  }
+
+  /* see superclass */
+  @Override
+  public Map<String, LogicalDefinition> getLogicalDefinitions(
+      final List<String> conceptCodes, final Terminology terminology) throws Exception {
+    final Map<String, LogicalDefinition> definitions = new LinkedHashMap<>();
+    if (!"ncit".equalsIgnoreCase(terminology.getTerminology())
+        || CollectionUtils.isEmpty(conceptCodes)) {
+      return definitions;
+    }
+
+    final String query =
+        queryBuilderService.constructBatchQuery(
+            "logical.definition.batch", terminology, conceptCodes);
+    if (query == null || query.equals("SKIP") || query.isEmpty()) {
+      return definitions;
+    }
+
+    final String res =
+        restUtils.runSPARQL(
+            queryBuilderService.constructPrefix(terminology) + query, getQueryURL());
+    final JsonNode bindings =
+        ThreadLocalMapper.get().readTree(res).path("results").path("bindings");
+    if (!bindings.isArray() || bindings.isEmpty()) {
+      return definitions;
+    }
+
+    final Map<String, List<JsonNode>> bindingsByCode = new LinkedHashMap<>();
+    for (final JsonNode binding : bindings) {
+      final String conceptCode = bindingValue(binding, "conceptCode");
+      if (conceptCode != null) {
+        bindingsByCode.computeIfAbsent(conceptCode, key -> new ArrayList<>()).add(binding);
+      }
+    }
+    for (final Map.Entry<String, List<JsonNode>> entry : bindingsByCode.entrySet()) {
+      definitions.put(entry.getKey(), buildLogicalDefinition(entry.getKey(), entry.getValue()));
+    }
+    return definitions;
+  }
+
+  /** Build one logical definition from its SPARQL result rows. */
+  private static LogicalDefinition buildLogicalDefinition(
+      final String conceptCode, final Iterable<JsonNode> bindings) {
+    final LogicalDefinition definition = new LogicalDefinition();
+    definition.setCode(conceptCode);
+    final Map<String, Parent> parents = new LinkedHashMap<>();
+    final Map<String, Element> elements = new LinkedHashMap<>();
+    final Map<String, List<Restriction>> unions = new LinkedHashMap<>();
+    final Map<String, Map<String, List<Restriction>>> groups = new LinkedHashMap<>();
+
+    for (final JsonNode binding : bindings) {
+      if (definition.getLabel() == null) {
+        definition.setLabel(bindingValue(binding, "conceptLabel"));
+      }
+      final String kind = bindingValue(binding, "kind");
+      if ("parent".equals(kind)) {
+        final String parentCode = bindingValue(binding, "parentCode");
+        if (parentCode != null) {
+          parents.putIfAbsent(
+              parentCode, new Parent(parentCode, bindingValue(binding, "parentLabel")));
+        }
+      } else if ("role".equals(kind)) {
+        final Restriction role = toRestriction(binding, conceptCode, definition);
+        elementFor(elements, role).getRoles().add(role);
+      } else if ("union".equals(kind)) {
+        unions
+            .computeIfAbsent(bindingValue(binding, "container"), key -> new ArrayList<>())
+            .add(toRestriction(binding, conceptCode, definition));
+      } else if ("group".equals(kind)) {
+        groups
+            .computeIfAbsent(bindingValue(binding, "container"), key -> new LinkedHashMap<>())
+            .computeIfAbsent(bindingValue(binding, "roleSet"), key -> new ArrayList<>())
+            .add(toRestriction(binding, conceptCode, definition));
+      }
+    }
+
+    definition.setParents(new ArrayList<>(parents.values()));
+    definition.getParents().sort(Comparator.comparing(Parent::getCode));
+    for (int i = 0; i < definition.getParents().size(); i++) {
+      definition.getParents().get(i).setIdx(i);
+    }
+
+    for (final List<Restriction> unionRoles : unions.values()) {
+      final RoleUnion union = new RoleUnion();
+      union.setRoles(sortedRestrictions(unionRoles));
+      elementFor(elements, commonRange(unionRoles)).getRoleUnions().add(union);
+    }
+    for (final Map<String, List<Restriction>> groupRows : groups.values()) {
+      final RoleGroup group = new RoleGroup();
+      final List<Restriction> allGroupRoles = new ArrayList<>();
+      for (final List<Restriction> setRows : groupRows.values()) {
+        final RoleSet roleSet = new RoleSet();
+        roleSet.setRoles(sortedRestrictions(setRows));
+        group.getRoleSets().add(roleSet);
+        allGroupRoles.addAll(setRows);
+      }
+      group.getRoleSets().sort(Comparator.comparing(SparqlQueryManagerServiceImpl::roleSetKey));
+      elementFor(elements, commonRange(allGroupRoles)).getRoleGroups().add(group);
+    }
+
+    definition.setElements(new ArrayList<>(elements.values()));
+    sortLogicalDefinition(definition);
+    return definition;
+  }
+
+  /** Convert one SPARQL binding to a logical restriction. */
+  private static Restriction toRestriction(
+      final JsonNode binding, final String conceptCode, final LogicalDefinition definition) {
+    final Restriction restriction = new Restriction();
+    restriction.setSourceCode(conceptCode);
+    restriction.setSourceLabel(definition.getLabel());
+    restriction.setRoleCode(bindingValue(binding, "relationshipCode"));
+    restriction.setRoleLabel(bindingValue(binding, "relationshipLabel"));
+    restriction.setTargetCode(bindingValue(binding, "relatedConceptCode"));
+    restriction.setTargetLabel(bindingValue(binding, "relatedConceptLabel"));
+
+    final String rangeUri = bindingValue(binding, "range");
+    final String rangeCode = bindingValue(binding, "rangeCode");
+    String range = bindingValue(binding, "rangeLabel");
+    if (range == null) {
+      range = rangeCode == null ? localName(rangeUri) : rangeCode;
+    }
+    restriction.setRange(range);
+    restriction.setRangeCode(rangeCode);
+    restriction.setRangeUri(rangeUri);
+    return restriction;
+  }
+
+  /** Return a binding's value, or null when it is unbound. */
+  private static String bindingValue(final JsonNode binding, final String name) {
+    final JsonNode value = binding.path(name).path("value");
+    return value.isMissingNode() || value.isNull() ? null : value.asText();
+  }
+
+  /** Return the URI fragment/local name as a last-resort display value. */
+  private static String localName(final String uri) {
+    if (uri == null) {
+      return null;
+    }
+    final int index = Math.max(uri.lastIndexOf('#'), uri.lastIndexOf('/'));
+    return index < 0 ? uri : uri.substring(index + 1);
+  }
+
+  /** Find or create the response element for a range. */
+  private static Element elementFor(
+      final Map<String, Element> elements, final Restriction restriction) {
+    final String rangeKey = rangeKey(restriction);
+    final String key = rangeKey == null ? "[Range Unspecified]" : rangeKey;
+    return elements.computeIfAbsent(
+        key,
+        ignored -> {
+          final Element element = new Element();
+          element.setRange(
+              restriction == null || restriction.getRange() == null
+                  ? "[Range Unspecified]"
+                  : restriction.getRange());
+          if (restriction != null) {
+            element.setRangeCode(restriction.getRangeCode());
+            element.setRangeUri(restriction.getRangeUri());
+          }
+          return element;
+        });
+  }
+
+  /** Determine the shared range for a union/group, or return null for the fallback bucket. */
+  private static Restriction commonRange(final List<Restriction> roles) {
+    if (roles.isEmpty()) {
+      return null;
+    }
+    final Restriction first = roles.get(0);
+    final String firstKey = rangeKey(first);
+    if (firstKey == null
+        || roles.stream()
+            .map(SparqlQueryManagerServiceImpl::rangeKey)
+            .anyMatch(key -> !firstKey.equals(key))) {
+      return null;
+    }
+    return first;
+  }
+
+  private static String rangeKey(final Restriction role) {
+    if (role == null) {
+      return null;
+    }
+    return role.getRangeUri() != null
+        ? role.getRangeUri()
+        : role.getRangeCode() != null ? role.getRangeCode() : role.getRange();
+  }
+
+  /** Copy and consistently sort restrictions. */
+  private static List<Restriction> sortedRestrictions(final List<Restriction> rows) {
+    final List<Restriction> restrictions = new ArrayList<>(rows);
+    restrictions.sort(restrictionComparator());
+    return restrictions;
+  }
+
+  private static Comparator<Restriction> restrictionComparator() {
+    return Comparator.comparing(
+            Restriction::getRoleCode, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+        .thenComparing(
+            Restriction::getTargetCode, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+  }
+
+  private static String roleSetKey(final RoleSet roleSet) {
+    return roleSet.getRoles().stream()
+        .map(role -> String.valueOf(role.getRoleCode()) + "|" + role.getTargetCode())
+        .collect(Collectors.joining(";"));
+  }
+
+  /** Apply deterministic ordering to all response collections. */
+  private static void sortLogicalDefinition(final LogicalDefinition definition) {
+    for (final Element element : definition.getElements()) {
+      element.getRoles().sort(restrictionComparator());
+      element
+          .getRoleUnions()
+          .sort(
+              Comparator.comparing(
+                  union ->
+                      union.getRoles().stream()
+                          .map(
+                              role ->
+                                  String.valueOf(role.getRoleCode()) + "|" + role.getTargetCode())
+                          .collect(Collectors.joining(";"))));
+      element
+          .getRoleGroups()
+          .sort(
+              Comparator.comparing(
+                  group ->
+                      group.getRoleSets().stream()
+                          .map(SparqlQueryManagerServiceImpl::roleSetKey)
+                          .collect(Collectors.joining("||"))));
+    }
+    definition
+        .getElements()
+        .sort(
+            Comparator.<Element, Boolean>comparing(
+                    element -> !"[Range Unspecified]".equals(element.getRange()))
+                .thenComparing(
+                    Element::getRange, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
   }
 
   /**

@@ -1,13 +1,17 @@
 package gov.nih.nci.evs.api.model;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.EqualsHashcodeTester;
 import gov.nih.nci.evs.api.GetterSetterTester;
 import gov.nih.nci.evs.api.ProxyTester;
 import gov.nih.nci.evs.api.SerializationTester;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -234,5 +238,36 @@ public class ConceptUnitTest {
     tester.proxy("paths", 1, null);
 
     assertTrue(tester.testJsonSerialization());
+  }
+
+  /** Test the explicit-null contract for an included logical definition. */
+  @Test
+  public void testLogicalDefinitionSerialization() throws Exception {
+    JsonNode json = ThreadLocalMapper.get().valueToTree(object);
+    assertFalse(json.has("logicalDefinition"));
+
+    object.includeLogicalDefinition();
+    json = ThreadLocalMapper.get().valueToTree(object);
+    assertTrue(json.has("logicalDefinition"));
+    assertTrue(json.get("logicalDefinition").isNull());
+
+    final LogicalDefinition definition = new LogicalDefinition();
+    definition.setCode("C3224");
+    object.setLogicalDefinition(definition);
+    json = ThreadLocalMapper.get().valueToTree(object);
+    assertTrue(json.has("logicalDefinition"));
+    assertTrue("C3224".equals(json.path("logicalDefinition").path("code").asText()));
+  }
+
+  /** Test that logical definitions are an explicit include and do not alter legacy bundles. */
+  @Test
+  public void testLogicalDefinitionInclude() {
+    final IncludeParam logicalDefinition = new IncludeParam("logicalDefinition");
+    assertTrue(logicalDefinition.isLogicalDefinition());
+    assertTrue(Arrays.asList(logicalDefinition.getIncludedFields()).contains("logicalDefinition"));
+    assertFalse(Arrays.asList(logicalDefinition.getExcludedFields()).contains("logicalDefinition"));
+    assertFalse(new IncludeParam("summary").isLogicalDefinition());
+    assertFalse(new IncludeParam("full").isLogicalDefinition());
+    assertFalse(new IncludeParam("*").isLogicalDefinition());
   }
 }

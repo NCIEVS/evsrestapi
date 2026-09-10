@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.controller;
 
+import com.fasterxml.jackson.databind.node.NullNode;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
@@ -9,6 +10,7 @@ import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.LogicalDefinition;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
@@ -137,7 +139,7 @@ public class ConceptController extends BaseController {
             "Indicator of how much data to return. Comma-separated list of any of the following"
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
+                + " logicalDefinition, properties, roles, synonyms. <a"
                 + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
@@ -173,6 +175,9 @@ public class ConceptController extends BaseController {
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      if (ip.isLogicalDefinition()) {
+        checkLogicalDefinitionSupported(term);
+      }
 
       final String[] codes = list.split(",");
       // Impose a maximum number at a time
@@ -184,6 +189,9 @@ public class ConceptController extends BaseController {
 
       final List<Concept> concepts =
           opensearchQueryService.getConcepts(Arrays.asList(codes), term, ip);
+      if (ip.isLogicalDefinition()) {
+        concepts.forEach(Concept::includeLogicalDefinition);
+      }
 
       if (ip.isMaps() && concepts.size() > 0) {
         List<Mapping> firstList = null;
@@ -304,7 +312,7 @@ public class ConceptController extends BaseController {
             "Indicator of how much data to return. Comma-separated list of any of the following"
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
+                + " logicalDefinition, properties, roles, synonyms. <a"
                 + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
@@ -334,11 +342,18 @@ public class ConceptController extends BaseController {
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      if (ip.isLogicalDefinition()) {
+        checkLogicalDefinitionSupported(term);
+      }
 
       final Optional<Concept> concept = opensearchQueryService.getConcept(code, term, ip);
 
       if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+
+      if (ip.isLogicalDefinition()) {
+        concept.get().includeLogicalDefinition();
       }
 
       if (ip.isMaps()) {
@@ -385,6 +400,68 @@ public class ConceptController extends BaseController {
     } catch (final Exception e) {
       handleException(e, terminology);
       return null;
+    }
+  }
+
+  /**
+   * Returns the machine-readable logical definition for a concept.
+   *
+   * @param terminology the terminology
+   * @param code the concept code
+   * @param license the license
+   * @return the logical definition, or JSON null if the concept has none
+   * @throws Exception the exception
+   */
+  @Operation(summary = "Get the machine-readable logical definition for an NCIt concept")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieved the requested information",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = LogicalDefinition.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description =
+            "Concept not found or logical definitions are unsupported for the terminology",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class)))
+  })
+  @RecordMetric
+  @GetMapping(
+      value = "/concept/{terminology}/{code}/logicalDefinition",
+      produces = "application/json")
+  public @ResponseBody Object getLogicalDefinition(
+      @PathVariable(value = "terminology") final String terminology,
+      @PathVariable(value = "code") final String code,
+      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
+      throws Exception {
+    try {
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
+      termUtils.checkLicense(term, license);
+      checkLogicalDefinitionSupported(term);
+      final Optional<Concept> concept =
+          opensearchQueryService.getConcept(code, term, new IncludeParam("logicalDefinition"));
+      if (!concept.isPresent() || concept.get().getCode() == null) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+      final LogicalDefinition definition = concept.get().getLogicalDefinition();
+      return definition == null ? NullNode.getInstance() : definition;
+    } catch (final Exception e) {
+      handleException(e, terminology);
+      return null;
+    }
+  }
+
+  /** Verify the currently supported logical-definition terminology. */
+  private static void checkLogicalDefinitionSupported(final Terminology terminology) {
+    if (!"ncit".equalsIgnoreCase(terminology.getTerminology())) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, "Logical definitions are currently supported for NCIt only.");
     }
   }
 

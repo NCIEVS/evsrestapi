@@ -5,7 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.LogicalDefinition;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
@@ -97,6 +99,58 @@ public class ConceptControllerIncludeTests {
     mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
+  }
+
+  /** Test logical definitions through both supported API forms. */
+  @Test
+  public void testLogicalDefinition() throws Exception {
+    MvcResult result =
+        mvc.perform(get(baseUrl + "/ncit/C3224?include=logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    Concept concept =
+        ThreadLocalMapper.get().readValue(result.getResponse().getContentAsString(), Concept.class);
+    assertThat(concept.getLogicalDefinition()).isNotNull();
+    assertThat(concept.getLogicalDefinition().getCode()).isEqualTo("C3224");
+
+    result =
+        mvc.perform(get(baseUrl + "/ncit/C3224/logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    LogicalDefinition definition =
+        ThreadLocalMapper.get()
+            .readValue(result.getResponse().getContentAsString(), LogicalDefinition.class);
+    assertThat(definition.getCode()).isEqualTo("C3224");
+    assertThat(definition.getParents()).hasSize(2);
+    assertThat(definition.getElements()).hasSize(1);
+    assertThat(definition.getElements().get(0).getRoles().get(0).getRangeCode())
+        .isEqualTo("C12913");
+  }
+
+  /** Test explicit null and unsupported-terminology logical-definition responses. */
+  @Test
+  public void testLogicalDefinitionEdgeCases() throws Exception {
+    MvcResult result =
+        mvc.perform(get(baseUrl + "/ncit/C1000?include=logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json = ThreadLocalMapper.get().readTree(result.getResponse().getContentAsString());
+    assertThat(json.has("logicalDefinition")).isTrue();
+    assertThat(json.get("logicalDefinition").isNull()).isTrue();
+
+    result =
+        mvc.perform(get(baseUrl + "/ncit/C1000/logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    assertThat(result.getResponse().getContentAsString()).isEqualTo("null");
+
+    mvc.perform(get(baseUrl + "/ncim/C0025202/logicalDefinition"))
+        .andExpect(status().isNotFound())
+        .andExpect(status().reason("Logical definitions are currently supported for NCIt only."));
+
+    mvc.perform(get(baseUrl + "/ncit/BADCODE/logicalDefinition"))
+        .andExpect(status().isNotFound())
+        .andExpect(status().reason("BADCODE not found"));
   }
 
   /**
