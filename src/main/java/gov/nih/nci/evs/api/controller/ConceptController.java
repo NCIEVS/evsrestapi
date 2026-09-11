@@ -412,7 +412,10 @@ public class ConceptController extends BaseController {
    * @return the logical definition, or JSON null if the concept has none
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the machine-readable logical definition for an NCIt concept")
+  @Operation(
+      summary = "Get the machine-readable logical definition for an NCIt concept",
+      description =
+          "This endpoint currently supports NCIt only; use 'ncit' for the terminology parameter.")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -436,7 +439,17 @@ public class ConceptController extends BaseController {
       value = "/concept/{terminology}/{code}/logicalDefinition",
       produces = "application/json")
   public @ResponseBody Object getLogicalDefinition(
-      @PathVariable(value = "terminology") final String terminology,
+      @Parameter(
+              description = "Currently NCIt-only. Use 'ncit'.",
+              required = true,
+              example = "ncit",
+              schema =
+                  @Schema(
+                      type = "string",
+                      defaultValue = "ncit",
+                      allowableValues = {"ncit"}))
+          @PathVariable(value = "terminology")
+          final String terminology,
       @PathVariable(value = "code") final String code,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
