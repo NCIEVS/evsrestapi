@@ -240,7 +240,7 @@ public class ConceptUnitTest {
     assertTrue(tester.testJsonSerialization());
   }
 
-  /** Test the explicit-null contract for an included logical definition. */
+  /** Test the empty-object contract for an included logical definition. */
   @Test
   public void testLogicalDefinitionSerialization() throws Exception {
     JsonNode json = ThreadLocalMapper.get().valueToTree(object);
@@ -249,7 +249,8 @@ public class ConceptUnitTest {
     object.includeLogicalDefinition();
     json = ThreadLocalMapper.get().valueToTree(object);
     assertTrue(json.has("logicalDefinition"));
-    assertTrue(json.get("logicalDefinition").isNull());
+    assertTrue(json.get("logicalDefinition").isObject());
+    assertTrue(json.get("logicalDefinition").isEmpty());
 
     final LogicalDefinition definition = new LogicalDefinition();
     definition.setCode("C3224");

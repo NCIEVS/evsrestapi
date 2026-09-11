@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.api.controller;
 
-import com.fasterxml.jackson.databind.node.NullNode;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
@@ -409,7 +408,7 @@ public class ConceptController extends BaseController {
    * @param terminology the terminology
    * @param code the concept code
    * @param license the license
-   * @return the logical definition, or JSON null if the concept has none
+   * @return the logical definition, or an empty JSON object if the concept has none
    * @throws Exception the exception
    */
   @Operation(
@@ -420,11 +419,12 @@ public class ConceptController extends BaseController {
     @ApiResponse(
         responseCode = "200",
         description =
-            "Successfully retrieved the logical definition, or JSON null when none is indexed",
+            "Successfully retrieved the logical definition, or an empty JSON object when none is"
+                + " indexed",
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = LogicalDefinition.class, nullable = true))),
+                schema = @Schema(implementation = LogicalDefinition.class))),
     @ApiResponse(
         responseCode = "404",
         description =
@@ -464,7 +464,7 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
       final LogicalDefinition definition = concept.get().getLogicalDefinition();
-      return definition == null ? NullNode.getInstance() : definition;
+      return definition == null ? Collections.emptyMap() : definition;
     } catch (final Exception e) {
       handleException(e, terminology);
       return null;

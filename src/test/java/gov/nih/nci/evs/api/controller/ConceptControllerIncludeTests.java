@@ -161,10 +161,36 @@ public class ConceptControllerIncludeTests {
     assertThat(c3224.path("logicalDefinition").path("code").asText()).isEqualTo("C3224");
     assertThat(c1000).isNotNull();
     assertThat(c1000.has("logicalDefinition")).isTrue();
-    assertThat(c1000.get("logicalDefinition").isNull()).isTrue();
+    assertThat(c1000.get("logicalDefinition").isObject()).isTrue();
+    assertThat(c1000.get("logicalDefinition").isEmpty()).isTrue();
   }
 
-  /** Test explicit null and unsupported-terminology logical-definition responses. */
+  /** Test the NCIt-only logical-definition Swagger contract. */
+  @Test
+  public void testLogicalDefinitionOpenApi() throws Exception {
+    final MvcResult result =
+        mvc.perform(get("/v3/api-docs")).andExpect(status().isOk()).andReturn();
+    final JsonNode operation =
+        ThreadLocalMapper.get()
+            .readTree(result.getResponse().getContentAsString())
+            .path("paths")
+            .path("/api/v1/concept/{terminology}/{code}/logicalDefinition")
+            .path("get");
+    assertThat(operation.path("description").asText()).contains("currently supports NCIt only");
+
+    JsonNode terminologyParameter = null;
+    for (final JsonNode parameter : operation.path("parameters")) {
+      if ("terminology".equals(parameter.path("name").asText())) {
+        terminologyParameter = parameter;
+        break;
+      }
+    }
+    assertThat(terminologyParameter).isNotNull();
+    assertThat(terminologyParameter.path("description").asText()).contains("NCIt-only");
+    assertThat(terminologyParameter.path("schema").path("default").asText()).isEqualTo("ncit");
+  }
+
+  /** Test empty-object and unsupported-terminology logical-definition responses. */
   @Test
   public void testLogicalDefinitionEdgeCases() throws Exception {
     MvcResult result =
@@ -173,13 +199,14 @@ public class ConceptControllerIncludeTests {
             .andReturn();
     JsonNode json = ThreadLocalMapper.get().readTree(result.getResponse().getContentAsString());
     assertThat(json.has("logicalDefinition")).isTrue();
-    assertThat(json.get("logicalDefinition").isNull()).isTrue();
+    assertThat(json.get("logicalDefinition").isObject()).isTrue();
+    assertThat(json.get("logicalDefinition").isEmpty()).isTrue();
 
     result =
         mvc.perform(get(baseUrl + "/ncit/C1000/logicalDefinition"))
             .andExpect(status().isOk())
             .andReturn();
-    assertThat(result.getResponse().getContentAsString()).isEqualTo("null");
+    assertThat(result.getResponse().getContentAsString()).isEqualTo("{}");
 
     mvc.perform(get(baseUrl + "/ncim/C0025202/logicalDefinition"))
         .andExpect(status().isNotFound())

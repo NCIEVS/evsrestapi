@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.node.NullNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import java.util.ArrayList;
@@ -234,7 +233,9 @@ public class Concept extends ConceptMinimal {
   @Mapping(enabled = false)
   private LogicalDefinition logicalDefinition;
 
-  /** Tracks an explicit request so a missing logical definition can serialize as JSON null. */
+  /**
+   * Tracks an explicit request so a missing logical definition can serialize as an empty object.
+   */
   @Transient private boolean logicalDefinitionIncluded;
 
   /**
@@ -887,7 +888,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the logical definition, or null if none exists
    */
-  @Schema(description = "Machine-readable OWL equivalent-class logical definition", nullable = true)
+  @Schema(description = "Machine-readable OWL equivalent-class logical definition")
   public LogicalDefinition getLogicalDefinition() {
     return logicalDefinition;
   }
@@ -907,14 +908,15 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
-   * Supplies an explicit JSON null when a requested concept has no logical definition.
+   * Supplies an empty JSON object when a requested concept has no logical definition.
    *
-   * @return dynamically included null fields
+   * @return dynamically included empty fields
    */
   @JsonAnyGetter
-  public Map<String, Object> getIncludedNullFields() {
+  @JsonInclude(content = Include.ALWAYS)
+  public Map<String, Object> getExplicitlyIncludedFields() {
     if (logicalDefinitionIncluded && logicalDefinition == null) {
-      return Collections.singletonMap("logicalDefinition", NullNode.getInstance());
+      return Collections.singletonMap("logicalDefinition", Collections.emptyMap());
     }
     return Collections.emptyMap();
   }
