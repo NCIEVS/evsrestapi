@@ -416,11 +416,12 @@ public class ConceptController extends BaseController {
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
-        description = "Successfully retrieved the requested information",
+        description =
+            "Successfully retrieved the logical definition, or JSON null when none is indexed",
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = LogicalDefinition.class))),
+                schema = @Schema(implementation = LogicalDefinition.class, nullable = true))),
     @ApiResponse(
         responseCode = "404",
         description =

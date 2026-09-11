@@ -887,7 +887,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the logical definition, or null if none exists
    */
-  @Schema(description = "Machine-readable OWL equivalent-class logical definition")
+  @Schema(description = "Machine-readable OWL equivalent-class logical definition", nullable = true)
   public LogicalDefinition getLogicalDefinition() {
     return logicalDefinition;
   }

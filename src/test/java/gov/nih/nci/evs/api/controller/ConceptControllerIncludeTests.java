@@ -125,6 +125,43 @@ public class ConceptControllerIncludeTests {
     assertThat(definition.getElements()).hasSize(1);
     assertThat(definition.getElements().get(0).getRoles().get(0).getRangeCode())
         .isEqualTo("C12913");
+
+    result =
+        mvc.perform(get(baseUrl + "/ncit/C3224?include=synonyms,logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    concept =
+        ThreadLocalMapper.get().readValue(result.getResponse().getContentAsString(), Concept.class);
+    assertThat(concept.getSynonyms()).isNotEmpty();
+    assertThat(concept.getLogicalDefinition()).isNotNull();
+  }
+
+  /** Test logical-definition inclusion for a mixed batch of concepts. */
+  @Test
+  public void testLogicalDefinitionIncludeForConceptList() throws Exception {
+    final MvcResult result =
+        mvc.perform(get(baseUrl + "/ncit?list=C3224,C1000&include=logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    final JsonNode concepts =
+        ThreadLocalMapper.get().readTree(result.getResponse().getContentAsString());
+    assertThat(concepts.isArray()).isTrue();
+    assertThat(concepts).hasSize(2);
+
+    JsonNode c3224 = null;
+    JsonNode c1000 = null;
+    for (final JsonNode concept : concepts) {
+      if ("C3224".equals(concept.path("code").asText())) {
+        c3224 = concept;
+      } else if ("C1000".equals(concept.path("code").asText())) {
+        c1000 = concept;
+      }
+    }
+    assertThat(c3224).isNotNull();
+    assertThat(c3224.path("logicalDefinition").path("code").asText()).isEqualTo("C3224");
+    assertThat(c1000).isNotNull();
+    assertThat(c1000.has("logicalDefinition")).isTrue();
+    assertThat(c1000.get("logicalDefinition").isNull()).isTrue();
   }
 
   /** Test explicit null and unsupported-terminology logical-definition responses. */
