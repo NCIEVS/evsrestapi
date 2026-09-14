@@ -87,7 +87,7 @@ public class SparqlQueryManagerServiceImplTests {
     assertEquals(2, definition.getParents().size());
     final Element abnormalCell =
         definition.getElements().stream()
-            .filter(element -> "C12913".equals(element.getRangeCode()))
+            .filter(element -> "Abnormal Cell".equals(element.getRange()))
             .findFirst()
             .orElseThrow();
     assertTrue(
@@ -146,7 +146,7 @@ public class SparqlQueryManagerServiceImplTests {
     assertNotNull(definition);
     final Element molecularAbnormality =
         definition.getElements().stream()
-            .filter(element -> "C3910".equals(element.getRangeCode()))
+            .filter(element -> "Molecular Abnormality".equals(element.getRange()))
             .findFirst()
             .orElseThrow();
     assertEquals(1, molecularAbnormality.getRoleGroups().size());
@@ -182,21 +182,13 @@ public class SparqlQueryManagerServiceImplTests {
     assertTrue(
         groupedRoles.stream()
             .filter(role -> "R113".equals(role.getRoleCode()))
-            .allMatch(
-                role ->
-                    "Abnormal Cell".equals(role.getRange())
-                        && "C12913".equals(role.getRangeCode())
-                        && role.getRangeUri().endsWith("#C12913")));
+            .allMatch(role -> "Abnormal Cell".equals(role.getRange())));
     assertEquals(
         2, groupedRoles.stream().filter(role -> "R116".equals(role.getRoleCode())).count());
     assertTrue(
         groupedRoles.stream()
             .filter(role -> "R116".equals(role.getRoleCode()))
-            .allMatch(
-                role ->
-                    "Disease, Disorder or Finding".equals(role.getRange())
-                        && "C7057".equals(role.getRangeCode())
-                        && role.getRangeUri().endsWith("#C7057")));
+            .allMatch(role -> "Disease, Disorder or Finding".equals(role.getRange())));
     assertEquals(
         6, definition.getElements().stream().mapToInt(element -> element.getRoles().size()).sum());
   }
@@ -219,9 +211,7 @@ public class SparqlQueryManagerServiceImplTests {
             .toList();
     assertEquals(6, groupedRoles.size());
     assertTrue(groupedRoles.stream().allMatch(role -> role.getRange() != null));
-    assertTrue(groupedRoles.stream().anyMatch(role -> "C20633".equals(role.getRangeCode())));
-    assertTrue(groupedRoles.stream().anyMatch(role -> "C12219".equals(role.getRangeCode())));
-    assertTrue(groupedRoles.stream().anyMatch(role -> "C17828".equals(role.getRangeCode())));
+    assertEquals(3, groupedRoles.stream().map(Restriction::getRange).distinct().count());
   }
 
   /** Test an OR expression whose alternatives are individual restrictions. */
@@ -233,17 +223,13 @@ public class SparqlQueryManagerServiceImplTests {
     assertNotNull(definition);
     final Element gene =
         definition.getElements().stream()
-            .filter(element -> "C16612".equals(element.getRangeCode()))
+            .filter(element -> "Gene".equals(element.getRange()))
             .findFirst()
             .orElseThrow();
     assertEquals(1, gene.getRoleUnions().size());
     assertEquals(2, gene.getRoleUnions().get(0).getRoles().size());
     assertTrue(
         gene.getRoleUnions().get(0).getRoles().stream()
-            .allMatch(
-                role ->
-                    "Gene".equals(role.getRange())
-                        && "C16612".equals(role.getRangeCode())
-                        && role.getRangeUri().endsWith("#C16612")));
+            .allMatch(role -> "Gene".equals(role.getRange())));
   }
 }

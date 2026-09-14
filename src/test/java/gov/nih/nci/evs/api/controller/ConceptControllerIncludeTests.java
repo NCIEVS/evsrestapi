@@ -117,14 +117,17 @@ public class ConceptControllerIncludeTests {
         mvc.perform(get(baseUrl + "/ncit/C3224/logicalDefinition"))
             .andExpect(status().isOk())
             .andReturn();
+    assertThat(result.getResponse().getContentAsString())
+        .doesNotContain("\"rangeCode\"")
+        .doesNotContain("\"rangeUri\"");
     LogicalDefinition definition =
         ThreadLocalMapper.get()
             .readValue(result.getResponse().getContentAsString(), LogicalDefinition.class);
     assertThat(definition.getCode()).isEqualTo("C3224");
     assertThat(definition.getParents()).hasSize(2);
     assertThat(definition.getElements()).hasSize(1);
-    assertThat(definition.getElements().get(0).getRoles().get(0).getRangeCode())
-        .isEqualTo("C12913");
+    assertThat(definition.getElements().get(0).getRoles().get(0).getRange())
+        .isEqualTo("Abnormal Cell");
 
     result =
         mvc.perform(get(baseUrl + "/ncit/C3224?include=synonyms,logicalDefinition"))

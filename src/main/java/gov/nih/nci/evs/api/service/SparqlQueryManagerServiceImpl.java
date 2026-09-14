@@ -3144,15 +3144,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     restriction.setTargetCode(bindingValue(binding, "relatedConceptCode"));
     restriction.setTargetLabel(bindingValue(binding, "relatedConceptLabel"));
 
-    final String rangeUri = bindingValue(binding, "range");
-    final String rangeCode = bindingValue(binding, "rangeCode");
-    String range = bindingValue(binding, "rangeLabel");
-    if (range == null) {
-      range = rangeCode == null ? localName(rangeUri) : rangeCode;
-    }
-    restriction.setRange(range);
-    restriction.setRangeCode(rangeCode);
-    restriction.setRangeUri(rangeUri);
+    restriction.setRange(bindingValue(binding, "rangeLabel"));
     return restriction;
   }
 
@@ -3160,15 +3152,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   private static String bindingValue(final JsonNode binding, final String name) {
     final JsonNode value = binding.path(name).path("value");
     return value.isMissingNode() || value.isNull() ? null : value.asText();
-  }
-
-  /** Return the URI fragment/local name as a last-resort display value. */
-  private static String localName(final String uri) {
-    if (uri == null) {
-      return null;
-    }
-    final int index = Math.max(uri.lastIndexOf('#'), uri.lastIndexOf('/'));
-    return index < 0 ? uri : uri.substring(index + 1);
   }
 
   /** Find or create the response element for a range. */
@@ -3184,10 +3167,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
               restriction == null || restriction.getRange() == null
                   ? "[Range Unspecified]"
                   : restriction.getRange());
-          if (restriction != null) {
-            element.setRangeCode(restriction.getRangeCode());
-            element.setRangeUri(restriction.getRangeUri());
-          }
           return element;
         });
   }
@@ -3212,9 +3191,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (role == null) {
       return null;
     }
-    return role.getRangeUri() != null
-        ? role.getRangeUri()
-        : role.getRangeCode() != null ? role.getRangeCode() : role.getRange();
+    return role.getRange();
   }
 
   /** Copy and consistently sort restrictions. */

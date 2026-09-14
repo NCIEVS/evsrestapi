@@ -93,8 +93,6 @@ public class LogicalDefinition {
   @JsonInclude(Include.NON_NULL)
   public static class Element {
     private String range;
-    private String rangeCode;
-    private String rangeUri;
     private List<Restriction> roles = new ArrayList<>();
     private List<RoleUnion> roleUnions = new ArrayList<>();
     private List<RoleGroup> roleGroups = new ArrayList<>();
@@ -105,22 +103,6 @@ public class LogicalDefinition {
 
     public void setRange(final String range) {
       this.range = range;
-    }
-
-    public String getRangeCode() {
-      return rangeCode;
-    }
-
-    public void setRangeCode(final String rangeCode) {
-      this.rangeCode = rangeCode;
-    }
-
-    public String getRangeUri() {
-      return rangeUri;
-    }
-
-    public void setRangeUri(final String rangeUri) {
-      this.rangeUri = rangeUri;
     }
 
     public List<Restriction> getRoles() {
@@ -158,8 +140,6 @@ public class LogicalDefinition {
     private String targetCode;
     private String targetLabel;
     private String range;
-    private String rangeCode;
-    private String rangeUri;
 
     public String getSourceCode() {
       return sourceCode;
@@ -215,22 +195,6 @@ public class LogicalDefinition {
 
     public void setRange(final String range) {
       this.range = range;
-    }
-
-    public String getRangeCode() {
-      return rangeCode;
-    }
-
-    public void setRangeCode(final String rangeCode) {
-      this.rangeCode = rangeCode;
-    }
-
-    public String getRangeUri() {
-      return rangeUri;
-    }
-
-    public void setRangeUri(final String rangeUri) {
-      this.rangeUri = rangeUri;
     }
   }
 
