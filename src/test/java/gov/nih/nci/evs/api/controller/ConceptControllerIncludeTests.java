@@ -191,6 +191,7 @@ public class ConceptControllerIncludeTests {
     assertThat(terminologyParameter).isNotNull();
     assertThat(terminologyParameter.path("description").asText()).contains("NCIt-only");
     assertThat(terminologyParameter.path("schema").path("default").asText()).isEqualTo("ncit");
+    assertThat(terminologyParameter.path("schema").has("enum")).isFalse();
   }
 
   /** Test empty-object and unsupported-terminology logical-definition responses. */

@@ -443,11 +443,7 @@ public class ConceptController extends BaseController {
               description = "Currently NCIt-only. Use 'ncit'.",
               required = true,
               example = "ncit",
-              schema =
-                  @Schema(
-                      type = "string",
-                      defaultValue = "ncit",
-                      allowableValues = {"ncit"}))
+              schema = @Schema(type = "string", defaultValue = "ncit"))
           @PathVariable(value = "terminology")
           final String terminology,
       @PathVariable(value = "code") final String code,
