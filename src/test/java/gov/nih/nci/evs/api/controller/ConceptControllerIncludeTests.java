@@ -173,9 +173,10 @@ public class ConceptControllerIncludeTests {
   public void testLogicalDefinitionOpenApi() throws Exception {
     final MvcResult result =
         mvc.perform(get("/v3/api-docs")).andExpect(status().isOk()).andReturn();
+    final JsonNode openApi =
+        ThreadLocalMapper.get().readTree(result.getResponse().getContentAsString());
     final JsonNode operation =
-        ThreadLocalMapper.get()
-            .readTree(result.getResponse().getContentAsString())
+        openApi
             .path("paths")
             .path("/api/v1/concept/{terminology}/{code}/logicalDefinition")
             .path("get");
@@ -192,6 +193,14 @@ public class ConceptControllerIncludeTests {
     assertThat(terminologyParameter.path("description").asText()).contains("NCIt-only");
     assertThat(terminologyParameter.path("schema").path("default").asText()).isEqualTo("ncit");
     assertThat(terminologyParameter.path("schema").has("enum")).isFalse();
+    assertThat(
+            openApi
+                .path("components")
+                .path("schemas")
+                .path("Concept")
+                .path("properties")
+                .has("explicitlyIncludedFields"))
+        .isFalse();
   }
 
   /** Test empty-object and unsupported-terminology logical-definition responses. */

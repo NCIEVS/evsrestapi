@@ -914,6 +914,7 @@ public class Concept extends ConceptMinimal {
    */
   @JsonAnyGetter
   @JsonInclude(content = Include.ALWAYS)
+  @Schema(hidden = true)
   public Map<String, Object> getExplicitlyIncludedFields() {
     if (logicalDefinitionIncluded && logicalDefinition == null) {
       return Collections.singletonMap("logicalDefinition", Collections.emptyMap());
