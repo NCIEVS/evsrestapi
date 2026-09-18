@@ -193,14 +193,67 @@ public class ConceptControllerIncludeTests {
     assertThat(terminologyParameter.path("description").asText()).contains("NCIt-only");
     assertThat(terminologyParameter.path("schema").path("default").asText()).isEqualTo("ncit");
     assertThat(terminologyParameter.path("schema").has("enum")).isFalse();
+
+    final JsonNode responseSchema =
+        operation
+            .path("responses")
+            .path("200")
+            .path("content")
+            .path("application/json")
+            .path("schema");
+    assertThat(responseSchema.path("$ref").asText())
+        .isEqualTo("#/components/schemas/LogicalDefinition");
+    final JsonNode logicalDefinitionSchema = resolveSchema(openApi, responseSchema);
+    assertThat(logicalDefinitionSchema.path("properties").has("code")).isTrue();
+    assertThat(logicalDefinitionSchema.path("properties").has("label")).isTrue();
+
+    final JsonNode parentSchema =
+        resolveSchema(
+            openApi, logicalDefinitionSchema.path("properties").path("parents").path("items"));
+    assertThat(parentSchema.path("properties").has("idx")).isTrue();
+    assertThat(parentSchema.path("properties").has("code")).isTrue();
+    assertThat(parentSchema.path("properties").has("label")).isTrue();
+
+    final JsonNode elementSchema =
+        resolveSchema(
+            openApi, logicalDefinitionSchema.path("properties").path("elements").path("items"));
+    assertThat(elementSchema.path("properties").has("range")).isTrue();
+    assertThat(elementSchema.path("properties").has("rangeCode")).isFalse();
+    assertThat(elementSchema.path("properties").has("rangeUri")).isFalse();
+    final JsonNode restrictionSchema =
+        resolveSchema(openApi, elementSchema.path("properties").path("roles").path("items"));
+    assertThat(restrictionSchema.path("properties").has("sourceCode")).isTrue();
+    assertThat(restrictionSchema.path("properties").has("roleCode")).isTrue();
+    assertThat(restrictionSchema.path("properties").has("targetCode")).isTrue();
+
+    final JsonNode roleUnionSchema =
+        resolveSchema(openApi, elementSchema.path("properties").path("roleUnions").path("items"));
     assertThat(
-            openApi
-                .path("components")
-                .path("schemas")
-                .path("Concept")
-                .path("properties")
-                .has("explicitlyIncludedFields"))
-        .isFalse();
+            resolveSchema(openApi, roleUnionSchema.path("properties").path("roles").path("items")))
+        .isEqualTo(restrictionSchema);
+
+    final JsonNode roleGroupSchema =
+        resolveSchema(openApi, elementSchema.path("properties").path("roleGroups").path("items"));
+    final JsonNode roleSetSchema =
+        resolveSchema(openApi, roleGroupSchema.path("properties").path("roleSets").path("items"));
+    assertThat(resolveSchema(openApi, roleSetSchema.path("properties").path("roles").path("items")))
+        .isEqualTo(restrictionSchema);
+
+    final JsonNode conceptSchema = openApi.path("components").path("schemas").path("Concept");
+    assertThat(conceptSchema.path("properties").path("logicalDefinition").path("$ref").asText())
+        .isEqualTo("#/components/schemas/LogicalDefinition");
+    assertThat(conceptSchema.path("properties").has("explicitlyIncludedFields")).isFalse();
+  }
+
+  /** Resolve and verify a component schema reference. */
+  private static JsonNode resolveSchema(final JsonNode openApi, final JsonNode reference) {
+    final String prefix = "#/components/schemas/";
+    final String ref = reference.path("$ref").asText();
+    assertThat(ref).startsWith(prefix);
+    final JsonNode schema =
+        openApi.path("components").path("schemas").path(ref.substring(prefix.length()));
+    assertThat(schema.isMissingNode()).isFalse();
+    return schema;
   }
 
   /** Test empty-object and unsupported-terminology logical-definition responses. */
