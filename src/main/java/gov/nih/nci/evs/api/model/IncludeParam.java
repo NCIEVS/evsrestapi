@@ -11,6 +11,9 @@ import org.springframework.web.server.ResponseStatusException;
 @Schema(hidden = true)
 public class IncludeParam extends BaseModel {
 
+  /** Whether to include the machine-readable logical definition. */
+  private boolean logicalDefinition;
+
   /** The synonyms. */
   private boolean synonyms;
 
@@ -107,6 +110,8 @@ public class IncludeParam extends BaseModel {
           inverseAssociations = true;
         } else if (part.equals("roles")) {
           roles = true;
+        } else if (part.equals("logicalDefinition")) {
+          logicalDefinition = true;
         } else if (part.equals("inverseRoles")) {
           inverseRoles = true;
         } else if (part.equals("maps")) {
@@ -158,6 +163,7 @@ public class IncludeParam extends BaseModel {
     associations = other.isAssociations();
     inverseAssociations = other.isInverseAssociations();
     roles = other.isRoles();
+    logicalDefinition = other.isLogicalDefinition();
     inverseRoles = other.isInverseRoles();
     maps = other.isMaps();
     highlights = other.isHighlights();
@@ -229,6 +235,7 @@ public class IncludeParam extends BaseModel {
         || associations
         || inverseAssociations
         || roles
+        || logicalDefinition
         || inverseRoles
         || maps
         || disjointWith
@@ -280,6 +287,9 @@ public class IncludeParam extends BaseModel {
     }
     if (roles) {
       fields.add("roles");
+    }
+    if (logicalDefinition) {
+      fields.add("logicalDefinition");
     }
     if (inverseRoles) {
       fields.add("inverseRoles");
@@ -367,6 +377,9 @@ public class IncludeParam extends BaseModel {
       //    } else {
       //      fields.add("roles.code");
       //      fields.add("roles.qualifiers.code");
+    }
+    if (!logicalDefinition) {
+      fields.add("logicalDefinition");
     }
     if (!inverseRoles) {
       fields.add("inverseRoles");
@@ -582,6 +595,24 @@ public class IncludeParam extends BaseModel {
    */
   public void setRoles(boolean roles) {
     this.roles = roles;
+  }
+
+  /**
+   * Indicates whether the logical definition should be included.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isLogicalDefinition() {
+    return logicalDefinition;
+  }
+
+  /**
+   * Sets whether the logical definition should be included.
+   *
+   * @param logicalDefinition the logical definition flag
+   */
+  public void setLogicalDefinition(final boolean logicalDefinition) {
+    this.logicalDefinition = logicalDefinition;
   }
 
   /**
