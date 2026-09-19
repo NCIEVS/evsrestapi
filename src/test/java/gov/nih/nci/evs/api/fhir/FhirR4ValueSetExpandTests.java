@@ -4348,6 +4348,76 @@ public class FhirR4ValueSetExpandTests {
   }
 
   /**
+   * Test that a property filter combined with an include.valueSet reference on the same include
+   * actually restricts the valueSet's concepts, per FHIR compose semantics (elements within one
+   * {@code compose.include} narrow the result -- they don't each independently contribute concepts
+   * that bypass each other's filters).
+   *
+   * <p>Uses a filter on a property no NCIt concept has ({@code exists=true} on a made-up property
+   * name), so a correct implementation must return zero concepts regardless of how many concepts
+   * the referenced subset (C54459) has. Before the fix, {@code processInclude} returned early right
+   * after adding the valueSet's concepts whenever {@code include.valueSet} was present, so a filter
+   * combined with only a {@code valueSet} reference (no explicit concepts) was never even reached,
+   * and the subset came back unfiltered.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithValueSetAndPropertyFilterCombination() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    final ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("nci-valueset-property-filter-combination-test");
+    inputValueSet.setUrl(
+        "http://example.org/fhir/ValueSet/nci-valueset-property-filter-combination-test");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("NCIValueSetPropertyFilterCombinationTest");
+    inputValueSet.setTitle("NCI Thesaurus ValueSet + Property Filter Combination Test");
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(
+        "Test that a property filter restricts an include.valueSet reference on the same include");
+
+    final ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
+    include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459");
+
+    final ValueSet.ConceptSetFilterComponent propertyFilter =
+        new ValueSet.ConceptSetFilterComponent();
+    propertyFilter.setProperty("Nonexistent_Property_XYZ");
+    propertyFilter.setOp(ValueSet.FilterOperator.EXISTS);
+    propertyFilter.setValue("true");
+    include.addFilter(propertyFilter);
+
+    compose.addInclude(include);
+    inputValueSet.setCompose(compose);
+
+    final String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
+
+    final HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    final HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    final ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    final ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertTrue(expandedValueSet.hasExpansion());
+    final int total = expandedValueSet.getExpansion().getContains().size();
+    log.info("  concepts remaining after impossible property filter: {}", total);
+    assertEquals(
+        0,
+        total,
+        "A property filter for a property no concept has should eliminate every concept from"
+            + " the referenced valueSet, not pass it through unfiltered");
+  }
+
+  /**
    * Test value set expand with exclude.valueSet not found error handling.
    *
    * @throws Exception the exception
