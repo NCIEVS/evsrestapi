@@ -83,3 +83,21 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ### Run application from command line
 * Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*.jar`
+
+### Build, scan, and run the application image
+
+* `make docker` builds the WAR inside a Linux/AMD64 Docker build stage and creates `evsrestapi:<version>` without using a local Gradle installation.
+* The image starts the executable WAR, which runs the REST API entry point; the executable JAR is reserved for loader and reindex operations.
+* `make scandocker` and `make scan` print HIGH/CRITICAL vulnerability tables and write full HTML reports. GitHub Actions enforces HIGH/CRITICAL findings in CI.
+* `make dockerpush DOCKER_IMAGE=<registry>/<image>:<tag>` builds and pushes a Linux/AMD64 image with Docker Buildx.
+* `make rundocker` runs the image on port 8082 using the `local` Spring profile. It assumes Jena/Fuseki and OpenSearch are already running on the host, uses `host.docker.internal` on Docker Desktop, and adds the host-gateway mapping automatically on Linux.
+* `make rundocker` is the supported way to start the image locally. A direct `docker run` must supply equivalent Spring profile, port, service-host, and secret configuration; otherwise the image uses the default application settings rather than the local setup.
+* Before running it, create the ignored `.docker-secrets` directory. Each file is mounted read-only at `/run/secrets` and is imported by Spring Boot using its filename as the property name. Put credentials and secrets in `NCI_EVS_ADMIN_KEY`, `MAIL_USER`, `MAIL_PASSWORD`, and `RECAPTCHA_SECRET`; write each value without a trailing newline. Non-sensitive settings such as `MAIL_HOST`, `MAIL_PORT`, and `RECAPTCHA_KEY` continue to be forwarded from the host environment.
+* The secret values are not passed as container environment variables, so they do not appear in `docker inspect`. Docker daemon administrators can still access a running container and must remain trusted.
+* Override the service hosts or published port when necessary, for example:
+
+  ```bash
+  make rundocker DOCKER_ES_HOST=host.docker.internal DOCKER_GRAPH_DB_HOST=host.docker.internal DOCKER_PORT=8082
+  ```
+
+  The existing `ES_PORT`, `ES_SCHEME`, `GRAPH_DB_PORT`, and `GRAPH_DB` settings are passed through to the container. Email, reCAPTCHA, and other applicable local configuration environment variables are also forwarded.
