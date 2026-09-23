@@ -2,7 +2,8 @@ package gov.nih.nci.evs.api.configuration;
 
 // import static org.mockito.Mockito.timeout;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.Timeout;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
@@ -52,14 +53,17 @@ public class OpensearchConfiguration {
     logger.info(
         String.format("Configuring opensearch client for host %s %s %s", osHost, osPort, timeout));
     return new RestHighLevelClient(
-        RestClient.builder(new HttpHost(osHost, osPort, osScheme))
+        RestClient.builder(new HttpHost(osScheme, osHost, osPort))
             .setRequestConfigCallback(
-                builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout))
+                builder ->
+                builder
+                    .setConnectTimeout(Timeout.ofMilliseconds(timeout))
+                    .setResponseTimeout(Timeout.ofMilliseconds(timeout)))
             // This hooks the HTTP layer, after Spring Data has serialized Query objects into
             // replayable OpenSearch REST requests.
             .setHttpClientConfigCallback(
                 builder ->
-                    builder.addInterceptorLast(new EvsOpenSearchRequestLoggingInterceptor())));
+                    builder.addRequestInterceptorLast(new EvsOpenSearchRequestLoggingInterceptor())));
 
     // Alternate:
     // ClientConfiguration clientConfiguration =

@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '3.5.16'
+    springBootVersion = '4.0.8'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
@@ -67,10 +67,7 @@ ext {
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "2.5.0.RELEASE"
-
-sourceCompatibility = 17
-targetCompatibility = 17
+version = "2.6.0.RELEASE"
 
 springBoot {
   // generate file META-INF/build-info.properties during the build
@@ -81,7 +78,7 @@ springBoot {
 // it will automatically download and install the required version of Java
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(25)
   }
 
 }
@@ -101,11 +98,12 @@ tasks.named('eclipseWtp') {
 
 dependencies {
 
-  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-webmvc"
+  implementation "org.springframework.boot:spring-boot-restclient"
 
-  // Use version 2 with spring boot 3
+  // SpringDoc 3 is required for Spring Boot 4.
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
-  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17"
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1"
 
   implementation "org.springframework.boot:spring-boot-devtools"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -128,11 +126,10 @@ dependencies {
   implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.10"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
-  implementation "org.opensearch.client:spring-data-opensearch-starter:1.7.1"
+  implementation "org.opensearch.client:spring-data-opensearch:3.0.4"
 
-  // Explicit override for vulnerability still present in spring-data-opensearch-starter:1.7.1
-  // and spring-data-opensearch-starter:1.8.2, but both use 2.19.x as a basis
-  implementation "org.opensearch:opensearch-common:2.19.4"
+  // Spring Data OpenSearch 3.0 is the compatible line for Spring Boot 4.0.
+  implementation "org.opensearch:opensearch-common:3.3.2"
 
   // other explicit vulnerability overrides
   implementation "org.apache.commons:commons-lang3:3.18.0"
@@ -211,6 +208,8 @@ dependencies {
   */
   compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation "org.springframework.boot:spring-boot-restclient-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   // Use spring-boot-starter-test defaults
   // testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
@@ -319,11 +318,15 @@ tasks.register('zipFile', Zip) {
   def zipFileRootDirectory = "${project.name}-${project.version}"
 
   from('src/main/bin') {
-    fileMode = 0755
+    filePermissions {
+      unix('rwxr-xr-x')
+    }
     into "$zipFileRootDirectory/bin"
   }
   from("$buildDir/main/bin") {
-    fileMode = 0755
+    filePermissions {
+      unix('rwxr-xr-x')
+    }
     include '**/createDirectoriesForWorkspace.pl'
     into "$zipFileRootDirectory/bin"
   }

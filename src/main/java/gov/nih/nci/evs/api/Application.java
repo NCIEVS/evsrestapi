@@ -4,8 +4,6 @@ import java.util.Map;
 import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
@@ -13,13 +11,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 /** Entry point for webapp. */
 @SpringBootApplication(
-    exclude = {
-      // This is to avoid "Failed to configure a DataSource: 'url' attribute is not specified and no
-      // embedded datasource could be configured" error
-      // that arose when FHIR libraries were added
-      DataSourceAutoConfiguration.class,
-      // Disable elasticsearch autoconfiguration (embedded in spring boot)
-      ElasticsearchDataAutoConfiguration.class
+    excludeName = {
+      "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration",
+      "org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchAutoConfiguration",
+      "org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchRestClientAutoConfiguration"
     })
 @EnableCaching
 @EnableScheduling
