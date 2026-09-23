@@ -301,17 +301,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
-        for (final Association assn : invAssoc) {
-          final Concept member =
-              osQueryService
-                  .getConcept(
-                      assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
-                      includeParam)
-                  .orElse(null);
-          if (member != null) {
-            subsetMembers.add(member);
-          }
+        // Batch fetch all members in a single query instead of one getConcept call per
+        // member (was O(n) round trips for an n-member subset).
+        final List<String> relatedCodes =
+            invAssoc.stream().map(Association::getRelatedCode).collect(Collectors.toList());
+        if (!relatedCodes.isEmpty()) {
+          subsetMembers.addAll(
+              osQueryService.getConcepts(
+                  relatedCodes,
+                  termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                  includeParam));
         }
         vsExpansion.setTotal(subsetMembers.size());
       } else {
@@ -610,7 +609,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
             expandReferencedValueSet(valueSetUrl, version, includeDesignations, includeDefinition);
         concepts.addAll(referencedConcepts);
       }
-      return concepts; // Return early for valueSet includes
+      if (!include.hasSystem() || (!include.hasConcept() && !include.hasFilter())) {
+        // No system-scoped concept list or filter to combine with -- return the
+        // valueSet's concepts as-is.
+        return concepts;
+      }
+      // Otherwise fall through: concept/filter processing below must see the
+      // valueSet-sourced concepts already collected above, so a filter combined with a
+      // valueSet reference on the same include actually restricts it (previously this
+      // combination silently dropped the filter).
     }
 
     // Determine terminology for system-based processing
@@ -633,14 +640,21 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
     // Process direct concept references
     if (include.hasConcept()) {
+      // Batch fetch every requested concept once, instead of one getConcept call per
+      // concept -- was O(n) round trips.
+      final List<String> requestedCodes =
+          include.getConcept().stream()
+              .map(ValueSet.ConceptReferenceComponent::getCode)
+              .collect(Collectors.toList());
+      final Map<String, Concept> fetchedConcepts =
+          osQueryService.getConceptsAsMap(requestedCodes, terminology, includeParam);
+
       for (ValueSet.ConceptReferenceComponent concept : include.getConcept()) {
-        Optional<Concept> foundConcept =
-            osQueryService.getConcept(concept.getCode(), terminology, includeParam);
-        if (foundConcept.isPresent()) {
-          // Validate display if provided
-          Concept c = foundConcept.get();
+        Concept c = fetchedConcepts.get(concept.getCode());
+        if (c != null) {
+          // Validate display if provided (using the already-fetched concept, no extra query)
           if (concept.hasDisplay()) {
-            String expectedDisplay = lookupConceptDisplay(c.getCode(), terminology);
+            String expectedDisplay = c.getName();
             if (expectedDisplay != null && !expectedDisplay.equals(concept.getDisplay())) {
               logger.warn(
                   "Display mismatch for {}: expected '{}', got '{}'",
@@ -836,11 +850,19 @@ public class ValueSetProviderR4 implements IResourceProvider {
         includeParam.setDefinitions(true);
       }
 
+      // Batch fetch every requested concept once, instead of one getConcept call per
+      // concept -- was O(n) round trips.
+      final List<String> requestedCodes =
+          exclude.getConcept().stream()
+              .map(ValueSet.ConceptReferenceComponent::getCode)
+              .collect(Collectors.toList());
+      final Map<String, Concept> fetchedConcepts =
+          osQueryService.getConceptsAsMap(requestedCodes, terminology, includeParam);
+
       for (ValueSet.ConceptReferenceComponent concept : exclude.getConcept()) {
-        Optional<Concept> conceptOpt =
-            osQueryService.getConcept(concept.getCode(), terminology, includeParam);
-        if (conceptOpt.isPresent()) {
-          concepts.add(conceptOpt.get());
+        Concept c = fetchedConcepts.get(concept.getCode());
+        if (c != null) {
+          concepts.add(c);
         } else {
           logger.warn("Concept not found for exclude: {}", concept.getCode());
         }
@@ -1044,17 +1066,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
-        for (final Association assn : invAssoc) {
-          final Concept member =
-              osQueryService
-                  .getConcept(
-                      assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
-                      includeParam)
-                  .orElse(null);
-          if (member != null) {
-            subsetMembers.add(member);
-          }
+        // Batch fetch all members in a single query instead of one getConcept call per
+        // member (was O(n) round trips for an n-member subset).
+        final List<String> relatedCodes =
+            invAssoc.stream().map(Association::getRelatedCode).collect(Collectors.toList());
+        if (!relatedCodes.isEmpty()) {
+          subsetMembers.addAll(
+              osQueryService.getConcepts(
+                  relatedCodes,
+                  termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                  includeParam));
         }
         vsExpansion.setTotal(subsetMembers.size());
       } else {
@@ -2035,15 +2056,27 @@ public class ValueSetProviderR4 implements IResourceProvider {
     String operation = filter.getOp().toCode();
     String value = filter.getValue();
 
+    // Batch fetch properties for every candidate that doesn't already carry them, instead of
+    // one getConcept call per candidate (was O(n) round trips).
+    final List<String> codesNeedingProperties =
+        concepts.stream()
+            .filter(c -> c.getProperties() == null || c.getProperties().isEmpty())
+            .map(Concept::getCode)
+            .collect(Collectors.toList());
+    final Map<String, Concept> propertyLookup =
+        osQueryService.getConceptsAsMap(
+            codesNeedingProperties, terminology, new IncludeParam("properties"));
+
     for (Concept concept : concepts) {
       boolean shouldInclude = false;
 
       try {
+        final Concept fetched = propertyLookup.getOrDefault(concept.getCode(), concept);
         if ("=".equals(operation)) {
-          shouldInclude = conceptHasPropertyValue(concept, terminology, propertyName, value.trim());
+          shouldInclude = conceptHasPropertyValue(fetched, propertyName, value.trim());
         } else if ("exists".equals(operation)) {
           boolean shouldExist = "true".equalsIgnoreCase(value.trim());
-          shouldInclude = conceptHasProperty(concept, terminology, propertyName, shouldExist);
+          shouldInclude = conceptHasProperty(fetched, propertyName, shouldExist);
         }
       } catch (Exception e) {
         logger.warn(
@@ -2072,70 +2105,47 @@ public class ValueSetProviderR4 implements IResourceProvider {
   }
 
   /**
-   * Check if concept has property value.
+   * Check if a pre-fetched concept has property value. The concept must already carry its
+   * properties (e.g. via a batch {@code getConceptsAsMap} call) -- this method makes no OpenSearch
+   * calls itself.
    *
-   * @param concept the concept
-   * @param terminology the terminology
+   * @param concept the already-fetched concept
    * @param propertyName the property name
    * @param propertyValue the property value
    * @return true, if successful
-   * @throws Exception the exception
    */
   private boolean conceptHasPropertyValue(
-      Concept concept, Terminology terminology, String propertyName, String propertyValue)
-      throws Exception {
+      Concept concept, String propertyName, String propertyValue) {
 
-    // Get the full concept details including properties if not already loaded
-    Concept fullConcept = concept;
-    if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
-      Optional<Concept> conceptOpt =
-          osQueryService.getConcept(concept.getCode(), terminology, new IncludeParam("properties"));
-      if (conceptOpt.isPresent()) {
-        fullConcept = conceptOpt.get();
-      }
-    }
-
-    if (fullConcept.getProperties() == null) {
+    if (concept.getProperties() == null) {
       return false;
     }
 
     // Check if any property matches the specified name and value
-    return fullConcept.getProperties().stream()
+    return concept.getProperties().stream()
         .anyMatch(
             prop -> propertyName.equals(prop.getType()) && propertyValue.equals(prop.getValue()));
   }
 
   /**
-   * Check if concept has property.
+   * Check if a pre-fetched concept has property. The concept must already carry its properties
+   * (e.g. via a batch {@code getConceptsAsMap} call) -- this method makes no OpenSearch calls
+   * itself.
    *
-   * @param concept the concept
-   * @param terminology the terminology
+   * @param concept the already-fetched concept
    * @param propertyName the property name
    * @param shouldExist the should exist
    * @return true, if successful
-   * @throws Exception the exception
    */
-  private boolean conceptHasProperty(
-      Concept concept, Terminology terminology, String propertyName, boolean shouldExist)
-      throws Exception {
+  private boolean conceptHasProperty(Concept concept, String propertyName, boolean shouldExist) {
 
-    // Get the full concept details including properties if not already loaded
-    Concept fullConcept = concept;
     if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
-      Optional<Concept> conceptOpt =
-          osQueryService.getConcept(concept.getCode(), terminology, new IncludeParam("properties"));
-      if (conceptOpt.isPresent()) {
-        fullConcept = conceptOpt.get();
-      }
-    }
-
-    if (fullConcept.getProperties() == null || fullConcept.getProperties().isEmpty()) {
       return !shouldExist; // No properties = property doesn't exist
     }
 
     // Check if the specific property exists (has at least one value)
     boolean hasProperty =
-        fullConcept.getProperties().stream()
+        concept.getProperties().stream()
             .anyMatch(
                 prop ->
                     propertyName.equals(prop.getType())
@@ -2245,20 +2255,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
     List<Concept> ancestors = osQueryService.getAncestors(concept.getCode(), terminology);
 
     return ancestors.stream().anyMatch(ancestor -> ancestor.getCode().equals(targetConceptCode));
-  }
-
-  /**
-   * Lookup concept display name.
-   *
-   * @param code the code
-   * @param terminology the terminology
-   * @return the string
-   * @throws Exception the exception
-   */
-  private String lookupConceptDisplay(String code, Terminology terminology) throws Exception {
-    Optional<Concept> concept =
-        osQueryService.getConcept(code, terminology, new IncludeParam("minimal"));
-    return concept.map(Concept::getName).orElse(null);
   }
 
   /**

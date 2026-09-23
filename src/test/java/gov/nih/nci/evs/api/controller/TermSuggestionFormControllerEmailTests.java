@@ -117,6 +117,11 @@ public class TermSuggestionFormControllerEmailTests {
     final String formPath = "formSamples/submissionFormTest-ncit.json";
     JsonNode formData = createForm(formPath);
 
+    // Load the form template as the browser flow does, so the service allows this recipient
+    this.mvc
+        .perform(MockMvcRequestBuilders.get("/api/v1/form/suggest/ncit-form"))
+        .andExpect(status().isOk());
+
     final String requestBody = objectMapper.writeValueAsString(formData);
     log.info("Form data = {}", formData);
     @SuppressWarnings("unused")
@@ -142,6 +147,11 @@ public class TermSuggestionFormControllerEmailTests {
     baseUrl = "/api/v1/form/submitWithAttachment";
     final String formPath = "formSamples/submissionFormTest-cdisc.json";
     JsonNode formData = createForm(formPath);
+
+    // Load the form template as the browser flow does, so the service allows this recipient
+    this.mvc
+        .perform(MockMvcRequestBuilders.get("/api/v1/form/suggest/cdisc-form"))
+        .andExpect(status().isOk());
 
     // Prepare multipart file from resources
     final org.springframework.mock.web.MockMultipartFile attachment;
@@ -185,6 +195,11 @@ public class TermSuggestionFormControllerEmailTests {
     baseUrl = "/api/v1/form/submitWithAttachment";
     final String formPath = "formSamples/testNCIT.json";
     JsonNode formData = createForm(formPath);
+
+    // Load the form template as the browser flow does, so the service allows this recipient
+    this.mvc
+        .perform(MockMvcRequestBuilders.get("/api/v1/form/suggest/ncit-form"))
+        .andExpect(status().isOk());
 
     // Prepare NCIT multipart file from resources
     final org.springframework.mock.web.MockMultipartFile attachment;

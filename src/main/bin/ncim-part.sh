@@ -120,7 +120,7 @@ if [[ $download -eq 1 ]]; then
 	fi
     
     echo "  Unpack NCI Metathesaurus"
-    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM "META/*" -x "*MRX*" > /tmp/x.$$ 2>&1
+    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM "release.dat" "META/*" -x "*MRX*" > /tmp/x.$$ 2>&1
 	if [[ $? -ne 0 ]]; then
 	    cat /tmp/x.$$
 	    echo "ERROR: problem unpacking $DOWNLOAD_DIR/Metathesaurus.RRF.zip"
@@ -145,6 +145,7 @@ fi
 # Handle the local setup
 echo ""
 export PATH="/usr/local/corretto-jdk17/bin/:$PATH"
+JAVA_OPTS="${JAVA_OPTS:--Xmx4096M}"
 local=""
 jar="../lib/evsrestapi.jar"
 if [[ $config -eq 0 ]]; then
@@ -156,8 +157,9 @@ export EVS_SERVER_PORT="8083"
 # Compute version (remove '.' from lcterm)
 lcterm=`echo $terminology | perl -ne 's/\.//; print lc($_);'`
 if [[ $terminology == "ncim" ]]; then
-    # check both places for good measure
-    version=`grep umls.release.name $dir/../release.dat $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+    # Match the release.dat read by the NCIM Java loader. Reading both the parent and META
+    # files produces a newline-separated version string when both are present.
+    version=`grep '^umls.release.name=' "$dir/release.dat" | head -1 | perl -pe 's/.*=//; s/\r//;'`
 else
     search=$terminology
     if [[ $terminology == "hl7v30" ]]; then
@@ -183,8 +185,8 @@ if [[ $skip -eq 0 ]]; then
     echo "  Generate indexes"
     # need to override this setting to make sure it's not too big
     export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=1000
-    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
+    echo "java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
+    java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building indexes"
         exit 1

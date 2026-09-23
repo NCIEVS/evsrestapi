@@ -118,13 +118,11 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
     new EvsOpenSearchRequestLoggingInterceptor().process(request, context);
 
     final String logMessage = getLoggedMessage();
-    assertTrue(logMessage.contains("method = POST"));
     assertTrue(
         logMessage.contains(
-            "url = http://localhost:9201/my-index-000001/_search?"
+            "\n    POST http://localhost:9201/my-index-000001/_search?"
                 + "typed_keys=true&search_type=query_then_fetch"));
-    assertTrue(logMessage.contains("parameters = typed_keys=true&search_type=query_then_fetch"));
-    assertTrue(logMessage.contains("index = my-index-000001"));
+    assertTrue(logMessage.contains("\n    my-index-000001 = "));
     assertTrue(logMessage.contains("\"fields\""));
     assertTrue(logMessage.contains("\"user.id\""));
     assertTrue(logMessage.contains("\"_source\": false"));
@@ -248,10 +246,7 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
     new EvsOpenSearchRequestLoggingInterceptor().process(request, context);
 
     final String logMessage = getLoggedMessage();
-    assertTrue(logMessage.contains("method = GET"));
-    assertTrue(logMessage.contains("url = http://localhost:9201/_cluster/health"));
-    assertTrue(logMessage.contains("parameters = <none>"));
-    assertTrue(logMessage.contains("index = <none>"));
-    assertTrue(logMessage.contains("payload =\n<none>"));
+    assertTrue(logMessage.contains("\n    GET http://localhost:9201/_cluster/health"));
+    assertTrue(logMessage.contains("\n    <none> = <none>"));
   }
 }

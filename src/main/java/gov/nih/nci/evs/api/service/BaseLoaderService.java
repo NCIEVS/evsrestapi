@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.opensearch.action.delete.DeleteRequest;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
@@ -573,6 +574,19 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * @throws Exception the exception
    */
   public String getWelcomeText(final String terminology) throws Exception {
+    return getWelcomeText(terminology, Collections.emptyMap());
+  }
+
+  /**
+   * Returns the welcome text with supplied values interpolated.
+   *
+   * @param terminology the terminology
+   * @param values values available to welcome-text placeholders
+   * @return the welcome text
+   * @throws Exception the exception
+   */
+  public String getWelcomeText(final String terminology, final Map<String, String> values)
+      throws Exception {
     // Read from the configured URI where this data lives
     // If terminology is {term}_{version} -> strip the version
     final String uri =
@@ -581,7 +595,18 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".html";
     logger.info("  get welcome text for " + terminology + " = " + uri);
-    return StringUtils.join(EVSUtils.getValueFromFile(uri), '\n');
+    return interpolateWelcomeText(StringUtils.join(EVSUtils.getValueFromFile(uri), '\n'), values);
+  }
+
+  /**
+   * Interpolates welcome-text placeholders.
+   *
+   * @param welcomeText welcome text template
+   * @param values values available to the template
+   * @return interpolated welcome text
+   */
+  static String interpolateWelcomeText(final String welcomeText, final Map<String, String> values) {
+    return StringSubstitutor.replace(welcomeText, values);
   }
 
   /* see superclass */
