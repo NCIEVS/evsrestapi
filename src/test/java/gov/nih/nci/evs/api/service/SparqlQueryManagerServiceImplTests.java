@@ -195,7 +195,7 @@ public class SparqlQueryManagerServiceImplTests {
 
   /** Test that another mixed-range group preserves each restriction's tooltip range. */
   @Test
-  public void testProgastrinRestrictionRanges() throws Exception {
+  public void testProgastrinLogicalDefinitionRestrictionRanges() throws Exception {
     final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     final LogicalDefinition definition = sparqlQueryService.getLogicalDefinition("C192657", term);
 
@@ -205,6 +205,13 @@ public class SparqlQueryManagerServiceImplTests {
             .filter(element -> "[Range Unspecified]".equals(element.getRange()))
             .findFirst()
             .orElseThrow();
+    assertEquals(1, unspecified.getRoleGroups().size());
+    assertEquals(
+        List.of(2, 4),
+        unspecified.getRoleGroups().get(0).getRoleSets().stream()
+            .map(roleSet -> roleSet.getRoles().size())
+            .sorted()
+            .toList());
     final List<Restriction> groupedRoles =
         unspecified.getRoleGroups().get(0).getRoleSets().stream()
             .flatMap(roleSet -> roleSet.getRoles().stream())
@@ -231,5 +238,91 @@ public class SparqlQueryManagerServiceImplTests {
     assertTrue(
         gene.getRoleUnions().get(0).getRoles().stream()
             .allMatch(role -> "Gene".equals(role.getRange())));
+  }
+
+  /** Test that direct, union, and grouped content remains in its proper range element. */
+  @Test
+  public void testLogicalDefinitionMixedContainers() throws Exception {
+    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
+    final LogicalDefinition definition = sparqlQueryService.getLogicalDefinition("C27781", term);
+
+    assertNotNull(definition);
+    final Element gene = getElement(definition, "Gene");
+    final Element molecularAbnormality = getElement(definition, "Molecular Abnormality");
+    assertEquals(1, gene.getRoles().size());
+    assertEquals("C92539", gene.getRoles().get(0).getTargetCode());
+    assertEquals(1, gene.getRoleUnions().size());
+    assertEquals(
+        List.of("C99200", "C99279"),
+        gene.getRoleUnions().get(0).getRoles().stream()
+            .map(Restriction::getTargetCode)
+            .sorted()
+            .toList());
+    assertTrue(gene.getRoleGroups().isEmpty());
+    assertEquals(1, molecularAbnormality.getRoleGroups().size());
+    assertEquals(2, molecularAbnormality.getRoleGroups().get(0).getRoleSets().size());
+    assertTrue(
+        molecularAbnormality.getRoleGroups().get(0).getRoleSets().stream()
+            .allMatch(roleSet -> roleSet.getRoles().size() == 2));
+  }
+
+  /** Test that direct roles and a grouped expression can share one range element. */
+  @Test
+  public void testLogicalDefinitionDirectAndGroupedRolesShareRange() throws Exception {
+    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
+    final LogicalDefinition definition = sparqlQueryService.getLogicalDefinition("C3173", term);
+
+    assertNotNull(definition);
+    final Element molecularAbnormality = getElement(definition, "Molecular Abnormality");
+    assertEquals(5, molecularAbnormality.getRoles().size());
+    assertEquals(1, molecularAbnormality.getRoleGroups().size());
+    assertEquals(
+        List.of(2, 5),
+        molecularAbnormality.getRoleGroups().get(0).getRoleSets().stream()
+            .map(roleSet -> roleSet.getRoles().size())
+            .sorted()
+            .toList());
+  }
+
+  /** Test that a role group can contain more than two alternatives. */
+  @Test
+  public void testThreeAlternativeLogicalDefinitionRoleGroup() throws Exception {
+    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
+    final LogicalDefinition definition = sparqlQueryService.getLogicalDefinition("C6481", term);
+
+    assertNotNull(definition);
+    final Element molecularAbnormality = getElement(definition, "Molecular Abnormality");
+    assertEquals(1, molecularAbnormality.getRoles().size());
+    assertEquals(1, molecularAbnormality.getRoleGroups().size());
+    assertEquals(3, molecularAbnormality.getRoleGroups().get(0).getRoleSets().size());
+    assertTrue(
+        molecularAbnormality.getRoleGroups().get(0).getRoleSets().stream()
+            .allMatch(roleSet -> roleSet.getRoles().size() == 2));
+  }
+
+  /** Test that the same target remains present in separate role-group alternatives. */
+  @Test
+  public void testLogicalDefinitionRepeatedTargetAcrossRoleSets() throws Exception {
+    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
+    final LogicalDefinition definition = sparqlQueryService.getLogicalDefinition("C9020", term);
+
+    assertNotNull(definition);
+    final Element molecularAbnormality = getElement(definition, "Molecular Abnormality");
+    assertEquals(1, molecularAbnormality.getRoleGroups().size());
+    assertEquals(2, molecularAbnormality.getRoleGroups().get(0).getRoleSets().size());
+    assertTrue(
+        molecularAbnormality.getRoleGroups().get(0).getRoleSets().stream()
+            .allMatch(
+                roleSet ->
+                    roleSet.getRoles().stream()
+                        .anyMatch(role -> "C37219".equals(role.getTargetCode()))));
+  }
+
+  /** Return the logical-definition element for the requested range. */
+  private static Element getElement(final LogicalDefinition definition, final String range) {
+    return definition.getElements().stream()
+        .filter(element -> range.equals(element.getRange()))
+        .findFirst()
+        .orElseThrow();
   }
 }

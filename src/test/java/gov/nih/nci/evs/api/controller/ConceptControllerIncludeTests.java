@@ -139,6 +139,39 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getLogicalDefinition()).isNotNull();
   }
 
+  /** Test that indexed unions and nested groups survive endpoint serialization. */
+  @Test
+  public void testComplexLogicalDefinitionRoundTrip() throws Exception {
+    final MvcResult result =
+        mvc.perform(get(baseUrl + "/ncit/C27781/logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    final LogicalDefinition definition =
+        ThreadLocalMapper.get()
+            .readValue(result.getResponse().getContentAsString(), LogicalDefinition.class);
+
+    assertThat(definition.getCode()).isEqualTo("C27781");
+    final LogicalDefinition.Element gene =
+        definition.getElements().stream()
+            .filter(element -> "Gene".equals(element.getRange()))
+            .findFirst()
+            .orElseThrow();
+    final LogicalDefinition.Element molecularAbnormality =
+        definition.getElements().stream()
+            .filter(element -> "Molecular Abnormality".equals(element.getRange()))
+            .findFirst()
+            .orElseThrow();
+    assertThat(gene.getRoles()).hasSize(1);
+    assertThat(gene.getRoles().get(0).getTargetCode()).isEqualTo("C92539");
+    assertThat(gene.getRoleUnions()).hasSize(1);
+    assertThat(gene.getRoleUnions().get(0).getRoles())
+        .extracting(LogicalDefinition.Restriction::getTargetCode)
+        .containsExactlyInAnyOrder("C99200", "C99279");
+    assertThat(gene.getRoleGroups()).isEmpty();
+    assertThat(molecularAbnormality.getRoleGroups()).hasSize(1);
+    assertThat(molecularAbnormality.getRoleGroups().get(0).getRoleSets()).hasSize(2);
+  }
+
   /** Test logical-definition inclusion for a mixed batch of concepts. */
   @Test
   public void testLogicalDefinitionIncludeForConceptList() throws Exception {
