@@ -5,7 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.LogicalDefinition;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
@@ -97,6 +99,221 @@ public class ConceptControllerIncludeTests {
     mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
+  }
+
+  /** Test logical definitions through both supported API forms. */
+  @Test
+  public void testLogicalDefinition() throws Exception {
+    MvcResult result =
+        mvc.perform(get(baseUrl + "/ncit/C3224?include=logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    Concept concept =
+        ThreadLocalMapper.get().readValue(result.getResponse().getContentAsString(), Concept.class);
+    assertThat(concept.getLogicalDefinition()).isNotNull();
+    assertThat(concept.getLogicalDefinition().getCode()).isEqualTo("C3224");
+
+    result =
+        mvc.perform(get(baseUrl + "/ncit/C3224/logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    assertThat(result.getResponse().getContentAsString())
+        .doesNotContain("\"rangeCode\"")
+        .doesNotContain("\"rangeUri\"");
+    LogicalDefinition definition =
+        ThreadLocalMapper.get()
+            .readValue(result.getResponse().getContentAsString(), LogicalDefinition.class);
+    assertThat(definition.getCode()).isEqualTo("C3224");
+    assertThat(definition.getParents()).hasSize(2);
+    assertThat(definition.getElements()).hasSize(1);
+    assertThat(definition.getElements().get(0).getRoles().get(0).getRange())
+        .isEqualTo("Abnormal Cell");
+
+    result =
+        mvc.perform(get(baseUrl + "/ncit/C3224?include=synonyms,logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    concept =
+        ThreadLocalMapper.get().readValue(result.getResponse().getContentAsString(), Concept.class);
+    assertThat(concept.getSynonyms()).isNotEmpty();
+    assertThat(concept.getLogicalDefinition()).isNotNull();
+  }
+
+  /** Test that indexed unions and nested groups survive endpoint serialization. */
+  @Test
+  public void testComplexLogicalDefinitionRoundTrip() throws Exception {
+    final MvcResult result =
+        mvc.perform(get(baseUrl + "/ncit/C27781/logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    final LogicalDefinition definition =
+        ThreadLocalMapper.get()
+            .readValue(result.getResponse().getContentAsString(), LogicalDefinition.class);
+
+    assertThat(definition.getCode()).isEqualTo("C27781");
+    final LogicalDefinition.Element gene =
+        definition.getElements().stream()
+            .filter(element -> "Gene".equals(element.getRange()))
+            .findFirst()
+            .orElseThrow();
+    final LogicalDefinition.Element molecularAbnormality =
+        definition.getElements().stream()
+            .filter(element -> "Molecular Abnormality".equals(element.getRange()))
+            .findFirst()
+            .orElseThrow();
+    assertThat(gene.getRoles()).hasSize(1);
+    assertThat(gene.getRoles().get(0).getTargetCode()).isEqualTo("C92539");
+    assertThat(gene.getRoleUnions()).hasSize(1);
+    assertThat(gene.getRoleUnions().get(0).getRoles())
+        .extracting(LogicalDefinition.Restriction::getTargetCode)
+        .containsExactlyInAnyOrder("C99200", "C99279");
+    assertThat(gene.getRoleGroups()).isEmpty();
+    assertThat(molecularAbnormality.getRoleGroups()).hasSize(1);
+    assertThat(molecularAbnormality.getRoleGroups().get(0).getRoleSets()).hasSize(2);
+  }
+
+  /** Test logical-definition inclusion for a mixed batch of concepts. */
+  @Test
+  public void testLogicalDefinitionIncludeForConceptList() throws Exception {
+    final MvcResult result =
+        mvc.perform(get(baseUrl + "/ncit?list=C3224,C1000&include=logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    final JsonNode concepts =
+        ThreadLocalMapper.get().readTree(result.getResponse().getContentAsString());
+    assertThat(concepts.isArray()).isTrue();
+    assertThat(concepts).hasSize(2);
+
+    JsonNode c3224 = null;
+    JsonNode c1000 = null;
+    for (final JsonNode concept : concepts) {
+      if ("C3224".equals(concept.path("code").asText())) {
+        c3224 = concept;
+      } else if ("C1000".equals(concept.path("code").asText())) {
+        c1000 = concept;
+      }
+    }
+    assertThat(c3224).isNotNull();
+    assertThat(c3224.path("logicalDefinition").path("code").asText()).isEqualTo("C3224");
+    assertThat(c1000).isNotNull();
+    assertThat(c1000.has("logicalDefinition")).isTrue();
+    assertThat(c1000.get("logicalDefinition").isObject()).isTrue();
+    assertThat(c1000.get("logicalDefinition").isEmpty()).isTrue();
+  }
+
+  /** Test the NCIt-only logical-definition Swagger contract. */
+  @Test
+  public void testLogicalDefinitionOpenApi() throws Exception {
+    final MvcResult result =
+        mvc.perform(get("/v3/api-docs")).andExpect(status().isOk()).andReturn();
+    final JsonNode openApi =
+        ThreadLocalMapper.get().readTree(result.getResponse().getContentAsString());
+    final JsonNode operation =
+        openApi
+            .path("paths")
+            .path("/api/v1/concept/{terminology}/{code}/logicalDefinition")
+            .path("get");
+    assertThat(operation.path("description").asText()).contains("currently supports NCIt only");
+
+    JsonNode terminologyParameter = null;
+    for (final JsonNode parameter : operation.path("parameters")) {
+      if ("terminology".equals(parameter.path("name").asText())) {
+        terminologyParameter = parameter;
+        break;
+      }
+    }
+    assertThat(terminologyParameter).isNotNull();
+    assertThat(terminologyParameter.path("description").asText()).contains("NCIt-only");
+    assertThat(terminologyParameter.path("schema").path("default").asText()).isEqualTo("ncit");
+    assertThat(terminologyParameter.path("schema").has("enum")).isFalse();
+
+    final JsonNode responseSchema =
+        operation
+            .path("responses")
+            .path("200")
+            .path("content")
+            .path("application/json")
+            .path("schema");
+    assertThat(responseSchema.path("$ref").asText())
+        .isEqualTo("#/components/schemas/LogicalDefinition");
+    final JsonNode logicalDefinitionSchema = resolveSchema(openApi, responseSchema);
+    assertThat(logicalDefinitionSchema.path("properties").has("code")).isTrue();
+    assertThat(logicalDefinitionSchema.path("properties").has("label")).isTrue();
+
+    final JsonNode parentSchema =
+        resolveSchema(
+            openApi, logicalDefinitionSchema.path("properties").path("parents").path("items"));
+    assertThat(parentSchema.path("properties").has("idx")).isTrue();
+    assertThat(parentSchema.path("properties").has("code")).isTrue();
+    assertThat(parentSchema.path("properties").has("label")).isTrue();
+
+    final JsonNode elementSchema =
+        resolveSchema(
+            openApi, logicalDefinitionSchema.path("properties").path("elements").path("items"));
+    assertThat(elementSchema.path("properties").has("range")).isTrue();
+    assertThat(elementSchema.path("properties").has("rangeCode")).isFalse();
+    assertThat(elementSchema.path("properties").has("rangeUri")).isFalse();
+    final JsonNode restrictionSchema =
+        resolveSchema(openApi, elementSchema.path("properties").path("roles").path("items"));
+    assertThat(restrictionSchema.path("properties").has("sourceCode")).isTrue();
+    assertThat(restrictionSchema.path("properties").has("roleCode")).isTrue();
+    assertThat(restrictionSchema.path("properties").has("targetCode")).isTrue();
+
+    final JsonNode roleUnionSchema =
+        resolveSchema(openApi, elementSchema.path("properties").path("roleUnions").path("items"));
+    assertThat(
+            resolveSchema(openApi, roleUnionSchema.path("properties").path("roles").path("items")))
+        .isEqualTo(restrictionSchema);
+
+    final JsonNode roleGroupSchema =
+        resolveSchema(openApi, elementSchema.path("properties").path("roleGroups").path("items"));
+    final JsonNode roleSetSchema =
+        resolveSchema(openApi, roleGroupSchema.path("properties").path("roleSets").path("items"));
+    assertThat(resolveSchema(openApi, roleSetSchema.path("properties").path("roles").path("items")))
+        .isEqualTo(restrictionSchema);
+
+    final JsonNode conceptSchema = openApi.path("components").path("schemas").path("Concept");
+    assertThat(conceptSchema.path("properties").path("logicalDefinition").path("$ref").asText())
+        .isEqualTo("#/components/schemas/LogicalDefinition");
+    assertThat(conceptSchema.path("properties").has("explicitlyIncludedFields")).isFalse();
+  }
+
+  /** Resolve and verify a component schema reference. */
+  private static JsonNode resolveSchema(final JsonNode openApi, final JsonNode reference) {
+    final String prefix = "#/components/schemas/";
+    final String ref = reference.path("$ref").asText();
+    assertThat(ref).startsWith(prefix);
+    final JsonNode schema =
+        openApi.path("components").path("schemas").path(ref.substring(prefix.length()));
+    assertThat(schema.isMissingNode()).isFalse();
+    return schema;
+  }
+
+  /** Test empty-object and unsupported-terminology logical-definition responses. */
+  @Test
+  public void testLogicalDefinitionEdgeCases() throws Exception {
+    MvcResult result =
+        mvc.perform(get(baseUrl + "/ncit/C1000?include=logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json = ThreadLocalMapper.get().readTree(result.getResponse().getContentAsString());
+    assertThat(json.has("logicalDefinition")).isTrue();
+    assertThat(json.get("logicalDefinition").isObject()).isTrue();
+    assertThat(json.get("logicalDefinition").isEmpty()).isTrue();
+
+    result =
+        mvc.perform(get(baseUrl + "/ncit/C1000/logicalDefinition"))
+            .andExpect(status().isOk())
+            .andReturn();
+    assertThat(result.getResponse().getContentAsString()).isEqualTo("{}");
+
+    mvc.perform(get(baseUrl + "/ncim/C0025202/logicalDefinition"))
+        .andExpect(status().isNotFound())
+        .andExpect(status().reason("Logical definitions are currently supported for NCIt only."));
+
+    mvc.perform(get(baseUrl + "/ncit/BADCODE/logicalDefinition"))
+        .andExpect(status().isNotFound())
+        .andExpect(status().reason("BADCODE not found"));
   }
 
   /**
