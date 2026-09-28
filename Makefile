@@ -16,28 +16,11 @@ GIT_BRANCH				?=
 FULL_VERSION            := v$(APP_VERSION)-g$(GIT_VERSION)
 DOCKER_TAG              := $(shell grep "^version =" build.gradle | sed 's/version = //; s/"//g; s/.RELEASE//')
 DOCKER_IMAGE            ?= $(SERVICE):$(DOCKER_TAG)
-ES_PORT                 ?= 9201
-ES_SCHEME               ?= http
-GRAPH_DB_PORT           ?= 3030
-GRAPH_DB                ?= NCIT2
-DOCKER_PORT             ?= 8082
-DOCKER_ES_HOST          ?= host.docker.internal
-DOCKER_GRAPH_DB_HOST    ?= host.docker.internal
-DOCKER_SECRETS_DIR      ?= $(CURDIR)/.docker-secrets
-DOCKER_IMAGE_STAMP      := build/.docker-image-$(subst :,_,$(subst /,_,$(DOCKER_IMAGE)))
-DOCKER_BUILD_INPUTS     := Dockerfile .dockerignore build.gradle gradle.properties $(shell git ls-files --cached --others --exclude-standard src/main)
+DOCKER_IMG              := $(shell docker images | grep $(SERVICE) | grep " $(DOCKER_TAG) " | perl -pe 's/ +/ /g;' | cut -d\  -f 3 )
 
 GRADLEW                 ?= ./gradlew
 
-ifeq ($(OS),Windows_NT)
-DOCKER                  ?= docker.exe
-DOCKER_HOST_GATEWAY_ARG :=
-else
-DOCKER                  ?= docker
-DOCKER_HOST_GATEWAY_ARG := --add-host host.docker.internal:host-gateway
-endif
-
-.PHONY: build docker dockerpush scandocker rundocker check-docker-secrets scan
+.PHONY: build docker dockerpush scandocker rundocker scan
 
 # consider also "docker save..." and "docker load..." to avoid registry.
 clean:
@@ -52,53 +35,43 @@ run: build
 	java -Dspring.profiles.active=local -jar build/libs/evsrestapi*.war
 
 # Build the application and image in an isolated Linux/AMD64 Docker build environment.
-docker: $(DOCKER_IMAGE_STAMP)
-	@$(DOCKER) image inspect "$(DOCKER_IMAGE)" > /dev/null 2>&1 || { rm -f "$(DOCKER_IMAGE_STAMP)"; $(MAKE) --no-print-directory "$(DOCKER_IMAGE_STAMP)"; }
-	@echo "Docker image $(DOCKER_IMAGE) is up to date."
+docker:
 
-$(DOCKER_IMAGE_STAMP): $(DOCKER_BUILD_INPUTS)
-	$(DOCKER) build --platform linux/amd64 --tag "$(DOCKER_IMAGE)" .
-	@mkdir -p "$(dir $@)"
-	@touch "$@"
+# Remove prior docker image if it is built
+ifdef DOCKER_IMG
+	docker rmi -f $(DOCKER_IMG)
+else
+	@echo No docker image to remove
+endif
+ 
+	@echo x $(DOCKER_IMG)
+
+	docker build --platform linux/amd64 --no-cache-filter=gradle-build --tag "$(DOCKER_IMAGE)" .
 
 # Build and push a Linux/AMD64 image. Override DOCKER_IMAGE with a registry-qualified image name.
 dockerpush:
-	$(DOCKER) buildx build --platform linux/amd64 --tag "$(DOCKER_IMAGE)" --push .
+	docker push --platform linux/amd64 "$(DOCKER_IMAGE)"
 
 # Report all HIGH and CRITICAL image vulnerabilities with their installed and fixed versions.
 # The complete HTML report is written to report-docker.html.
-scandocker: docker
-	trivy image "$(DOCKER_IMAGE)" --scanners vuln --severity HIGH,CRITICAL --format table
-	trivy image "$(DOCKER_IMAGE)" --scanners vuln --format template -o report-docker.html --template "@config/trivy/html.tpl"
-
-
-
-# Require a local, ignored directory of Spring Boot config-tree secret files.
-check-docker-secrets:
-	@test -d "$(DOCKER_SECRETS_DIR)" || (echo "ERROR: Create $(DOCKER_SECRETS_DIR) and add secret files before running rundocker." && exit 1)
+scandocker:
+	docker save -o scan.tar $(DOCKER_IMAGE)
+	trivy image --input scan.tar $(DOCKER_IMAGE) --format template -o report.html --template "@config/trivy/html.tpl"
+	egrep "CRITICAL|HIGH" report.html
+	/bin/rm -f scan.tar
 
 # Run against Jena/Fuseki and OpenSearch services exposed on the Docker host.
-# Secrets are mounted read-only and imported from /run/secrets rather than passed as environment variables.
-# Override DOCKER_ES_HOST, DOCKER_GRAPH_DB_HOST, ports, or the secrets directory as needed.
-rundocker: docker check-docker-secrets
-	$(DOCKER) run --rm --name "$(SERVICE)" -p "$(DOCKER_PORT):8082" $(DOCKER_HOST_GATEWAY_ARG) \
-		--mount type=bind,src="$(DOCKER_SECRETS_DIR)",dst=/run/secrets,readonly \
-		-e SPRING_CONFIG_IMPORT=optional:configtree:/run/secrets/ \
-		-e SPRING_PROFILES_ACTIVE=local \
+# Some env is not represented here which is intended to run locally (e.g. MAIL_*, RECAPTCHA_KEY, CONFIG_BASE_URI
+# This runs in the foreground, add -d to run in the background
+rundocker:
+	docker run --rm --name "$(SERVICE)" -p "8082:8082" \
 		-e EVS_SERVER_PORT=8082 \
-		-e ES_HOST="$(DOCKER_ES_HOST)" \
-		-e ES_PORT="$(ES_PORT)" \
-		-e ES_SCHEME="$(ES_SCHEME)" \
-		-e GRAPH_DB_HOST="$(DOCKER_GRAPH_DB_HOST)" \
-		-e GRAPH_DB_PORT="$(GRAPH_DB_PORT)" \
-		-e GRAPH_DB="$(GRAPH_DB)" \
-		-e CONFIG_BASE_URI \
-		-e MAIL_HOST \
-		-e MAIL_PORT \
-		-e MAIL_AUTH \
-		-e MAIL_TLS \
-		-e MAIL_RECIPIENT \
-		-e RECAPTCHA_KEY \
+		-e ES_HOST="host.docker.internal" \
+		-e ES_PORT="9201" \
+		-e ES_SCHEME="http" \
+		-e GRAPH_DB_HOST="host.docker.internal" \
+		-e GRAPH_DB_PORT="3030" \
+		-e GRAPH_DB="NCIT2" \
 		"$(DOCKER_IMAGE)"
 
 test:
