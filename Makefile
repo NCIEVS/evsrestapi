@@ -16,7 +16,7 @@ GIT_BRANCH				?=
 FULL_VERSION            := v$(APP_VERSION)-g$(GIT_VERSION)
 DOCKER_TAG              := $(shell grep "^version =" build.gradle | sed 's/version = //; s/"//g; s/.RELEASE//')
 DOCKER_IMAGE            ?= $(SERVICE):$(DOCKER_TAG)
-DOCKER_IMG              := $(shell docker images | grep $(SERVICE) | grep " $(DOCKER_TAG) " | perl -pe 's/ +/ /g;' | cut -d\  -f 3 )
+DOCKER_IMG              := $(shell docker images -q "$(DOCKER_IMAGE)")
 
 GRADLEW                 ?= ./gradlew
 
@@ -43,7 +43,7 @@ ifdef DOCKER_IMG
 else
 	@echo No docker image to remove
 endif
- 
+
 	@echo x $(DOCKER_IMG)
 
 	docker build --platform linux/amd64 --no-cache-filter=gradle-build --tag "$(DOCKER_IMAGE)" .
@@ -56,8 +56,8 @@ dockerpush:
 # The complete HTML report is written to report-docker.html.
 scandocker:
 	docker save -o scan.tar $(DOCKER_IMAGE)
-	trivy image --input scan.tar $(DOCKER_IMAGE) --format template -o report.html --template "@config/trivy/html.tpl"
-	egrep "CRITICAL|HIGH" report.html
+	trivy image --input scan.tar --scanners vuln --severity HIGH,CRITICAL --format table
+	trivy image --input scan.tar --scanners vuln --format template -o report-docker.html --template "@config/trivy/html.tpl"
 	/bin/rm -f scan.tar
 
 # Run against Jena/Fuseki and OpenSearch services exposed on the Docker host.
@@ -65,6 +65,8 @@ scandocker:
 # This runs in the foreground, add -d to run in the background
 rundocker:
 	docker run --rm --name "$(SERVICE)" -p "8082:8082" \
+		--add-host host.docker.internal:host-gateway \
+		-e SPRING_PROFILES_ACTIVE=local \
 		-e EVS_SERVER_PORT=8082 \
 		-e ES_HOST="host.docker.internal" \
 		-e ES_PORT="9201" \
@@ -75,7 +77,7 @@ rundocker:
 		"$(DOCKER_IMAGE)"
 
 test:
-	$(GRADLEW) spotlessCheck -x test
+	$(GRADLEW) spotlessCheck test
 
 releasetag:
 	git tag -a "${VERSION}-RC-`/bin/date +%Y-%m-%d`" -m "Release ${VERSION}-RC-`/bin/date +%Y-%m-%d`"

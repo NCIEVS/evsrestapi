@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.configuration;
 
 import java.io.IOException;
+import java.net.URI;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
@@ -26,22 +27,26 @@ final class EvsOpenSearchRequestLoggingInterceptor implements HttpRequestInterce
     logger.debug(
         "opensearch request = {} {} index={} contentType={} payload={}",
         request.getMethod(),
-        getRequestUrl(requestUri, context),
+        getRequestUrl(request),
         getRequestIndex(getRequestPath(requestUri)),
         entity == null ? "<none>" : entity.getContentType(),
         "<unavailable from the HTTP Components 5 async interceptor>");
   }
 
-  private String getRequestUrl(final String requestUri, final HttpContext context) {
+  private String getRequestUrl(final HttpRequest request) {
+    final String requestUri = request.getRequestUri();
     if (requestUri.startsWith("http://") || requestUri.startsWith("https://")) {
       return requestUri;
+    }
+    if (request.getScheme() != null && request.getAuthority() != null) {
+      return request.getScheme() + "://" + request.getAuthority() + requestUri;
     }
     return requestUri;
   }
 
   private String getRequestPath(final String requestUri) {
-    final int queryIndex = requestUri.indexOf('?');
-    return queryIndex < 0 ? requestUri : requestUri.substring(0, queryIndex);
+    final String path = URI.create(requestUri).getPath();
+    return path == null ? requestUri : path;
   }
 
   private String getRequestIndex(final String requestPath) {

@@ -7,6 +7,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import java.net.URI;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.jupiter.api.AfterEach;
@@ -46,7 +47,7 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
 
   private String process(final String method, final String uri) throws Exception {
     new EvsOpenSearchRequestLoggingInterceptor()
-        .process(new BasicHttpRequest(method, uri), null, HttpCoreContext.create());
+        .process(new BasicHttpRequest(method, URI.create(uri)), null, HttpCoreContext.create());
     assertEquals(1, appender.list.size());
     return appender.list.getFirst().getFormattedMessage();
   }
@@ -56,10 +57,13 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
     final String message =
         process("POST", "/my-index-000001/_search?typed_keys=true&search_type=query_then_fetch");
 
-    assertTrue(message.contains("POST /my-index-000001/_search?typed_keys=true&search_type=query_then_fetch"));
+    assertTrue(
+        message.contains(
+            "POST /my-index-000001/_search?typed_keys=true&search_type=query_then_fetch"));
     assertTrue(message.contains("index=my-index-000001"));
     assertTrue(message.contains("contentType=<none>"));
-    assertTrue(message.contains("payload=<unavailable from the HTTP Components 5 async interceptor>"));
+    assertTrue(
+        message.contains("payload=<unavailable from the HTTP Components 5 async interceptor>"));
   }
 
   @Test
