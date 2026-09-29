@@ -3,9 +3,8 @@ Bundle-Description: WebJar for Swagger UI
 Bundle-License: https://github.com/swagger-api/swagger-ui
 Bundle-SymbolicName: org.webjars.swagger-ui
 Bundle-Name: Swagger UI
-Bundle-Version: 5.18.2
+Bundle-Version: 5.31.0
 Bundle-ManifestVersion: 2
 Build-Jdk-Spec: 1.8
 Created-By: Apache Maven Bundle Plugin 5.1.4
 Tool: Bnd-5.1.1.202006162103
-

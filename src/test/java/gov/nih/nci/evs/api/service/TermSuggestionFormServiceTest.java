@@ -14,7 +14,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -23,7 +22,6 @@ import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 /** Test class for the email form service class. */
 @SpringBootTest
-@ExtendWith(SpringExtension.class)
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
 @AutoConfigureMockMvc
 // @ContextConfiguration(classes = TestConfiguration.class)
 public class TermSuggestionFormServiceTest {
@@ -66,9 +65,6 @@ public class TermSuggestionFormServiceTest {
 
   /** The application properties. DO NOT mock this, as it needs to pick up the actual properties. */
   @Autowired private ApplicationProperties applicationProperties;
-
-  /** The object mapper. */
-  @Mock private ObjectMapper objectMapper;
 
   /** The term form service. */
   // Inject mocks automatically into FormEmailServiceImpl
@@ -115,11 +111,7 @@ public class TermSuggestionFormServiceTest {
   public void testGetFormTemplate() throws Exception {
     // SET UP
     String formType = "ncit-form";
-    JsonNode termForm = ThreadLocalMapper.get().createObjectNode();
-
     assertEquals(configUrl, applicationProperties.getConfigBaseUri());
-    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json").openStream()))
-        .thenReturn(termForm);
 
     // ACT
     JsonNode returnedForm = termFormService.getFormTemplate(formType);
@@ -243,8 +235,6 @@ public class TermSuggestionFormServiceTest {
     String filePath = configUrl + "/" + formType + ".json";
 
     assertEquals(configUrl, applicationProperties.getConfigBaseUri());
-    // when(objectMapper.readTree(any(URL.class).openStream())).thenReturn(termForm);
-
     // ACT & ASSERT
 
     try (MockedStatic<EVSUtils> mockedUtils = Mockito.mockStatic(EVSUtils.class)) {
