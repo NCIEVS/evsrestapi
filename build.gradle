@@ -26,7 +26,7 @@ plugins {
   id 'maven-publish'
   // google java format gradle plugin
   id "com.diffplug.spotless" version "6.25.0"
-  id "com.github.spotbugs" version "6.0.26"
+  id "com.github.spotbugs" version "6.5.12"
 }
 
 repositories {
@@ -260,7 +260,7 @@ spotless {
   java {
     target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
     // apply a specific flavor of google-java-format
-    googleJavaFormat('1.22.0').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')
+    googleJavaFormat('1.28.0').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')
     removeUnusedImports()
     // fix formatting of type annotations
 //        formatAnnotations()
