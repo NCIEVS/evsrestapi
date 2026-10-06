@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
         @Info(
             title = "NCI EVS Rest API",
             version = "2.5.0.RELEASE",
+            version = "2.4.1.RELEASE",
             termsOfService = "https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ThesaurusTermsofUse.htm",
             description =
                 "Endpoints to support searching, metadata, and content retrieval for EVS"
