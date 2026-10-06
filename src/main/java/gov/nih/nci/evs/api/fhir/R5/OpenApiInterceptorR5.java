@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -457,6 +456,7 @@ public class OpenApiInterceptorR5 {
     context.setVariable("BANNER_IMAGE_URL", getBannerImage());
     context.setVariable("OPENAPI_DOCS", baseUrl + "/api-docs");
     context.setVariable("FHIR_VERSION", cs.getFhirVersion().toCode());
+    context.setVariable("CURRENT_API", "FHIR R5 API");
     context.setVariable("ADDITIONAL_CSS_TEXT", getCssText());
     context.setVariable("USE_RESOURCE_PAGES", isUseResourcePages());
     context.setVariable(
@@ -510,7 +510,7 @@ public class OpenApiInterceptorR5 {
     String page;
     // If a page is specified in the request, use it
     if (isUseResourcePages()) {
-      page = extractPageName(theRequestDetails, PAGE_SYSTEM);
+      page = extractPageName(theRequestDetails, PAGE_ALL);
     } else {
       page = PAGE_ALL;
     }
@@ -1065,10 +1065,7 @@ public class OpenApiInterceptorR5 {
           populateOperation(
               theFhirContext, theOpenApi, null, operationDefinition, operation, false);
           operation.setSummary(operationDefinition.getCode());
-          operation.setSummary(
-              unCamelCase(theResourceType)
-                  + " operation to perform "
-                  + operationDefinition.getCode());
+          operation.setSummary("System operation to perform " + operationDefinition.getCode());
         }
       }
     }
@@ -1648,7 +1645,8 @@ public class OpenApiInterceptorR5 {
           builder.append(UrlUtil.escapeUrlParam(nextEntry.getKey()));
           builder.append("=");
           builder.append(
-              UrlUtil.escapeUrlParam(defaultIfNull(nextEntry.getValue(), "").toString()));
+              UrlUtil.escapeUrlParam(
+                  nextEntry.getValue() == null ? "" : nextEntry.getValue().toString()));
           if (iter.hasNext()) {
             builder.append("&");
           }

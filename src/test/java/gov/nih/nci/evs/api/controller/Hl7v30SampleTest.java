@@ -1,0 +1,177 @@
+package gov.nih.nci.evs.api.controller;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+/** HL7V3.0 samples test. */
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+public class Hl7v30SampleTest extends SampleTest {
+
+  /** The logger. */
+  private static final Logger log = LoggerFactory.getLogger(Hl7v30SampleTest.class);
+
+  /** The duplicate code definition. */
+  private static final String DUPLICATE_CODE_DEFINITION =
+      "The code for this concept is reused across multiple contexts and so a differentiating value"
+          + " has been used to make the code values unique.";
+
+  /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
+  @Autowired private MockMvc testMvc;
+
+  /**
+   * Setup class.
+   *
+   * @throws Exception the exception
+   */
+  @BeforeAll
+  public static void setupClass() throws Exception {
+    loadSamples("hl7v30", "src/test/resources/samples/hl7v30-samples.txt");
+  }
+
+  @Test
+  public void testDuplicateCodeDisambiguation() throws Exception {
+
+    String url = "/api/v1/concept/search?terminology=hl7v30&term=21&include=parents&pageSize=20";
+    log.info("Testing url - " + url);
+    MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
+    gov.nih.nci.evs.api.model.ConceptResultList list =
+        ThreadLocalMapper.get()
+            .readValue(content, gov.nih.nci.evs.api.model.ConceptResultList.class);
+
+    assertThat(list).isNotNull();
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThanOrEqualTo(2);
+    assertThat(list.getConcepts()).extracting(Concept::getCode).contains("21-11260", "21-11652");
+
+    Concept varicella =
+        list.getConcepts().stream()
+            .filter(concept -> concept.getCode().equals("21-11260"))
+            .findFirst()
+            .orElseThrow();
+    Concept tribe =
+        list.getConcepts().stream()
+            .filter(concept -> concept.getCode().equals("21-11652"))
+            .findFirst()
+            .orElseThrow();
+
+    assertThat(varicella.getCode()).isEqualTo("21-11260");
+    assertThat(varicella.getTerminology()).isEqualTo("hl7v30");
+    assertThat(varicella.getName()).isEqualTo("varicella");
+    assertThat(varicella.getParents()).isNotNull();
+
+    assertThat(tribe.getCode()).isEqualTo("21-11652");
+    assertThat(tribe.getTerminology()).isEqualTo("hl7v30");
+    assertThat(tribe.getName()).isEqualTo("Blue Lake Rancheria, California");
+    assertThat(tribe.getParents()).isNotNull();
+
+    url = "/api/v1/concept/hl7v30/21";
+    log.info("Testing url - " + url);
+    testMvc.perform(get(url)).andExpect(status().isNotFound());
+
+    assertDuplicateCodeMetadata("21-11260");
+    assertDuplicateCodeMetadata("21-11652");
+  }
+
+  @Test
+  public void testSearchByOriginalCode() throws Exception {
+
+    assertOriginalCodeSearch(
+        "/api/v1/concept/search?terminology=hl7v30&type=contains&codeList=21"
+            + "&include=properties&pageSize=20");
+  }
+
+  @Test
+  public void testMatchSearchByOriginalCode() throws Exception {
+
+    assertOriginalCodeSearch(
+        "/api/v1/concept/search?terminology=hl7v30&type=match&term=21&include=properties"
+            + "&pageSize=20");
+    assertOriginalCodeSearch(
+        "/api/v1/concept/search?terminology=hl7v30&type=startsWith&term=21&include=properties"
+            + "&pageSize=20");
+  }
+
+  /**
+   * Assert original code search.
+   *
+   * @param url the url
+   * @throws Exception the exception
+   */
+  private void assertOriginalCodeSearch(final String url) throws Exception {
+    log.info("Testing url - " + url);
+    final MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
+    gov.nih.nci.evs.api.model.ConceptResultList list =
+        ThreadLocalMapper.get()
+            .readValue(content, gov.nih.nci.evs.api.model.ConceptResultList.class);
+
+    assertThat(list).isNotNull();
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThanOrEqualTo(2);
+    assertThat(list.getConcepts()).extracting(Concept::getCode).contains("21-11260", "21-11652");
+    assertThat(
+            list.getConcepts().stream()
+                .filter(
+                    concept ->
+                        concept.getCode().equals("21-11260")
+                            || concept.getCode().equals("21-11652")))
+        .allSatisfy(this::assertOriginalCodeProperty);
+  }
+
+  /**
+   * Assert duplicate code metadata.
+   *
+   * @param code the differentiated code
+   * @throws Exception the exception
+   */
+  private void assertDuplicateCodeMetadata(final String code) throws Exception {
+    final String url = "/api/v1/concept/hl7v30/" + code + "?include=definitions,properties";
+    log.info("Testing url - " + url);
+    final MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
+    Concept differentiatedConcept = ThreadLocalMapper.get().readValue(content, Concept.class);
+    assertThat(differentiatedConcept.getDefinitions())
+        .extracting(definition -> definition.getDefinition())
+        .contains(DUPLICATE_CODE_DEFINITION);
+    assertOriginalCodeProperty(differentiatedConcept);
+  }
+
+  /**
+   * Assert original code property.
+   *
+   * @param concept the concept
+   */
+  private void assertOriginalCodeProperty(final Concept concept) {
+    assertThat(concept.getProperties())
+        .anySatisfy(
+            property -> {
+              assertThat(property.getType()).isEqualTo("Original_Code");
+              assertThat(property.getValue()).isEqualTo("21");
+            });
+  }
+}

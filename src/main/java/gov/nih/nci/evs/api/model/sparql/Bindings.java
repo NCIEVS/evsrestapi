@@ -108,6 +108,9 @@ public class Bindings {
   /** The group (for role grouping). */
   private Property group;
 
+  /** The restriction. */
+  private Property restriction;
+
   /**
    * Returns the property value.
    *
@@ -728,5 +731,23 @@ public class Bindings {
    */
   public void setGroup(Property group) {
     this.group = group;
+  }
+
+  /**
+   * Returns the restriction.
+   *
+   * @return the restriction
+   */
+  public Property getRestriction() {
+    return restriction;
+  }
+
+  /**
+   * Sets the restriction.
+   *
+   * @param restriction the restriction
+   */
+  public void setRestriction(Property restriction) {
+    this.restriction = restriction;
   }
 }

@@ -276,7 +276,11 @@ public final class TerminologyUtils {
    * @throws Exception the exception
    */
   public String getTerminologyName(final String terminology) throws Exception {
-    return terminology.replaceFirst("(?<!snomedct)_.*", "");
+    String name = terminology.replaceFirst("(?<!snomedct)_.*", "");
+    if (name.equals("hl7v30")) {
+      return "hl7v3.0";
+    }
+    return name;
   }
 
   /**

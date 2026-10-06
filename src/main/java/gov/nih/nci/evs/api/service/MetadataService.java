@@ -4,6 +4,7 @@ import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -268,6 +269,15 @@ public interface MetadataService {
    * @throws Exception the exception
    */
   String getWelcomeText(String terminology) throws Exception;
+
+  /**
+   * Returns the terminology stats.
+   *
+   * @param terminology the terminology
+   * @return the terminology stats
+   * @throws Exception the exception
+   */
+  TerminologyStats getTerminologyStats(String terminology) throws Exception;
 
   /**
    * Returns the source stats.

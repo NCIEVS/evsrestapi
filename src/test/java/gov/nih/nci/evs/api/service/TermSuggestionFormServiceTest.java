@@ -83,7 +83,7 @@ public class TermSuggestionFormServiceTest {
   private final String source = "NCIT";
 
   /** The to email. */
-  private final String toEmail = "agarcia@westcoastinformatics.com";
+  private final String toEmail = "ncithesaurus@mail.nih.gov";
 
   /** The from email. */
   private final String fromEmail = "test@example.com";
@@ -269,6 +269,7 @@ public class TermSuggestionFormServiceTest {
   public void testSendEmail() throws Exception {
     // SET UP
     testEmailDetails = createEmail();
+    populateValidEmails();
     when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
     doNothing().when(javaMailSender).send(any(MimeMessage.class));
 
@@ -288,6 +289,7 @@ public class TermSuggestionFormServiceTest {
   public void testSendEmailThrowsException() throws Exception {
     // SETUP
     testEmailDetails = createEmail();
+    populateValidEmails();
     when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
 
     // ACT
@@ -528,5 +530,20 @@ public class TermSuggestionFormServiceTest {
     testEmailDetails.setMsgBody(msgBody);
 
     return testEmailDetails;
+  }
+
+  /**
+   * Populate the service's valid email set the same way the controller flow does: by loading the
+   * form template before sending. The remote fetch is mocked so the test stays hermetic.
+   *
+   * @throws Exception the exception
+   */
+  private void populateValidEmails() throws Exception {
+    try (MockedStatic<EVSUtils> mockedUtils = Mockito.mockStatic(EVSUtils.class)) {
+      mockedUtils
+          .when(() -> EVSUtils.getValueFromFile(anyString()))
+          .thenReturn("{\"recipientEmail\": \"" + toEmail + "\"}");
+      termFormService.getFormTemplate("ncit-form");
+    }
   }
 }

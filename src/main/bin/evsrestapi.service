@@ -1,0 +1,17 @@
+[Unit]
+Description=EVS Restapi
+After=network-online.target
+
+[Service]
+User=evsuser
+Group=evsuser
+Environment=JAVA_HOME=/usr/openjdk11
+ExecStart=/local/content/evsrestapi/evsrestapi/bin/evsrestapi start
+ExecStop=/local/content/evsrestapi/evsrestapi/bin/evsrestapi stop
+WorkingDirectory=/local/content/evsrestapi/evsrestapi/bin
+Type=forking
+#Restart=always
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

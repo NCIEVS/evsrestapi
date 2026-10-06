@@ -1794,6 +1794,53 @@ public class SearchControllerTests {
         currentExact = false; // should be at end of exact matches
       }
     }
+
+    // Show definitions logic for contains case works - single word
+    log.info(
+        "Testing url - "
+            + url
+            + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=arachnodactyly&type=OR");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "arachnodactyly")
+                    .param("pageSize", "100")
+                    .param("type", "contains")
+                    .param("include", "synonyms,properties,definitions"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+
+    // multiple words
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    // Should match C35809
+    assertThat(conceptList.stream().filter(c -> c.getCode().equals("C35809")).count()).isEqualTo(1);
+    // Show definitions logic for OR case works - single word
+    log.info(
+        "Testing url - "
+            + url
+            + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=arachnodactyly%xxx&type=OR");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "arachnodactyly xxx")
+                    .param("pageSize", "100")
+                    .param("type", "contains")
+                    .param("include", "synonyms,properties,definitions"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    // Does not match C35809 (because of AND logic)
+    assertThat(conceptList.stream().filter(c -> c.getCode().equals("C35809")).count()).isEqualTo(0);
   }
 
   /**
@@ -1914,6 +1961,57 @@ public class SearchControllerTests {
     // The first one should contain the word "corona" (e.g. crown, corona
     // dentist)
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C4016");
+  }
+
+  /**
+   * Test contains search with optional classification phrases.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchContainsOptionalPhrases() throws Exception {
+    for (final String term :
+        new String[] {
+          "Medulloblastoma, NEC",
+          "medulloblastoma, not elsewhere classified",
+          "Medulloblastoma, NOS",
+          "medulloblastoma, Not Otherwise Specified"
+        }) {
+      log.info("Testing optional search phrase term - {}", term);
+
+      final MvcResult result =
+          mvc.perform(
+                  get(baseUrl)
+                      .param("terminology", "ncit")
+                      .param("term", term)
+                      .param("type", "contains")
+                      .param("pageSize", "10")
+                      .param("include", "summary,synonyms"))
+              .andExpect(status().isOk())
+              .andReturn();
+
+      final String content = result.getResponse().getContentAsString();
+      log.info("  content = " + content);
+      final ConceptResultList list =
+          ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+
+      assertThat(list.getConcepts()).isNotEmpty();
+
+      int medulloblastomaIndex = -1;
+      for (int i = 0; i < list.getConcepts().size(); i++) {
+        if ("C3222".equals(list.getConcepts().get(i).getCode())) {
+          medulloblastomaIndex = i;
+          break;
+        }
+      }
+
+      final int expectedMaxIndex = "Medulloblastoma, NEC".equals(term) ? 0 : 1;
+      assertThat(medulloblastomaIndex)
+          .as("C3222 should be near the top for term '%s'", term)
+          .isBetween(0, expectedMaxIndex);
+      assertThat(list.getConcepts().get(medulloblastomaIndex).getName())
+          .isEqualTo("Medulloblastoma");
+    }
   }
 
   /**
@@ -2378,6 +2476,53 @@ public class SearchControllerTests {
         assertThat(found);
       }
     }
+
+    // Show definitions logic for OR case works - single word
+    log.info(
+        "Testing url - "
+            + url
+            + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=arachnodactyly&type=OR");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "arachnodactyly")
+                    .param("pageSize", "100")
+                    .param("type", "OR")
+                    .param("include", "synonyms,properties,definitions"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+
+    // multiple words
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    // Should match C35809
+    assertThat(conceptList.stream().filter(c -> c.getCode().equals("C35809")).count()).isEqualTo(1);
+    // Show definitions logic for OR case works - single word
+    log.info(
+        "Testing url - "
+            + url
+            + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=arachnodactyly%xxx&type=OR");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "arachnodactyly xxx")
+                    .param("pageSize", "100")
+                    .param("type", "OR")
+                    .param("include", "synonyms,properties,definitions"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    // Should match C35809 (because of OR logic)
+    assertThat(conceptList.stream().filter(c -> c.getCode().equals("C35809")).count()).isEqualTo(1);
   }
 
   /**
@@ -5073,6 +5218,187 @@ public class SearchControllerTests {
                 .filter(c -> c.getName().equals("Acute lymphoblastic leukemia"))
                 .count())
         .isEqualTo(1);
+  }
+
+  /**
+   * Test terms with boolean logic words. The parameter sets here are designed to model what the UI
+   * does when searching
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTermsWithBooleanLogicWords() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // Terms
+    for (final String term :
+        new String[] {
+          "Not Reported", "Do Not Own Smartphone or Tablet", "Date and Time of Death"
+        }) {
+
+      // Types
+      for (final String type :
+          new String[] {"contains", "match", "startsWith", "phrase", "fuzzy", "AND", "OR"}) {
+        url = baseUrl;
+        log.info(
+            "Testing url - "
+                + url
+                + "?terminology=ncit&term="
+                + term.replaceAll(" ", "%20")
+                + "&type="
+                + type);
+
+        // Test a basic term search
+        result =
+            this.mvc
+                .perform(
+                    get(url).param("terminology", "ncit").param("term", term).param("type", type))
+                .andExpect(status().isOk())
+                .andReturn();
+        content = result.getResponse().getContentAsString();
+        log.info("  content = " + content);
+        assertThat(content).isNotNull();
+
+        ConceptResultList list =
+            ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+        // Verify results
+        assertThat(list.getConcepts().size()).isGreaterThan(0);
+        // Verify top result is the concept name
+        assertThat(list.getConcepts().get(0).getName().toLowerCase()).isEqualTo(term.toLowerCase());
+      }
+    }
+  }
+
+  /**
+   * Test terms with single boolean logic words.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTermsWithSingleBooleanLogicWords() throws Exception {
+    String url = null;
+
+    // Terms
+    for (final String term : new String[] {"and", "or", "not"}) {
+
+      // Types
+      for (final String type :
+          new String[] {"contains", "match", "startsWith", "phrase", "fuzzy", "AND", "OR"}) {
+        url = baseUrl;
+        log.info(
+            "Testing url - "
+                + url
+                + "?terminology=ncit&term="
+                + term.replaceAll(" ", "%20")
+                + "&type="
+                + type);
+
+        // Test a basic term search - just verify call success
+        this.mvc
+            .perform(get(url).param("terminology", "ncit").param("term", term).param("type", type))
+            .andExpect(status().isOk());
+      }
+    }
+  }
+
+  /**
+   * Test contains searches that combine a concept code with name or synonym text.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeAndNameSearches() throws Exception {
+    assertCodeAndNameSearch("hl7v30", "91 typhoid", "91-11258", "typhoid");
+    assertCodeAndNameSearch("hl7v30", "typhoid 91", "91-11258", "typhoid");
+
+    assertCodeAndNameSearch("ncit", "C3224 melanoma", "C3224", "melanoma");
+    assertCodeAndNameSearch("ncit", "melanoma C3224", "C3224", "melanoma");
+    assertCodeAndNameSearch("ncit", "C3224 malignant melanoma", "C3224", "malignant", "melanoma");
+    assertCodeAndNameSearch("ncit", "malignant melanoma C3224", "C3224", "malignant", "melanoma");
+  }
+
+  /**
+   * Assert code and name search.
+   *
+   * @param terminology the terminology
+   * @param term the search term
+   * @param expectedCode the expected top result code
+   * @param expectedWords the words expected in the top result name or one synonym
+   * @throws Exception the exception
+   */
+  private void assertCodeAndNameSearch(
+      final String terminology,
+      final String term,
+      final String expectedCode,
+      final String... expectedWords)
+      throws Exception {
+    final MvcResult result =
+        mvc.perform(
+                get(baseUrl)
+                    .param("terminology", terminology)
+                    .param("term", term)
+                    .param("type", "contains")
+                    .param("include", "summary,synonyms")
+                    .param("pageSize", "10"))
+            .andExpect(status().isOk())
+            .andReturn();
+    final String content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+
+    final ConceptResultList list =
+        ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts()).isNotEmpty();
+
+    log.info("Top results for code and name search '{}':", term);
+    for (int i = 0; i < Math.min(5, list.getConcepts().size()); i++) {
+      final Concept concept = list.getConcepts().get(i);
+      log.info("  {}. {} ({})", i + 1, concept.getName(), concept.getCode());
+    }
+
+    final Concept topResult = list.getConcepts().get(0);
+    assertThat(topResult.getCode()).isEqualTo(expectedCode);
+    assertThat(nameOrSynonymContainsAllWords(topResult, expectedWords))
+        .as("Expected top result name or synonym to contain %s for term '%s'", expectedWords, term)
+        .isTrue();
+  }
+
+  /**
+   * Indicates whether a concept name or one synonym contains all expected words.
+   *
+   * @param concept the concept
+   * @param expectedWords the expected words
+   * @return true if the concept name or one synonym contains all expected words
+   */
+  private boolean nameOrSynonymContainsAllWords(
+      final Concept concept, final String... expectedWords) {
+    if (containsAllWords(concept.getName(), expectedWords)) {
+      return true;
+    }
+    return concept.getSynonyms().stream()
+        .anyMatch(synonym -> containsAllWords(synonym.getName(), expectedWords));
+  }
+
+  /**
+   * Indicates whether a value contains all expected words.
+   *
+   * @param value the value
+   * @param expectedWords the expected words
+   * @return true if the value contains all expected words
+   */
+  private boolean containsAllWords(final String value, final String... expectedWords) {
+    if (value == null) {
+      return false;
+    }
+    final String lowerValue = value.toLowerCase();
+    for (final String expectedWord : expectedWords) {
+      if (!lowerValue.contains(expectedWord.toLowerCase())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

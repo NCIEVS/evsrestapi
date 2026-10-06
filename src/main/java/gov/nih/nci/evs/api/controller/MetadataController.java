@@ -5,7 +5,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -130,15 +130,7 @@ public class MetadataController extends BaseController {
       }
 
       for (final Terminology term : terms) {
-        // For internal use
-        term.setSource(null);
-        term.setIndexName(null);
-        term.setObjectIndexName(null);
-        final TerminologyMetadata meta = term.getMetadata();
-        // Some terminologies may not have metadata
-        if (meta != null) {
-          meta.cleanForApi();
-        }
+        term.cleanForApi();
       }
 
       return terms;
@@ -1764,16 +1756,65 @@ public class MetadataController extends BaseController {
   }
 
   /**
+   * Returns the terminology stats.
+   *
+   * @param terminology the terminology
+   * @return the terminology stats
+   * @throws Exception the exception
+   */
+  @Operation(
+      summary = "Get terminology-level load statistics for the specified terminology.",
+      description =
+          "Returns the stats object stored on the terminology, including load-computed counts"
+              + " and hierarchy statistics from the latest reindex. This is different from"
+              + " /metadata/{terminology}/stats/{source}, which returns source-specific overlap"
+              + " statistics, primarily for NCIm.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieved the requested information"),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Resource not found",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+    @Parameter(
+        name = "terminology",
+        description = "Terminology, e.g. 'go' or 'ncit'.",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "go")
+  })
+  @RecordMetric
+  @GetMapping(value = "/metadata/{terminology}/stats", produces = "application/json")
+  public @ResponseBody TerminologyStats getTerminologyStats(
+      @PathVariable(value = "terminology") final String terminology) throws Exception {
+    try {
+      return metadataService.getTerminologyStats(terminology);
+    } catch (Exception e) {
+      handleException(e, terminology);
+      return null;
+    }
+  }
+
+  /**
    * Returns the source stats.
    *
    * @param terminology the terminology
    * @param source the source
-   * @return the subset
+   * @return the source stats
    * @throws Exception the exception
    */
   @Operation(
-      summary = "Get statistics for the source within the specified terminology.",
-      description = "This endpoint is mostly for NCIm to make source overlap statistics available.")
+      summary = "Get source-specific overlap statistics within the specified terminology.",
+      description =
+          "Returns source-level statistics for a source code, such as LNC in NCIm. This is"
+              + " different from /metadata/{terminology}/stats, which returns terminology-level"
+              + " load statistics such as concept counts and hierarchy statistics.")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",

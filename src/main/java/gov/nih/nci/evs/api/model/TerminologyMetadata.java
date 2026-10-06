@@ -176,6 +176,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The history version. */
   private String historyVersion;
 
+  /** The duplicate codes flag. */
+  private Boolean duplicateCodes;
+
   /** Instantiates an empty {@link TerminologyMetadata}. */
   public TerminologyMetadata() {
     // n/a
@@ -249,6 +252,7 @@ public class TerminologyMetadata extends BaseModel {
     indexRuntime = other.getIndexRuntime();
     historyVersion = other.getHistoryVersion();
     extraSubsets = new HashMap<>(other.getExtraSubsets());
+    duplicateCodes = other.getDuplicateCodes();
   }
 
   /* see superclass */
@@ -1512,5 +1516,23 @@ public class TerminologyMetadata extends BaseModel {
     } else {
       return " other";
     }
+  }
+
+  /**
+   * Returns the duplicate codes flag.
+   *
+   * @return the duplicate codes flag
+   */
+  public Boolean getDuplicateCodes() {
+    return duplicateCodes;
+  }
+
+  /**
+   * Sets the duplicate codes flag.
+   *
+   * @param duplicateCodes the duplicate codes flag
+   */
+  public void setDuplicateCodes(Boolean duplicateCodes) {
+    this.duplicateCodes = duplicateCodes;
   }
 }

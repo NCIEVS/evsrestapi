@@ -180,6 +180,12 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
 
   /* see superclass */
   @Override
+  public boolean indexExists(String index) {
+    return operations.indexOps(IndexCoordinates.of(index)).exists();
+  }
+
+  /* see superclass */
+  @Override
   public boolean deleteIndex(String index) {
     return operations.indexOps(IndexCoordinates.of(index)).delete();
   }

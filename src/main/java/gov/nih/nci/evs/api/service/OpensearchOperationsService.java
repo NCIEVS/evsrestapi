@@ -107,6 +107,14 @@ public interface OpensearchOperationsService {
   OpenSearchOperations getOpenSearchOperations();
 
   /**
+   * Check if index exists.
+   *
+   * @param index the index name
+   * @return true, if the index exists
+   */
+  boolean indexExists(String index);
+
+  /**
    * Delete index.
    *
    * @param index the index

@@ -6,10 +6,12 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.IOException;
@@ -22,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.opensearch.action.delete.DeleteRequest;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
@@ -67,8 +70,59 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   @Value("${nci.evs.bulkload.graphDbs}")
   private String dbs;
 
+  /** The load statistics collector. */
+  private final TerminologyStatsCollector statisticsCollector = new TerminologyStatsCollector();
+
   public TerminologyUtils getTerminologyUtils() {
     return termUtils;
+  }
+
+  /**
+   * Returns the load statistics.
+   *
+   * @return the load statistics
+   */
+  public TerminologyStats getStatistics() {
+    return statisticsCollector.getStatistics();
+  }
+
+  /**
+   * Resets the load statistics.
+   *
+   * @param terminology the terminology
+   */
+  protected void resetStatistics(final Terminology terminology) {
+    statisticsCollector.reset(terminology);
+  }
+
+  /**
+   * Ensures load statistics are initialized for the terminology.
+   *
+   * @param terminology the terminology
+   */
+  protected void ensureStatistics(final Terminology terminology) {
+    statisticsCollector.ensure(terminology);
+  }
+
+  /**
+   * Records concept statistics.
+   *
+   * @param concept the concept
+   */
+  protected void recordConceptStatistics(final Concept concept) {
+    statisticsCollector.recordConcept(concept);
+  }
+
+  /**
+   * Computes hierarchy statistics.
+   *
+   * @param terminology the terminology
+   * @param hierarchy the hierarchy
+   * @throws Exception the exception
+   */
+  protected void computeHierarchyStatistics(
+      final Terminology terminology, final HierarchyUtils hierarchy) throws Exception {
+    statisticsCollector.recordHierarchy(terminology, hierarchy);
   }
 
   /**
@@ -148,11 +202,18 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     // create the audit index if it doesn't exist
     boolean createdAudit =
         operationsService.createIndex(OpensearchOperationsService.AUDIT_INDEX, false);
-    if (createdAudit) {
+    try {
       operationsService
           .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(OpensearchOperationsService.AUDIT_INDEX))
           .putMapping(Audit.class);
+    } catch (Exception e) {
+      if (createdAudit) {
+        throw e;
+      }
+      logger.warn(
+          "Unable to update existing audit index mapping; existing dynamic mappings may remain: {}",
+          e.getMessage());
     }
   }
 
@@ -168,7 +229,9 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
 
     List<IndexMetadata> iMetas =
         termUtils.getStaleGraphTerminologies(
-            Arrays.asList(dbs.split(",")), sparqlQueryManagerService, osQueryService);
+            Arrays.stream(dbs.split(",")).map(String::trim).collect(Collectors.toList()),
+            sparqlQueryManagerService,
+            osQueryService);
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");
       return new HashSet<>(0);
@@ -178,55 +241,68 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     final Set<String> removed = new HashSet<>();
     for (IndexMetadata iMeta : iMetas) {
 
+      if (iMeta.getTerminology() == null) {
+        logger.warn("IndexMetadata found with null terminology: {}", iMeta.getIndexName());
+        continue;
+      }
+
       logger.info("  REMOVE stale terminology = " + iMeta.getTerminology().getTerminologyVersion());
       String indexName = iMeta.getIndexName();
-      String objectIndexName = iMeta.getObjectIndexName();
+      String objectIndexName = iMeta.getTerminology().getObjectIndexName();
 
-      // objectIndexName will be NULL if terminology object is not part of
-      // IndexMetadata temporarily required to accommodate change in
-      // IndexMetadata object
-      if (objectIndexName == null) {
-        objectIndexName = "evs_object_" + indexName.replace("concept_", "");
+      // Check and delete concepts index
+      try {
+        if (operationsService.indexExists(indexName)) {
+          logger.info("    REMOVE " + indexName);
+          boolean result = operationsService.deleteIndex(indexName);
+          if (!result) {
+            logger.warn("Deleting concepts index {} failed!", indexName);
+            Audit.addAudit(
+                operationsService,
+                "WARN",
+                "cleanStaleIndexes",
+                indexName,
+                "Deleting concepts index " + indexName + " failed!",
+                "WARN");
+          }
+        } else {
+          logger.info("    SKIP " + indexName + " (does not exist)");
+        }
+      } catch (Exception e) {
+        logger.warn("Error checking/deleting concepts index {}: {}", indexName, e.getMessage());
       }
 
-      // delete objects index
-      logger.info("    REMOVE " + objectIndexName);
-      boolean result = operationsService.deleteIndex(objectIndexName);
-
-      if (!result) {
-        logger.warn("Deleting objects index {} failed!", objectIndexName);
-        Audit.addAudit(
-            operationsService,
-            "DeleteIndexFailed",
-            "cleanStaleIndexes",
-            objectIndexName,
-            "Deleting objects index " + objectIndexName + " failed!",
-            "WARN");
-        // Keep going
-        // continue;
+      // Check and delete objects index
+      try {
+        if (operationsService.indexExists(objectIndexName)) {
+          logger.info("    REMOVE " + objectIndexName);
+          boolean result = operationsService.deleteIndex(objectIndexName);
+          if (!result) {
+            logger.warn("Deleting objects index {} failed!", objectIndexName);
+            Audit.addAudit(
+                operationsService,
+                "DeleteIndexFailed",
+                "cleanStaleIndexes",
+                objectIndexName,
+                "Deleting objects index " + objectIndexName + " failed!",
+                "WARN");
+          }
+        } else {
+          logger.info("    SKIP " + objectIndexName + " (does not exist)");
+        }
+      } catch (Exception e) {
+        logger.warn(
+            "Error checking/deleting objects index {}: {}", objectIndexName, e.getMessage());
       }
 
-      // delete concepts index
-      logger.info("    REMOVE " + indexName);
-      result = operationsService.deleteIndex(indexName);
-
-      if (!result) {
-        logger.warn("Deleting concepts index {} failed!", indexName);
-        Audit.addAudit(
-            operationsService,
-            "WARN",
-            "cleanStaleIndexes",
-            indexName,
-            "Deleting concepts index " + objectIndexName + " failed!",
-            "WARN");
-        // Keep going
-        //        continue;
+      // Always attempt to delete metadata entry (even if indexes were missing or broken)
+      try {
+        logger.info("    REMOVE evs_metadata " + indexName);
+        String id = operationsService.deleteIndexMetadata(indexName);
+        logger.info("      id = " + id);
+      } catch (Exception e) {
+        logger.warn("Failed to delete evs_metadata entry for {}: {}", indexName, e.getMessage());
       }
-
-      // delete metadata object
-      logger.info("    REMOVE evs_metadata " + indexName);
-      String id = operationsService.deleteIndexMetadata(indexName);
-      logger.info("      id = " + id);
 
       removed.add(iMeta.getTerminologyVersion());
     }
@@ -498,6 +574,19 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * @throws Exception the exception
    */
   public String getWelcomeText(final String terminology) throws Exception {
+    return getWelcomeText(terminology, Collections.emptyMap());
+  }
+
+  /**
+   * Returns the welcome text with supplied values interpolated.
+   *
+   * @param terminology the terminology
+   * @param values values available to welcome-text placeholders
+   * @return the welcome text
+   * @throws Exception the exception
+   */
+  public String getWelcomeText(final String terminology, final Map<String, String> values)
+      throws Exception {
     // Read from the configured URI where this data lives
     // If terminology is {term}_{version} -> strip the version
     final String uri =
@@ -506,7 +595,18 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".html";
     logger.info("  get welcome text for " + terminology + " = " + uri);
-    return StringUtils.join(EVSUtils.getValueFromFile(uri), '\n');
+    return interpolateWelcomeText(StringUtils.join(EVSUtils.getValueFromFile(uri), '\n'), values);
+  }
+
+  /**
+   * Interpolates welcome-text placeholders.
+   *
+   * @param welcomeText welcome text template
+   * @param values values available to the template
+   * @return interpolated welcome text
+   */
+  static String interpolateWelcomeText(final String welcomeText, final Map<String, String> values) {
+    return StringSubstitutor.replace(welcomeText, values);
   }
 
   /* see superclass */

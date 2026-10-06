@@ -47,7 +47,7 @@ public class ObibSampleTest extends SampleTest {
   }
 
   @Test
-  public void testDUOTerminology() throws Exception {
+  public void testObibTerminology() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -180,5 +180,46 @@ public class ObibSampleTest extends SampleTest {
     concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo(obsoleteCode);
+  }
+
+  /**
+   * Test reconciliation (verify old version is gone, new version is present).
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testReconciliation() throws Exception {
+    String url = "/api/v1/metadata/terminologies";
+    log.info("Testing url - " + url);
+    MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+
+    final List<Terminology> terminologies =
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
+
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("obib")).count())
+        .isEqualTo(1);
+
+    // Verify latest version is present
+    assertThat(
+            terminologies.stream()
+                .anyMatch(
+                    t ->
+                        t.getTerminology().equals("obib")
+                            && t.getVersion().equals("2021-11-12")
+                            && t.getLatest() == true))
+        .isTrue();
+
+    // Verify old version is NOT present
+    assertThat(
+            terminologies.stream()
+                .anyMatch(
+                    t -> t.getTerminology().equals("obib") && t.getVersion().equals("2019-06-20")))
+        .isFalse();
   }
 }

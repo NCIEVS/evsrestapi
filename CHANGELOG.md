@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.5.0.RELEASE] - 2026-08-28
+### Changed
+- Small improvements for handling of NCIM data
+- Support version variable interpolation in welcome text so it can be dynamic
+- Fix vulnerabilities and bump versions
+- Search improvements for "NEC" and "NOS" kinds of situations
+- Search improvements for searches that involve boolean words ("and", "or", "not")
+- Improve visibility of FHIR endpoints
+- More auditing of data indexing runs (in particular calculation of stats)
+- Fixes for owl sampling and RRF sampling algorithm
+- Performance improvements for indexing of SNOMED and use of file-based map
+- Improvements for handling of terminologies with inherently duplicated codes (e.g. HL7V3)
+- Other minor bug fixes and test improvements
+
+
 ## [2.4.1.RELEASE] - 2026-05-26
 ### Changed
 - Bug fix for searches with boolean words like "not", "and", and "or"

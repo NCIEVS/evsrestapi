@@ -35,18 +35,24 @@ public class SamplingApplication {
 
       // Sample RRF for a terminology
       if (command.equals("rrfSample")) {
-        if (args.length != 4) {
-          throw new Exception("Usage: ... rrfSample <inputPath> <list file> <terminology>");
+        if (args.length != 4 && args.length != 5) {
+          throw new Exception(
+              "Usage: ... rrfSample <inputPath> <list file> <terminology> [codesab|cui]");
         }
         final String inputPath = args[1];
         final String listFile = args[2];
         final String terminology = args[3];
+        final String copyMode = args.length == 5 ? args[4] : "codesab";
+        if (!"codesab".equalsIgnoreCase(copyMode) && !"cui".equalsIgnoreCase(copyMode)) {
+          throw new Exception("Copy mode must be codesab or cui: " + copyMode);
+        }
         // Generate subset to local directory
         SamplingApplication.rrfSample(
             "admin",
             inputPath,
             listFile,
-            Arrays.asList(terminology.split(",")).stream().collect(Collectors.toSet()));
+            Arrays.asList(terminology.split(",")).stream().collect(Collectors.toSet()),
+            "cui".equalsIgnoreCase(copyMode));
       }
 
     } catch (final Throwable t) {
@@ -98,12 +104,33 @@ public class SamplingApplication {
       final String listFile,
       final Set<String> terminologies)
       throws Exception {
+    rrfSample(username, inputPath, listFile, terminologies, false);
+  }
+
+  /**
+   * Rrf sample.
+   *
+   * @param username the username
+   * @param inputPath the input path
+   * @param listFile the list file
+   * @param terminologies the terminologies
+   * @param cuiMode the CUI copy mode
+   * @throws Exception the exception
+   */
+  public static void rrfSample(
+      final String username,
+      final String inputPath,
+      final String listFile,
+      final Set<String> terminologies,
+      final boolean cuiMode)
+      throws Exception {
 
     final RrfSampleGenerator generator = new RrfSampleGenerator();
     generator.setTerminologies(terminologies);
     generator.setCuisFile(listFile);
     generator.setInputPath(inputPath);
     generator.setKeepDescendants(false);
+    generator.setCuiMode(cuiMode);
     // generator.setDistanceOne(true);
     generator.compute();
   }

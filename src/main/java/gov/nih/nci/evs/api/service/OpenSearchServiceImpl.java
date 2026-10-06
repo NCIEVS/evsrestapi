@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -49,6 +50,12 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(OpenSearchServiceImpl.class);
+
+  /** Search phrases that should boost matching results without being required. */
+  private static final Pattern OPTIONAL_SEARCH_PHRASE_PATTERN =
+      Pattern.compile(
+          "\\b(?:not elsewhere classified|not otherwise specified|nec|nos)\\b",
+          Pattern.CASE_INSENSITIVE);
 
   /** The Opensearch operations service *. */
   @Autowired OpensearchOperationsService esOperationsService;
@@ -406,6 +413,27 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   private BoolQueryBuilder getContainsQuery(
       final SearchCriteria searchCriteria, final String term, boolean fuzzyFlag, boolean andFlag)
       throws Exception {
+    return getContainsQuery(searchCriteria, term, fuzzyFlag, andFlag, true);
+  }
+
+  /**
+   * Returns the contains query.
+   *
+   * @param searchCriteria the search criteria
+   * @param term the term
+   * @param fuzzyFlag the fuzzy flag
+   * @param andFlag the and flag
+   * @param addOptionalSearchPhraseQuery indicates whether the optional phrase query should be added
+   * @return the contains query
+   * @throws Exception the exception
+   */
+  private BoolQueryBuilder getContainsQuery(
+      final SearchCriteria searchCriteria,
+      final String term,
+      boolean fuzzyFlag,
+      boolean andFlag,
+      boolean addOptionalSearchPhraseQuery)
+      throws Exception {
 
     // Generate variants to search with
     final String type = searchCriteria.getType();
@@ -537,27 +565,30 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // 8. Definition query
     final NestedQueryBuilder nestedDefinitionQuery =
-        QueryBuilders.nestedQuery(
-            "definitions",
-            QueryBuilders.queryStringQuery(fixNormTermAndClause)
-                .field("definitions.definition")
-                // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(1f),
-            ScoreMode.Max);
+        // for "or" type use or logic, otherwise use and logic
+        "OR".equals(type)
+            ? QueryBuilders.nestedQuery(
+                "definitions",
+                QueryBuilders.queryStringQuery(
+                        "(" + String.join(" OR ", fixNormTerm.split(" ")) + ")")
+                    .field("definitions.definition")
+                    // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
+                    .boost(1f),
+                ScoreMode.Max)
+            : QueryBuilders.nestedQuery(
+                "definitions",
+                QueryBuilders.queryStringQuery(fixNormTermAndClause)
+                    .field("definitions.definition")
+                    // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
+                    .boost(1f),
+                ScoreMode.Max);
 
     // 9. Code queries
     String codeList = codeTerm;
     if (hasCodeList) {
       codeList = String.join(" OR ", searchCriteria.getCodeList());
     }
-    final QueryStringQueryBuilder codeQuery =
-        QueryBuilders.queryStringQuery(codeList).field("code").boost(50f);
-    final NestedQueryBuilder synonymCodeQuery =
-        QueryBuilders.nestedQuery(
-                "synonyms",
-                QueryBuilders.queryStringQuery(codeList).field("synonyms.code"),
-                ScoreMode.Max)
-            .boost(50f);
+    final BoolQueryBuilder codeQuery = getCodeQuery(codeList, 50f);
 
     // Name queries
 
@@ -568,12 +599,15 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     if (!term.contains(" ") || hasCodeList) {
       // Code match
       if (hasCodeList) {
-        BoolQueryBuilder codeQueries =
-            QueryBuilders.boolQuery().should(codeQuery).should(synonymCodeQuery);
-        termQuery.must(codeQueries);
+        termQuery.must(codeQuery);
       } else {
-        termQuery.should(codeQuery).should(synonymCodeQuery);
+        termQuery.should(codeQuery);
       }
+    }
+
+    final QueryBuilder codeAndNameQuery = getCodeAndNameQuery(term, type, fuzzyFlag);
+    if (codeAndNameQuery != null) {
+      termQuery.should(codeAndNameQuery);
     }
 
     termQuery.should(conceptNormNameExactQuery);
@@ -613,7 +647,256 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
       termQuery.should(nestedDefinitionQuery);
     }
+    if (addOptionalSearchPhraseQuery) {
+      addOptionalSearchPhraseQuery(termQuery, searchCriteria, normTerm, fuzzyFlag, andFlag);
+    }
     return (term.isBlank()) ? termQuery : termQuery.minimumShouldMatch(1);
+  }
+
+  /**
+   * Adds a reduced query when the search term includes optional search phrases.
+   *
+   * @param termQuery the query receiving the optional phrase clause
+   * @param searchCriteria the search criteria
+   * @param normTerm the normalized term
+   * @param fuzzyFlag the fuzzy flag
+   * @param andFlag the and flag
+   * @throws Exception the exception
+   */
+  private void addOptionalSearchPhraseQuery(
+      final BoolQueryBuilder termQuery,
+      final SearchCriteria searchCriteria,
+      final String normTerm,
+      final boolean fuzzyFlag,
+      final boolean andFlag)
+      throws Exception {
+    final String termWithoutOptionalPhrases = removeOptionalSearchPhrases(normTerm);
+    if (StringUtils.isBlank(termWithoutOptionalPhrases)
+        || termWithoutOptionalPhrases.equals(normTerm)) {
+      return;
+    }
+
+    termQuery.should(
+        getContainsQuery(searchCriteria, termWithoutOptionalPhrases, fuzzyFlag, andFlag, false));
+  }
+
+  /**
+   * Removes search phrases that should not be required to match.
+   *
+   * @param term the normalized search term
+   * @return the term without optional search phrases
+   */
+  private String removeOptionalSearchPhrases(final String term) {
+    if (StringUtils.isBlank(term)) {
+      return term;
+    }
+    return OPTIONAL_SEARCH_PHRASE_PATTERN
+        .matcher(term)
+        .replaceAll(" ")
+        .replaceAll("\\s+", " ")
+        .trim();
+  }
+
+  /**
+   * Returns a query for search terms where the first or last token is a code and the remaining
+   * tokens should match concept name or synonym text.
+   *
+   * @param term the search term
+   * @param type the search type
+   * @param fuzzyFlag the fuzzy flag
+   * @return the code and name query, or null when the term is not eligible
+   */
+  private QueryBuilder getCodeAndNameQuery(
+      final String term, final String type, final boolean fuzzyFlag) {
+    if (!"contains".equals(type) || StringUtils.isBlank(term) || !term.contains(" ")) {
+      return null;
+    }
+
+    final String[] tokens = term.trim().split("\\s+");
+    if (tokens.length < 2) {
+      return null;
+    }
+
+    final BoolQueryBuilder codeAndNameQuery = QueryBuilders.boolQuery();
+    addCodeAndNameQuery(codeAndNameQuery, tokens, 0, type, fuzzyFlag);
+    if (tokens.length > 2) {
+      addCodeAndNameQuery(codeAndNameQuery, tokens, tokens.length - 1, type, fuzzyFlag);
+    } else {
+      addCodeAndNameQuery(codeAndNameQuery, tokens, 1, type, fuzzyFlag);
+    }
+
+    return codeAndNameQuery.hasClauses()
+        ? codeAndNameQuery.minimumShouldMatch(1).boost(250f)
+        : null;
+  }
+
+  /**
+   * Adds a possible code and name clause.
+   *
+   * @param parentQuery the parent query
+   * @param tokens the search tokens
+   * @param codeIndex the possible code token index
+   * @param type the search type
+   * @param fuzzyFlag the fuzzy flag
+   */
+  private void addCodeAndNameQuery(
+      final BoolQueryBuilder parentQuery,
+      final String[] tokens,
+      final int codeIndex,
+      final String type,
+      final boolean fuzzyFlag) {
+    final String code = tokens[codeIndex].toUpperCase();
+    final StringBuilder nameTerm = new StringBuilder();
+
+    for (int i = 0; i < tokens.length; i++) {
+      if (i == codeIndex) {
+        continue;
+      }
+      if (nameTerm.length() > 0) {
+        nameTerm.append(" ");
+      }
+      nameTerm.append(tokens[i]);
+    }
+
+    if (StringUtils.isBlank(code) || StringUtils.isBlank(nameTerm)) {
+      return;
+    }
+
+    final QueryBuilder nameQuery = getNameOnlyContainsQuery(nameTerm.toString(), type, fuzzyFlag);
+    if (nameQuery == null) {
+      return;
+    }
+
+    parentQuery.should(
+        QueryBuilders.boolQuery().must(getExactCodeQuery(code, 100f)).must(nameQuery).boost(120f));
+  }
+
+  /**
+   * Returns a name/synonym-only contains query.
+   *
+   * @param term the name term
+   * @param type the search type
+   * @param fuzzyFlag the fuzzy flag
+   * @return the name/synonym query, or null when no normalized name term exists
+   */
+  private QueryBuilder getNameOnlyContainsQuery(
+      final String term, final String type, final boolean fuzzyFlag) {
+    final String normTerm = ConceptUtils.normalize(term);
+    if (StringUtils.isBlank(normTerm)) {
+      return null;
+    }
+
+    final String stemTerm = ConceptUtils.normalizeWithStemming(term);
+    final String fixNormTerm = updateTermForType(normTerm, type);
+    final String fixStemTerm = updateTermForType(stemTerm, type);
+    final String fixNormTermAndClause = String.join(" AND ", fixNormTerm.split(" "));
+    final String stemTermAndClause = String.join(" AND ", stemTerm.split(" "));
+    final boolean singleWord = !normTerm.contains(" ");
+
+    final BoolQueryBuilder nameQuery =
+        QueryBuilders.boolQuery()
+            .should(QueryBuilders.termQuery("normName", normTerm).boost(75f))
+            .should(
+                QueryBuilders.nestedQuery(
+                    "synonyms",
+                    QueryBuilders.termQuery("synonyms.normName", normTerm).boost(73f),
+                    ScoreMode.Max))
+            .should(
+                QueryBuilders.queryStringQuery(fixNormTermAndClause)
+                    .field("name")
+                    .defaultOperator(Operator.AND)
+                    .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+                    .boost(70f))
+            .should(
+                QueryBuilders.nestedQuery(
+                    "synonyms",
+                    QueryBuilders.queryStringQuery(fixNormTermAndClause)
+                        .field("synonyms.name")
+                        .defaultOperator(Operator.AND)
+                        .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+                        .boost(68f),
+                    ScoreMode.Max))
+            .should(
+                QueryBuilders.queryStringQuery(stemTermAndClause)
+                    .field("stemName")
+                    .defaultOperator(Operator.AND)
+                    .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+                    .boost(60f))
+            .should(
+                QueryBuilders.nestedQuery(
+                    "synonyms",
+                    QueryBuilders.queryStringQuery(stemTermAndClause)
+                        .field("synonyms.stemName")
+                        .defaultOperator(Operator.AND)
+                        .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+                        .boost(58f),
+                    ScoreMode.Max));
+
+    if (!singleWord) {
+      nameQuery.should(QueryBuilders.queryStringQuery("\"" + normTerm + "\"").field("name"));
+      nameQuery.should(
+          QueryBuilders.nestedQuery(
+              "synonyms",
+              QueryBuilders.queryStringQuery("\"" + normTerm + "\"").field("synonyms.name"),
+              ScoreMode.Max));
+      nameQuery.should(
+          QueryBuilders.queryStringQuery(fixStemTerm)
+              .field("stemName")
+              .defaultOperator(Operator.OR)
+              .boost(10f));
+      nameQuery.should(
+          QueryBuilders.nestedQuery(
+              "synonyms",
+              QueryBuilders.queryStringQuery(fixStemTerm)
+                  .field("synonyms.stemName")
+                  .defaultOperator(Operator.OR)
+                  .boost(10f),
+              ScoreMode.Max));
+    }
+
+    return nameQuery.minimumShouldMatch(1);
+  }
+
+  /**
+   * Returns a code query across concept code, synonym code, and original code.
+   *
+   * @param codeList the code query
+   * @param boost the boost
+   * @return the code query
+   */
+  private BoolQueryBuilder getCodeQuery(final String codeList, final float boost) {
+    return QueryBuilders.boolQuery()
+        // concept code
+        .should(QueryBuilders.queryStringQuery(codeList).field("code").boost(boost))
+        // Individual subsource codes
+        .should(
+            QueryBuilders.nestedQuery(
+                    "synonyms",
+                    QueryBuilders.queryStringQuery(codeList).field("synonyms.code"),
+                    ScoreMode.Max)
+                .boost(boost))
+        .should(getOriginalCodeQuery(codeList, false, boost))
+        .minimumShouldMatch(1);
+  }
+
+  /**
+   * Returns an exact code query across concept code, synonym code, and original code.
+   *
+   * @param code the code
+   * @param boost the boost
+   * @return the exact code query
+   */
+  private BoolQueryBuilder getExactCodeQuery(final String code, final float boost) {
+    return QueryBuilders.boolQuery()
+        .should(QueryBuilders.matchPhraseQuery("code", code).boost(boost))
+        .should(
+            QueryBuilders.nestedQuery(
+                    "synonyms",
+                    QueryBuilders.termQuery("synonyms.code", code).boost(boost),
+                    ScoreMode.Max)
+                .boost(boost))
+        .should(getOriginalCodeExactQuery(code, boost))
+        .minimumShouldMatch(1);
   }
 
   /**
@@ -632,6 +915,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     final String codeTerm = term.toUpperCase() + (startsWithFlag ? "*" : "");
     final String exactTerm = term.replace(" ", "\\ ");
     final String exactNormTerm = normTerm.replace(" ", "\\ ");
+    final NestedQueryBuilder originalCodeQuery =
+        getOriginalCodeQuery(codeTerm, startsWithFlag, 20f);
 
     // "Exact" clauses (with normTerm)
     // Only search name, code, and synonyms
@@ -658,7 +943,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 QueryBuilders.queryStringQuery(codeTerm)
                     .field("code")
                     .analyzeWildcard(startsWithFlag)
-                    .boost(20f));
+                    .boost(20f))
+            // exact match to original code property
+            .should(originalCodeQuery);
 
     // If startsWith flag, boost exact matches to the top
     if (startsWithFlag) {
@@ -667,9 +954,49 @@ public class OpenSearchServiceImpl implements OpenSearchService {
               .should(
                   QueryBuilders.termQuery("normName", ConceptUtils.normalize(exactTerm)).boost(40f))
               .should(
-                  QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f));
+                  QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f))
+              .should(getOriginalCodeQuery(exactTerm.toUpperCase(), false, 40f));
     }
     return termQuery;
+  }
+
+  /**
+   * Returns an original code property query.
+   *
+   * @param codeList the code list query
+   * @param analyzeWildcard the analyze wildcard flag
+   * @param boost the boost
+   * @return the nested original code query
+   */
+  private NestedQueryBuilder getOriginalCodeQuery(
+      final String codeList, final boolean analyzeWildcard, final float boost) {
+    return QueryBuilders.nestedQuery(
+            "properties",
+            QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchQuery("properties.type", "Original_Code"))
+                .must(
+                    QueryBuilders.queryStringQuery(codeList)
+                        .field("properties.value")
+                        .analyzeWildcard(analyzeWildcard)),
+            ScoreMode.Max)
+        .boost(boost);
+  }
+
+  /**
+   * Returns an exact original code property query.
+   *
+   * @param code the code
+   * @param boost the boost
+   * @return the nested original code query
+   */
+  private NestedQueryBuilder getOriginalCodeExactQuery(final String code, final float boost) {
+    return QueryBuilders.nestedQuery(
+            "properties",
+            QueryBuilders.boolQuery()
+                .must(QueryBuilders.termQuery("properties.type", "Original_Code"))
+                .must(QueryBuilders.termQuery("properties.value", code)),
+            ScoreMode.Max)
+        .boost(boost);
   }
 
   /**

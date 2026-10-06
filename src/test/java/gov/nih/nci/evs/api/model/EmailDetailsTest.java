@@ -64,7 +64,7 @@ public class EmailDetailsTest {
     // ASSERT
     assertNotNull(testDetails);
     assertEquals("NCIT", testDetails.getSource());
-    assertEquals("agarcia@westcoastinformatics.com", testDetails.getToEmail());
+    assertEquals("ncithesaurus@mail.nih.gov", testDetails.getToEmail());
     assertEquals("bcarlsen@westcoastinformatics.com ", testDetails.getFromEmail());
   }
 

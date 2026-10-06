@@ -5,6 +5,7 @@ package gov.nih.nci.evs.api.configuration;
 import org.apache.http.HttpHost;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestHighLevelClient;
+import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,12 @@ public class OpensearchConfiguration {
     return new RestHighLevelClient(
         RestClient.builder(new HttpHost(osHost, osPort, osScheme))
             .setRequestConfigCallback(
-                builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout)));
+                builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout))
+            // This hooks the HTTP layer, after Spring Data has serialized Query objects into
+            // replayable OpenSearch REST requests.
+            .setHttpClientConfigCallback(
+                builder ->
+                    builder.addInterceptorLast(new EvsOpenSearchRequestLoggingInterceptor())));
 
     // Alternate:
     // ClientConfiguration clientConfiguration =
@@ -70,6 +76,7 @@ public class OpensearchConfiguration {
   @SuppressWarnings("resource")
   @Bean
   public OpenSearchOperations openSearchOperations() {
-    return new EvsOpenSearchRestTemplate(client());
+    //    return new EvsOpenSearchRestTemplate(client());
+    return new OpenSearchRestTemplate(client());
   }
 }

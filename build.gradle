@@ -1,12 +1,11 @@
  buildscript {
   ext {
-    springBootVersion = '3.5.13'
+    springBootVersion = '3.5.16'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
   }
   repositories {
-    jcenter()
     maven { url "https://repo.spring.io/release" }
     maven { url "https://repo.spring.io/milestone" }
     maven { url "https://repo.spring.io/snapshot" }
@@ -27,12 +26,11 @@ plugins {
   id 'maven-publish'
   // google java format gradle plugin
   id "com.diffplug.spotless" version "6.25.0"
-  id 'com.github.spotbugs' version '6.0.0'
+  id "com.github.spotbugs" version "6.0.26"
 }
 
 repositories {
   mavenLocal()
-  jcenter()
   maven { url "https://repo.spring.io/release" }
   maven { url "https://repo.spring.io/milestone" }
   maven { url "https://repo.spring.io/snapshot" }
@@ -41,10 +39,14 @@ repositories {
 
 // Avoid specifying version unless needed
 // Explicit override for medium-severity CVEs pulled in by OpenSearch 2.19.x
-ext['log4j2.version'] = '2.25.4'
+///ext['log4j2.version'] = '2.25.4'
 // Override Spring Boot BOM's commons-lang3 (3.17.0) to pick up CVE-2025-48924 fix.
 // Applies BOM-wide, so the spotbugs configuration also gets 3.18.0.
-ext['commons-lang3.version'] = '3.18.0'
+///ext['commons-lang3.version'] = '3.18.0'
+// Override Boot BOM Jackson version to fix CVE-2026-54512 / CVE-2026-54513 (HIGH)
+///ext['jackson-bom.version'] = '2.21.4'
+// Override Boot BOM httpcore5 version to fix CVE-2026-54399 / CVE-2026-54428 (HIGH)
+ext['httpcore5.version'] = '5.4.3'
 
 // Extra Properties
 ext {
@@ -58,11 +60,14 @@ ext {
   if (!project.hasProperty("terminology")) {
     terminology = "na"
   }
+  if (!project.hasProperty("copyMode")) {
+    copyMode = "codesab"
+  }
 }
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "2.4.1.RELEASE"
+version = "2.5.0.RELEASE"
 
 sourceCompatibility = 17
 targetCompatibility = 17
@@ -79,6 +84,19 @@ java {
     languageVersion = JavaLanguageVersion.of(17)
   }
 
+}
+
+tasks.register('eclipseWebXml', Copy) {
+  from(layout.projectDirectory.file('src/eclipse/WEB-INF/web.xml'))
+  into(layout.projectDirectory.dir('WEB-INF'))
+}
+
+tasks.named('eclipse') {
+  finalizedBy('eclipseWebXml')
+}
+
+tasks.named('eclipseWtp') {
+  finalizedBy('eclipseWebXml')
 }
 
 dependencies {
@@ -99,15 +117,15 @@ dependencies {
   // 6.4.0 contains a vulnerability; 6.9.4 is the version co-packaged with HAPI FHIR that fixes it.
   // These overrides can only be removed by upgrading to HAPI FHIR 8.x (a major breaking-change migration).
   implementation "org.fhir:ucum:1.0.9"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.4"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.4"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.4"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.4"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.4"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.4"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.4"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.4"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.4"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.10"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   implementation "org.opensearch.client:spring-data-opensearch-starter:1.7.1"
@@ -118,9 +136,10 @@ dependencies {
 
   // other explicit vulnerability overrides
   implementation "org.apache.commons:commons-lang3:3.18.0"
-  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.54"
-  implementation "org.thymeleaf:thymeleaf:3.1.4.RELEASE"
-  implementation "org.thymeleaf:thymeleaf-spring6:3.1.4.RELEASE"
+  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.55"
+  implementation "org.apache.thrift:libthrift:0.23.0"
+  implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
+  implementation "org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE"
 
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
@@ -168,8 +187,8 @@ dependencies {
   }
   implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.6.1"
 
-  // disk-backed map implementation - unfortunately this has vulnerabilities and so we can't use it.
-  // implementation "org.mapdb:mapdb:3.1.0"
+  // disk-backed map implementation for hierarchy path builds
+  implementation "com.h2database:h2:2.4.240"
 
   // Lombok dependencies (avoid using lombok for now)
   //implementation "org.projectlombok:lombok:1.18.32"
@@ -182,7 +201,9 @@ dependencies {
   /*
    * Test Dependencies
   */
+  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   // Use spring-boot-starter-test defaults
   // testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
   // testImplementation "org.junit.jupiter:junit-jupiter-params:5.10.5"
@@ -241,28 +262,32 @@ spotbugs {
     // jvmArgs = [ "-Duser.language=ja" ]
 }
 spotbugsMain {
-    enabled = true
     reports {
-        xml.enabled = false
-        html.enabled = true
+        html {
+            enabled = true
+            outputLocation = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
     }
 }
 spotbugsTest {
-    enabled = true
     reports {
-        xml.enabled = false
-        html.enabled = true
+        html {
+            enabled = true
+            outputLocation = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
     }
 }
 
 // # for this, the cuis with listed sources will have hierarchies computed
-// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META
+// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META [-PcopyMode=codesab|cui]
 tasks.register('rrfSample', JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
   main = "gov.nih.nci.evs.api.service.SamplingApplication"
   systemProperties System.getProperties()
   // arguments to pass to the application
-  args("rrfSample", inputPath, listFile, terminology)
+  args("rrfSample", inputPath, listFile, terminology, copyMode)
   jvmArgs "-Xmx8G"
 }
 

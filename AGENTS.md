@@ -1,38 +1,60 @@
 # AGENTS.md
 
-## Project
+## Global Architecture Overview
 
-EVS REST API built with Java 17, Gradle, and Spring Boot.
+EVS REST API is a Java 17, Gradle, Spring Boot application using a Maven-standard
+`src/main` and `src/test` directory layout. The API exposes EVS terminology data through
+Spring MVC REST controllers and HAPI FHIR R4/R5 endpoints.
 
-## Important Docs
+The main runtime dependencies are a graph database endpoint for SPARQL queries and an
+OpenSearch index for search, cached objects, metadata, and audit records. Production Java
+code starts at `src/main/java/gov/nih/nci/evs/api/Application.java`.
+
+Read these project docs before changing setup, infrastructure, graph, or OpenSearch behavior:
 
 - `README.md`
 - `JENA.md`
 - `OPENSEARCH.md`
 - `src/main/resources/application-local.yml`
 
-## Common Commands
+## Build/Test Commands
 
 - Build: `make clean build`
 - Test: `make test`
 - Format check: `./gradlew spotlessCheck`
 - Format fix: `./gradlew spotlessApply`
-- Scan for vulnerabilities: `make scan` (look for HIGH or CRITICAL entries in report.html)
+- Vulnerability scan: `make scan` and review HIGH or CRITICAL entries in `report.html`
 
-## Local Run Notes
+For local runs, use `-Dspring.profiles.active=local`. Local workflows usually require the
+graph service and OpenSearch to be running.
 
-- Use the local Spring profile: `-Dspring.profiles.active=local`
-- The application depends on Jena/Fuseki and OpenSearch being available locally
-  - Test that jena is running by using `curl localhost:3030`
-  - Test that opensearch is running by using `curl localhost:9200`
-- Some tests and local workflows depend on data and setup steps described in `README.md`
+## Global Coding Standards
 
-## Agent Guidelines
+- Prefer minimal, targeted changes.
+- Do not modify unrelated files.
+- Do not commit secrets, local credentials, or machine-specific data.
+- Preserve existing project structure and naming conventions.
+- Format Java code with the configured Spotless/google-java-format setup.
+- Run the smallest useful verification for the files changed.
+- Keep context clean: if a child directory has its own `AGENTS.md`, this root file only maps to
+  that child context and does not duplicate its implementation rules.
 
-- Prefer minimal, targeted changes
-- Do not modify unrelated files
-- Do not commit secrets or local credentials
-- Preserve existing project structure and naming conventions
-- Format code according to the spotless configuration
-- Run the smallest useful verification for the files changed
-- Check the project docs before changing config or infrastructure assumptions
+## Context Hierarchy Map
+
+- `src/main/java/gov/nih/nci/evs/api/AGENTS.md` - production Java package root and package map.
+  - `configuration/AGENTS.md` - Spring bean and external system wiring.
+  - `properties/AGENTS.md` - typed configuration property holders.
+  - `controller/AGENTS.md` - Spring MVC REST endpoint layer.
+  - `service/AGENTS.md` - search, SPARQL, metadata, form, and loader services.
+  - `fhir/AGENTS.md` - HAPI FHIR R4/R5 servlet and provider layer.
+  - `model/AGENTS.md` - API DTOs, OpenSearch documents, and SPARQL binding models.
+  - `support/AGENTS.md` - support classes and OpenSearch wrapper objects.
+  - `util/AGENTS.md` - shared utility classes.
+  - `aop/AGENTS.md` - metrics aspect support.
+- `src/test/java/gov/nih/nci/evs/api/AGENTS.md` - test package root and shared test helpers.
+  - `controller/AGENTS.md` - MVC integration and terminology sample tests.
+  - `fhir/AGENTS.md` - FHIR R4/R5 endpoint tests.
+  - `service/AGENTS.md` - service, query, hierarchy, and form tests.
+  - `model/AGENTS.md` - DTO, proxy, serialization, equals, and hash code tests.
+  - `code/AGENTS.md` - source-code rule tests.
+- `src/test/resources/AGENTS.md` - test configuration and fixture data.

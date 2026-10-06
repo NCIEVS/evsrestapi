@@ -120,7 +120,7 @@ if [[ $download -eq 1 ]]; then
 	fi
     
     echo "  Unpack NCI Metathesaurus"
-    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM "META/*" -x "*MRX*" > /tmp/x.$$ 2>&1
+    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM "release.dat" "META/*" -x "*MRX*" > /tmp/x.$$ 2>&1
 	if [[ $? -ne 0 ]]; then
 	    cat /tmp/x.$$
 	    echo "ERROR: problem unpacking $DOWNLOAD_DIR/Metathesaurus.RRF.zip"
@@ -156,10 +156,15 @@ export EVS_SERVER_PORT="8083"
 # Compute version (remove '.' from lcterm)
 lcterm=`echo $terminology | perl -ne 's/\.//; print lc($_);'`
 if [[ $terminology == "ncim" ]]; then
-    # check both places for good measure
-    version=`grep umls.release.name $dir/../release.dat $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+    # Match the release.dat read by the NCIM Java loader. Reading both the parent and META
+    # files produces a newline-separated version string when both are present.
+    version=`grep '^umls.release.name=' "$dir/release.dat" | head -1 | perl -pe 's/.*=//; s/\r//;'`
 else
-    version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`
+    search=$terminology
+    if [[ $terminology == "hl7v30" ]]; then
+        search="HL7V3.0"
+    fi
+    version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$search'";' $dir/MRSAB.RRF`
 fi
 
 ## check whether this index exists already, and if so skip indexing call

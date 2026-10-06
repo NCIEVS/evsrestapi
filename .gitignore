@@ -35,3 +35,5 @@ gradle.lockfile
 UnitTestData/*
 src/main/main.iml
 src/test/test.iml
+report-docker.html
+.docker-secrets/

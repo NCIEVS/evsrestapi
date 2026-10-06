@@ -62,6 +62,10 @@ public class Audit {
   @Field(type = FieldType.Text)
   private String details;
 
+  @Schema(description = "Statistics computed during the load")
+  @Field(type = FieldType.Object, enabled = false)
+  private TerminologyStats stats;
+
   /** Default constructor. */
   public Audit() {
     // Default constructor
@@ -325,6 +329,24 @@ public class Audit {
     this.details = details;
   }
 
+  /**
+   * Returns the terminology stats.
+   *
+   * @return the terminology stats
+   */
+  public TerminologyStats getStats() {
+    return stats;
+  }
+
+  /**
+   * Sets the terminology stats.
+   *
+   * @param stats the terminology stats
+   */
+  public void setStats(final TerminologyStats stats) {
+    this.stats = stats;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) return true;
@@ -340,7 +362,8 @@ public class Audit {
         && Objects.equals(endDate, audit.endDate)
         && Objects.equals(process, audit.process)
         && Objects.equals(logLevel, audit.logLevel)
-        && Objects.equals(details, audit.details);
+        && Objects.equals(details, audit.details)
+        && Objects.equals(stats, audit.stats);
   }
 
   @Override
@@ -356,7 +379,8 @@ public class Audit {
         process,
         count,
         logLevel,
-        details);
+        details,
+        stats);
   }
 
   @Override
@@ -384,12 +408,14 @@ public class Audit {
         + '\''
         + ", count="
         + count
-        + '}'
-        + ", logLevel="
+        + ", logLevel='"
         + logLevel
-        + '}'
-        + ", details="
+        + '\''
+        + ", details='"
         + details
+        + '\''
+        + ", stats="
+        + stats
         + '}';
   }
 
@@ -410,6 +436,7 @@ public class Audit {
     this.count = other.getCount();
     this.logLevel = other.getLogLevel();
     this.details = other.getDetails();
+    this.stats = other.getStats() == null ? null : new TerminologyStats(other.getStats());
   }
 
   /**
