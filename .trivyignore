@@ -1,3 +1,7 @@
 # CVE-2026-47884: spring-webmvc XsltView SSRF/RCE. Fixed only in Spring 7.0.9;
 # blocked on HAPI FHIR support for Spring 7. App does not use XsltView.
 CVE-2026-47884
+
+# CVE-2026-47890: spring-webmvc SSE stream corruption with view fragments. Fixed only in
+# Spring 7.0.9; blocked on HAPI FHIR support for Spring 7. App does not use SSE/fragments.
+CVE-2026-47890
