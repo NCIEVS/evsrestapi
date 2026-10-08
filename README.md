@@ -83,8 +83,10 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ### Run application from command line
 * Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*.jar`
+* Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
 
-### Build, scan, and run the application image
+
+### Build, scan, and run the docker image
 
 * `make docker` builds the WAR inside a Linux/AMD64 Docker build stage and creates `evsrestapi:<version>` without using a local Gradle installation.
 * The image starts the executable WAR, which runs the REST API entry point; the executable JAR is reserved for loader and reindex operations.
