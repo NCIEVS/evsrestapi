@@ -38,15 +38,14 @@ repositories {
 }
 
 // Avoid specifying version unless needed
-// Explicit override for medium-severity CVEs pulled in by OpenSearch 2.19.x
-///ext['log4j2.version'] = '2.25.4'
-// Override Spring Boot BOM's commons-lang3 (3.17.0) to pick up CVE-2025-48924 fix.
-// Applies BOM-wide, so the spotbugs configuration also gets 3.18.0.
-///ext['commons-lang3.version'] = '3.18.0'
-// Override Boot BOM Jackson version to fix CVE-2026-54512 / CVE-2026-54513 (HIGH)
-///ext['jackson-bom.version'] = '2.21.4'
-// Override Boot BOM httpcore5 version to fix CVE-2026-54399 / CVE-2026-54428 (HIGH)
+// Override vulnerable versions managed by the Spring Boot BOM without changing Spring Boot.
+ext['commons-lang3.version'] = '3.18.0'
+ext['httpclient5.version'] = '5.6.3'
 ext['httpcore5.version'] = '5.4.3'
+ext['jackson-bom.version'] = '2.21.7'
+ext['log4j2.version'] = '2.25.5'
+ext['opentelemetry.version'] = '1.62.0'
+ext['tomcat.version'] = '10.1.60'
 
 // Extra Properties
 ext {
@@ -114,18 +113,18 @@ dependencies {
   implementation "org.springframework:spring-aop"
 
   // These override org.hl7.fhir.*:6.4.0 requested by hapi-fhir-validation:7.6.1 and hapi-fhir-converter:7.6.1.
-  // 6.4.0 contains a vulnerability; 6.9.4 is the version co-packaged with HAPI FHIR that fixes it.
+  // 6.4.0 contains a vulnerability; 6.9.12 fixes the current FHIR findings.
   // These overrides can only be removed by upgrading to HAPI FHIR 8.x (a major breaking-change migration).
   implementation "org.fhir:ucum:1.0.9"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.10"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.10"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.10"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.10"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.10"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.10"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.10"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.10"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.10"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.12"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.12"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.12"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.12"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.12"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.12"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.12"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.12"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.12"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   implementation "org.opensearch.client:spring-data-opensearch-starter:1.7.1"
@@ -136,8 +135,8 @@ dependencies {
 
   // other explicit vulnerability overrides
   implementation "org.apache.commons:commons-lang3:3.18.0"
-  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.55"
-  implementation "org.apache.thrift:libthrift:0.23.0"
+  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.60"
+  implementation "org.apache.thrift:libthrift:0.24.0"
   implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
   implementation "org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE"
 
