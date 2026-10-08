@@ -26,6 +26,7 @@ fi
 dir=${arr[0]}
 # Hardcode the history file
 historyFile=$dir/NCIT/cumulative_history_25.12e.txt
+JAVA_OPTS="${JAVA_OPTS:--Xmx4096M}"
 
 DEFAULT_DBS=("NCIT2" "CTRP")
 curl_cmd='curl -s -w \n%{http_code} -u '"${GRAPH_DB_USERNAME}:${GRAPH_DB_PASSWORD}"
@@ -278,7 +279,7 @@ load_mapping(){
     echo "  Load stock maps aligned with data verions"
     local="-Dspring.profiles.active=local"
     jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+    java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology mapping
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building mapping indexes"
         exit 1
@@ -290,7 +291,7 @@ load_mapping2(){
     echo "  Load stock map changes"
     local="-Dspring.profiles.active=local"
     jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+    java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology mapping
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building mapping indexes"
         exit 1

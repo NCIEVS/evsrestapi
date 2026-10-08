@@ -2,26 +2,23 @@
 #
 # This script reconciles the elasticsearch indexes against what is loded
 # into graph db.  The --noconfig flag is for running in the dev environment
-# where the setenv.sh file does not exist.  The --force flag is used
-# to recompute indexes that already exist rather than skipping them.
+# where the setenv.sh file does not exist.
 #
 config=1
-force=0
 historyFileOverride=
 terminologyOverride=
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
-  --force) force=1;;
   --history) historyFileOverride=$2; shift;;
   --terminology) terminologyOverride=$2; shift;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
 if [ ${#arr[@]} -ne 0 ]; then
-  echo "Usage: $0 [--noconfig] [--force] [--history <history file>] [--terminology <terminology>]"
+  echo "ERROR: unsupported parameter(s): ${arr[@]}"
+  echo "Usage: $0 [--noconfig] [--history <history file>] [--terminology <terminology>]"
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
-  echo "  e.g. $0 --force"
   echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.12e.txt"
   echo "  e.g. $0 --terminology medrt"
   exit 1
@@ -107,13 +104,11 @@ if [[ -z $metadata_config_url ]]; then
     exit 1
 fi
 
-# Report configuration  
-if [[ $force -eq 1 ]]; then
-    echo "  force = 1"
-fi
+
 
 # Setup java environment
 export PATH="/usr/local/corretto-jdk17/bin:$PATH"
+JAVA_OPTS="${JAVA_OPTS:--Xmx4096M}"
 # Handle the local setup
 local=""
 jar="../lib/evsrestapi.jar"
@@ -489,21 +484,7 @@ for x in `cat /tmp/y.$$.txt`; do
       historyClause=" -d $historyFile"
     fi
     
-    if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
-
-        if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
-            echo "    FOUND indexes for $term $version, force reindex anyway"        
-
-            # Remove if this already exists
-            version=`echo $cv | perl -pe 's/.*_//;'`
-            echo "    Remove indexes for $term $version"
-            $DIR/remove.sh $term $version > /tmp/x.$$ 2>&1
-            if [[ $? -ne 0 ]]; then
-                cat /tmp/x.$$ | sed 's/^/    /'
-                echo "ERROR: removing $term $version indexes"
-                exit 1
-            fi
-        fi
+    if [[ $exists -eq 0 ]]; then
 
         # Run reindexing process (choose a port other than the one that it runs on)
         echo "    Generate indexes for $GRAPH_DB ${term} $version"
@@ -514,8 +495,8 @@ for x in `cat /tmp/y.$$.txt`; do
             historyClause=" -d $historyFile"
         fi
 
-        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
-        java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
+        echo "    java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
+        java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "pwd = `pwd`"
             echo "ERROR: unexpected error building indexes"
@@ -581,8 +562,8 @@ if [[ $terminologyOverride ]]; then
 else
     export EVS_SERVER_PORT="8083"
     echo "    Generate mapping indexes"
-    echo "      java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology mapping"
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+    echo "      java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -jar $jar --terminology mapping"
+    java $JAVA_OPTS --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology mapping
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building mapping indexes"
         exit 1

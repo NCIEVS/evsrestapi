@@ -5,6 +5,7 @@ export LOGGING_LEVEL_SPRING_DATA_ES="INFO"
 
 export EVS_SERVER_PORT="8080"
 export NCI_EVS_API_PATH="/api/v1"
+export JAVA_OPTS="-Xmx4096M"
 
 # true or false
 export METRICS_ENABLED=false
