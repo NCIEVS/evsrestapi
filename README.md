@@ -83,3 +83,4 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ### Run application from command line
 * Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*.jar`
+* Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
