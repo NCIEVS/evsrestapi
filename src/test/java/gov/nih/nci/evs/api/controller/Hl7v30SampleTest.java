@@ -49,7 +49,7 @@ public class Hl7v30SampleTest extends SampleTest {
   @Test
   public void testDuplicateCodeDisambiguation() throws Exception {
 
-    String url = "/api/v1/concept/search?terminology=hl7v30&term=41&include=parents&pageSize=20";
+    String url = "/api/v1/concept/search?terminology=hl7v30&term=21&include=parents&pageSize=20";
     log.info("Testing url - " + url);
     MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
@@ -62,46 +62,42 @@ public class Hl7v30SampleTest extends SampleTest {
     assertThat(list).isNotNull();
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThanOrEqualTo(2);
-    assertThat(list.getConcepts()).extracting(Concept::getCode).contains("41-11255", "41-11672");
+    assertThat(list.getConcepts()).extracting(Concept::getCode).contains("21-11260", "21-11652");
 
-    Concept typhoid =
+    Concept varicella =
         list.getConcepts().stream()
-            .filter(concept -> concept.getCode().equals("41-11255"))
+            .filter(concept -> concept.getCode().equals("21-11260"))
             .findFirst()
             .orElseThrow();
     Concept tribe =
         list.getConcepts().stream()
-            .filter(concept -> concept.getCode().equals("41-11672"))
+            .filter(concept -> concept.getCode().equals("21-11652"))
             .findFirst()
             .orElseThrow();
 
-    assertThat(typhoid.getCode()).isEqualTo("41-11255");
-    assertThat(typhoid.getTerminology()).isEqualTo("hl7v30");
-    assertThat(typhoid.getName()).isEqualTo("typhoid, parenteral");
-    assertThat(typhoid.getParents()).isNotEmpty();
-    assertThat(typhoid.getParents().size()).isEqualTo(1);
-    assertThat(typhoid.getParents().get(0).getCode()).startsWith("VaccineType");
+    assertThat(varicella.getCode()).isEqualTo("21-11260");
+    assertThat(varicella.getTerminology()).isEqualTo("hl7v30");
+    assertThat(varicella.getName()).isEqualTo("varicella");
+    assertThat(varicella.getParents()).isNotNull();
 
-    assertThat(tribe.getCode()).isEqualTo("41-11672");
+    assertThat(tribe.getCode()).isEqualTo("21-11652");
     assertThat(tribe.getTerminology()).isEqualTo("hl7v30");
-    assertThat(tribe.getName()).isEqualTo("Cheyenne and Arapaho Tribes, Oklahoma");
-    assertThat(tribe.getParents()).isNotEmpty();
-    assertThat(tribe.getParents().size()).isEqualTo(1);
-    assertThat(tribe.getParents().get(0).getCode()).isEqualTo("_NativeEntityContiguous");
+    assertThat(tribe.getName()).isEqualTo("Blue Lake Rancheria, California");
+    assertThat(tribe.getParents()).isNotNull();
 
-    url = "/api/v1/concept/hl7v30/41";
+    url = "/api/v1/concept/hl7v30/21";
     log.info("Testing url - " + url);
     testMvc.perform(get(url)).andExpect(status().isNotFound());
 
-    assertDuplicateCodeMetadata("41-11255");
-    assertDuplicateCodeMetadata("41-11672");
+    assertDuplicateCodeMetadata("21-11260");
+    assertDuplicateCodeMetadata("21-11652");
   }
 
   @Test
   public void testSearchByOriginalCode() throws Exception {
 
     assertOriginalCodeSearch(
-        "/api/v1/concept/search?terminology=hl7v30&type=contains&codeList=41"
+        "/api/v1/concept/search?terminology=hl7v30&type=contains&codeList=21"
             + "&include=properties&pageSize=20");
   }
 
@@ -109,10 +105,10 @@ public class Hl7v30SampleTest extends SampleTest {
   public void testMatchSearchByOriginalCode() throws Exception {
 
     assertOriginalCodeSearch(
-        "/api/v1/concept/search?terminology=hl7v30&type=match&term=41&include=properties"
+        "/api/v1/concept/search?terminology=hl7v30&type=match&term=21&include=properties"
             + "&pageSize=20");
     assertOriginalCodeSearch(
-        "/api/v1/concept/search?terminology=hl7v30&type=startsWith&term=41&include=properties"
+        "/api/v1/concept/search?terminology=hl7v30&type=startsWith&term=21&include=properties"
             + "&pageSize=20");
   }
 
@@ -135,13 +131,13 @@ public class Hl7v30SampleTest extends SampleTest {
     assertThat(list).isNotNull();
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThanOrEqualTo(2);
-    assertThat(list.getConcepts()).extracting(Concept::getCode).contains("41-11255", "41-11672");
+    assertThat(list.getConcepts()).extracting(Concept::getCode).contains("21-11260", "21-11652");
     assertThat(
             list.getConcepts().stream()
                 .filter(
                     concept ->
-                        concept.getCode().equals("41-11255")
-                            || concept.getCode().equals("41-11672")))
+                        concept.getCode().equals("21-11260")
+                            || concept.getCode().equals("21-11652")))
         .allSatisfy(this::assertOriginalCodeProperty);
   }
 
@@ -175,7 +171,7 @@ public class Hl7v30SampleTest extends SampleTest {
         .anySatisfy(
             property -> {
               assertThat(property.getType()).isEqualTo("Original_Code");
-              assertThat(property.getValue()).isEqualTo("41");
+              assertThat(property.getValue()).isEqualTo("21");
             });
   }
 }

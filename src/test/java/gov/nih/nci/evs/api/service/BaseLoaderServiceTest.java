@@ -115,6 +115,17 @@ public class BaseLoaderServiceTest {
     assertNull(hierarchyStats.getMaxParents());
   }
 
+  /** Test welcome-text interpolation from NCIM release metadata. */
+  @Test
+  public void testWelcomeTextInterpolation() {
+    final String welcomeText =
+        BaseLoaderService.interpolateWelcomeText(
+            "UMLS ${umlsVersion}; NCIt ${umlsNcitVersion}; ${unresolved}",
+            Map.of("umlsVersion", "2026AA", "umlsNcitVersion", "25.06e"));
+
+    assertEquals("UMLS 2026AA; NCIt 25.06e; ${unresolved}", welcomeText);
+  }
+
   /**
    * Returns a test terminology.
    *
