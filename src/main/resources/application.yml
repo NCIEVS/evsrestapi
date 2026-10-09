@@ -17,6 +17,11 @@ spring:
     serialization:
       INDENT_OUTPUT: true
 
+  # Prefer Jackson 2 until application and HAPI JSON types are migrated to Jackson 3.
+  http:
+    converters:
+      preferred-json-mapper: jackson2
+
   cache:
     jcache:
       config: classpath:ehcache.xml

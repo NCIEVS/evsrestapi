@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '4.0.8'
+    springBootVersion = '4.1.1'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
@@ -101,6 +101,9 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-webmvc"
   implementation "org.springframework.boot:spring-boot-restclient"
 
+  // Temporary compatibility for application and HAPI types that still use Jackson 2.
+  implementation "org.springframework.boot:spring-boot-jackson2"
+
   // SpringDoc 3 is required for Spring Boot 4.
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
   implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1"
@@ -126,9 +129,10 @@ dependencies {
   implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.12"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
-  implementation "org.opensearch.client:spring-data-opensearch:3.0.4"
+  // Spring Data 2026.0: OpenSearch 3.1.x with Spring Boot 4.1.x.
+  implementation "org.opensearch.client:spring-data-opensearch:3.1.4"
 
-  // Spring Data OpenSearch 3.0 is the compatible line for Spring Boot 4.0.
+  // Explicit OpenSearch common dependency; aligned by Gradle with the client dependencies.
   implementation "org.opensearch:opensearch-common:3.3.2"
 
   // other explicit vulnerability overrides

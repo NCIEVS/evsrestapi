@@ -14,16 +14,11 @@ See https://github.com/opensearch-project/spring-data-opensearch for setting up 
 NOTE: the examples below use 9201 as a port so as to avoid conflicting with other elasticsearch implementations running on 9200.
 When operating this tool, `export ES_PORT=9201` when using the configuration below.
 
-## Running Opensearch 1.3.x Locally
+## Running OpenSearch Locally
 
-In a terminal, run the following to have an opensearch instance running on the background without security. 
-
-    docker run --rm -d -p 9201:9200 -p 9600:9600 -e "discovery.type=single-node" \
-      -v "$OS_DIR":/usr/share/opensearch/data \
-      -e DISABLE_SECURITY_PLUGIN=true \
-      --name opensearch-node -d opensearchproject/opensearch:1.3.19
-
-## Running Opensearch 2.x.x Locally
+Spring Data OpenSearch 3.x requires an OpenSearch 2.x or 3.x server. OpenSearch 1.x is no longer
+supported by this application. Use a new data directory when replacing a 1.x server, then reload
+the test data; a 1.x data directory cannot be mounted directly into a newer major version.
 
 In a terminal, run the following to have an opensearch instance running on the background without security.
 
