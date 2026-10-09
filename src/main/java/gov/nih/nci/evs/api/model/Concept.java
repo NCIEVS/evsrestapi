@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -227,6 +228,16 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Object, enabled = false)
   private List<Role> roles;
 
+  /** The graph-derived logical definition. */
+  @Field(type = FieldType.Object, enabled = false)
+  @Mapping(enabled = false)
+  private LogicalDefinition logicalDefinition;
+
+  /**
+   * Tracks an explicit request so a missing logical definition can serialize as an empty object.
+   */
+  @Transient private boolean logicalDefinitionIncluded;
+
   /**
    * The disjoint with. enabled = false will set the index = false, to avoid indexing the fields in
    * this Concept model
@@ -384,6 +395,8 @@ public class Concept extends ConceptMinimal {
     associations = new ArrayList<>(other.getAssociations());
     inverseAssociations = new ArrayList<>(other.getInverseAssociations());
     roles = new ArrayList<>(other.getRoles());
+    logicalDefinition = other.getLogicalDefinition();
+    logicalDefinitionIncluded = other.logicalDefinitionIncluded;
     inverseRoles = new ArrayList<>(other.getInverseRoles());
     disjointWith = new ArrayList<>(other.getDisjointWith());
     maps = new ArrayList<>(other.getMaps());
@@ -868,6 +881,45 @@ public class Concept extends ConceptMinimal {
    */
   public void setRoles(final List<Role> roles) {
     this.roles = roles;
+  }
+
+  /**
+   * Returns the machine-readable logical definition.
+   *
+   * @return the logical definition, or null if none exists
+   */
+  @Schema(description = "Machine-readable OWL equivalent-class logical definition")
+  public LogicalDefinition getLogicalDefinition() {
+    return logicalDefinition;
+  }
+
+  /**
+   * Sets the machine-readable logical definition.
+   *
+   * @param logicalDefinition the logical definition
+   */
+  public void setLogicalDefinition(final LogicalDefinition logicalDefinition) {
+    this.logicalDefinition = logicalDefinition;
+  }
+
+  /** Marks the logical definition as explicitly requested for JSON serialization. */
+  public void includeLogicalDefinition() {
+    logicalDefinitionIncluded = true;
+  }
+
+  /**
+   * Supplies an empty JSON object when a requested concept has no logical definition.
+   *
+   * @return dynamically included empty fields
+   */
+  @JsonAnyGetter
+  @JsonInclude(content = Include.ALWAYS)
+  @Schema(hidden = true)
+  public Map<String, Object> getExplicitlyIncludedFields() {
+    if (logicalDefinitionIncluded && logicalDefinition == null) {
+      return Collections.singletonMap("logicalDefinition", Collections.emptyMap());
+    }
+    return Collections.emptyMap();
   }
 
   /**
