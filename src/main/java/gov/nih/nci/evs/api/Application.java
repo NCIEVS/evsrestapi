@@ -12,6 +12,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /** Entry point for webapp. */
 @SpringBootApplication(
     excludeName = {
+      // HAPI brings database/search dependencies, but EVS uses graph and OpenSearch services.
+      // Names allow these optional Boot modules to be absent from the classpath.
       "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration",
       "org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchAutoConfiguration",
       "org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchRestClientAutoConfiguration"

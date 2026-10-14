@@ -30,26 +30,32 @@ plugins {
 }
 
 repositories {
+  exclusiveContent {
+    forRepository {
+      maven {
+        name = 'hapiTestingSnapshots'
+        url = 'https://central.sonatype.com/repository/maven-snapshots/'
+      }
+    }
+    filter {
+      includeVersionByRegex 'ca.uhn.hapi.fhir', 'hapi-.*', '8\\.13\\.16-.*'
+    }
+  }
   mavenLocal()
+  mavenCentral()
   maven { url "https://repo.spring.io/release" }
   maven { url "https://repo.spring.io/milestone" }
   maven { url "https://repo.spring.io/snapshot" }
-  mavenCentral()
 }
 
-// Avoid specifying version unless needed
-// Explicit override for medium-severity CVEs pulled in by OpenSearch 2.19.x
-///ext['log4j2.version'] = '2.25.4'
-// Override Spring Boot BOM's commons-lang3 (3.17.0) to pick up CVE-2025-48924 fix.
-// Applies BOM-wide, so the spotbugs configuration also gets 3.18.0.
-///ext['commons-lang3.version'] = '3.18.0'
-// Override Boot BOM Jackson version to fix CVE-2026-54512 / CVE-2026-54513 (HIGH)
-///ext['jackson-bom.version'] = '2.21.4'
 // Override Boot BOM httpcore5 version to fix CVE-2026-54399 / CVE-2026-54428 (HIGH)
 ext['httpcore5.version'] = '5.4.3'
 
 // Extra Properties
 ext {
+  // RELEASE BLOCKER: testing only. Replace with a full HAPI release BEFORE merging or deploying.
+  // PR #8189 included; source revision fe490d72cf99d402df7421503572cd6550cb1a8e.
+  hapiFhirVersion = '8.13.16-20261014.162006-5'
   // Parameters
   if (!project.hasProperty("inputPath")) {
     inputPath = "na"
@@ -65,6 +71,18 @@ ext {
   }
 }
 
+// Keep transitive HAPI modules on the same timestamped snapshot as the direct dependencies.
+configurations.configureEach {
+  resolutionStrategy.eachDependency { details ->
+    if (details.requested.group == 'ca.uhn.hapi.fhir' && details.requested.name.startsWith('hapi-')) {
+      details.useVersion hapiFhirVersion
+      details.because 'Use one HAPI snapshot build for upgrade testing only'
+    }
+  }
+}
+
+logger.warn('RELEASE BLOCKER: HAPI FHIR snapshot is for TESTING ONLY. Upgrade to a full released version BEFORE merging this branch or deploying. See README.md.')
+
 /* Version info */
 group = "gov.nih.nci.evs.api"
 version = "2.6.0.RELEASE"
@@ -74,8 +92,7 @@ springBoot {
   buildInfo()
 }
 
-// Java Toolchain to detect which version of Java to use, if not present
-// it will automatically download and install the required version of Java
+// Use an installed Java 25 toolchain for compilation and tests.
 java {
   toolchain {
     languageVersion = JavaLanguageVersion.of(25)
@@ -101,7 +118,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-webmvc"
   implementation "org.springframework.boot:spring-boot-restclient"
 
-  // Temporary compatibility for application and HAPI types that still use Jackson 2.
+  // Temporary compatibility for application types and dependencies that still use Jackson 2.
   implementation "org.springframework.boot:spring-boot-jackson2"
 
   // SpringDoc 3 is required for Spring Boot 4.
@@ -114,21 +131,10 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-properties-migrator"
   implementation "org.springframework:spring-aop"
 
-  // These override org.hl7.fhir.*:6.4.0 requested by hapi-fhir-validation:7.6.1 and hapi-fhir-converter:7.6.1.
-  // 6.4.0 contains a vulnerability; 6.9.4 is the version co-packaged with HAPI FHIR that fixes it.
-  // These overrides can only be removed by upgrading to HAPI FHIR 8.x (a major breaking-change migration).
+  // Align directly used HL7 converters with this HAPI build's core version.
   implementation "org.fhir:ucum:1.0.9"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.12"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.10.3"
 
-  //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   // Spring Data 2026.0: OpenSearch 3.1.x with Spring Boot 4.1.x.
   implementation "org.opensearch.client:spring-data-opensearch:3.1.4"
 
@@ -145,7 +151,7 @@ dependencies {
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
 
-  // aspectjweaver is now managed by Spring Boot BOM (1.9.25.1 in 3.5.x)
+  // AspectJ version is managed by Spring Boot.
   implementation "org.aspectj:aspectjweaver"
   implementation "org.apache.commons:commons-text:1.10.0"
   //implementation "org.apache.opennlp:opennlp-tools:2.2.0"
@@ -165,16 +171,17 @@ dependencies {
   implementation 'org.apache.poi:poi-ooxml:5.4.0'
 
   //implementation 'commons-io:commons-io:2.14.0'
-  //implementation 'commons-cli:commons-cli:1.4'
+  // Used directly by the loaders; no longer supplied transitively by HAPI/Jena.
+  implementation 'commons-cli:commons-cli:1.11.0'
   implementation 'cglib:cglib:3.3.0'
   implementation 'com.google.protobuf:protobuf-java:3.25.5'
 
   // fhir dependencies
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-base:7.6.1";
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.6.1"
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.6.1"
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-server:7.6.1"
-  implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:7.6.1") {
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-base:${hapiFhirVersion}"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:${hapiFhirVersion}"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:${hapiFhirVersion}"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server:${hapiFhirVersion}"
+  implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:${hapiFhirVersion}") {
     exclude group: "net.minidev", module: "json-smart"
     exclude group: "ca.uhn.hapi.fhir", module: "hapi-fhir-sql-migrate"
     exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-high-level-client"
@@ -186,7 +193,7 @@ dependencies {
     exclude group: "org.glassfish", module: "javax.el"
     exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
   }
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.6.1"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:${hapiFhirVersion}"
 
   // disk-backed map implementation for hierarchy path builds
   implementation "com.h2database:h2:2.4.240"
@@ -197,12 +204,11 @@ dependencies {
   //compileOnly "org.projectlombok:lombok:1.18.32"
 
   // SpotBugs annotations
-  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.2"
+  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
 
   /*
    * Test Dependencies
   */
-  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation "org.springframework.boot:spring-boot-restclient-test"
   testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"

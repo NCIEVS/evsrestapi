@@ -49,7 +49,6 @@ class FhirR4CodeSystemGeneralOperations {
     parser = FhirContext.forR4().newJsonParser();
   }
 
-  /** Sets the up. */
   /**
    * Test code system validate.
    *

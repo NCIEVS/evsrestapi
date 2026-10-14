@@ -71,6 +71,33 @@ class EvsOpenSearchRequestLoggingInterceptorTest {
     final String message = process("GET", "http://localhost:9201/_cluster/health");
 
     assertTrue(message.contains("GET http://localhost:9201/_cluster/health"));
-    assertTrue(message.contains("index=_cluster"));
+    assertTrue(message.contains("index=<none>"));
+  }
+
+  /** Root requests are not scoped to an index. */
+  @Test
+  void logsRootWithoutIndex() throws Exception {
+    assertTrue(process("GET", "/").contains("index=<none>"));
+  }
+
+  /** Cluster-wide search requests are not scoped to an index. */
+  @Test
+  void logsClusterSearchWithoutIndex() throws Exception {
+    assertTrue(process("POST", "/_search").contains("index=<none>"));
+  }
+
+  /** Index extraction preserves escaped characters in the request path. */
+  @Test
+  void preservesEncodedIndexPath() throws Exception {
+    assertTrue(process("POST", "/my%2Dindex/_search").contains("index=my%2Dindex"));
+  }
+
+  /** Debug logging should not do work when disabled. */
+  @Test
+  void doesNotLogAtInfoLevel() throws Exception {
+    logger.setLevel(Level.INFO);
+    new EvsOpenSearchRequestLoggingInterceptor()
+        .process(new BasicHttpRequest("GET", "/_cluster/health"), null, HttpCoreContext.create());
+    assertTrue(appender.list.isEmpty());
   }
 }

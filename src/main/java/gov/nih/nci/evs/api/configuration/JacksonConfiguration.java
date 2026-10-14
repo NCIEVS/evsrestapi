@@ -25,7 +25,11 @@ public class JacksonConfiguration implements WebMvcConfigurer {
     return mapper;
   }
 
-  /** Prefer Jackson 2 while application and HAPI HTTP types still use Jackson 2 classes. */
+  /**
+   * Preserve Jackson 2 serialization for application MVC endpoints. HAPI uses its own serializers.
+   *
+   * @param converters the HTTP message converters
+   */
   @Override
   @SuppressWarnings("removal")
   public void extendMessageConverters(final List<HttpMessageConverter<?>> converters) {

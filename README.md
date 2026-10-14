@@ -1,5 +1,15 @@
 # EVSRESTAPI
 
+> [!WARNING]
+> **RELEASE BLOCKER — HAPI FHIR SNAPSHOT: TESTING ONLY. DO NOT MERGE THIS BRANCH OR DEPLOY IT.**
+> This branch uses HAPI FHIR `8.13.16-SNAPSHOT`, pinned to build `8.13.16-20261014.162006-5`,
+> to test the Spring Boot 4 migration from upstream PR #8189.
+> **We MUST upgrade to a full released HAPI FHIR version containing these changes and validate it
+> before merging this branch or deploying.** A successful snapshot build/test does not clear this requirement.
+> Once that full release is integrated and verified, remove this warning and the temporary snapshot
+> repository, dependency-alignment rule, and build warning in `build.gradle`; update the HL7 core dependency
+> to match the released HAPI version. Snapshot artifacts may expire from the upstream repository.
+
 Information on the build and deployment process for the EVSRESTAPI project
 
 ## Prerequisites
