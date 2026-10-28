@@ -4,24 +4,15 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.opensearch.OpenSearchStatusException;
 import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestHighLevelClient;
-import org.opensearch.data.client.orhlc.NativeSearchQuery;
 import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.core.AbstractElasticsearchTemplate;
-import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.Query;
 
 /**
- * Custom {@link OpenSearchRestTemplate} with bounded retries and query logging.
- *
- * <p>As of spring-data-elasticsearch version 3.2.0, only one query method logs query and honors
- * spring data logging property. This custom implementation also retries transient HTTP 429 and 502
- * responses from the shared OpenSearch client.
- *
- * @author Arun
+ * Custom {@link OpenSearchRestTemplate} with bounded retries for transient HTTP 429 and 502
+ * responses.
  */
 public class EvsOpenSearchRestTemplate extends OpenSearchRestTemplate {
 
@@ -128,20 +119,5 @@ public class EvsOpenSearchRestTemplate extends OpenSearchRestTemplate {
       }
     }
     return "request";
-  }
-
-  /* see superclass */
-  @Override
-  public <T> SearchHits<T> search(
-      final Query query, final Class<T> clazz, final IndexCoordinates index) {
-    // Keep the original Spring Data query log for NativeSearchQuery callers. The HTTP interceptor
-    // logs the full replayable OpenSearch request after this query has been serialized.
-    if (logger.isDebugEnabled()
-        && query instanceof NativeSearchQuery nativeSearchQuery
-        && nativeSearchQuery.getQuery() != null) {
-      logger.debug("  opensearch query = \n{}", nativeSearchQuery.getQuery());
-    }
-
-    return super.search(query, clazz, index);
   }
 }
