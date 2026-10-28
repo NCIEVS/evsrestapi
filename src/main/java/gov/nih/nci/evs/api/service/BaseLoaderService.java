@@ -25,9 +25,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
-import org.opensearch.action.delete.DeleteRequest;
-import org.opensearch.client.RequestOptions;
-import org.opensearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,9 +59,6 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   /** The term utils. */
   /* The terminology utils */
   @Autowired private TerminologyUtils termUtils;
-
-  /** The client. */
-  @Autowired private RestHighLevelClient client;
 
   /** The dbs. */
   @Value("${nci.evs.bulkload.graphDbs}")
@@ -492,8 +486,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * @throws InterruptedException the interrupted exception
    */
   protected void findAndDeleteTerminology(String ID) throws IOException, InterruptedException {
-    DeleteRequest request = new DeleteRequest(OpensearchOperationsService.METADATA_INDEX, ID);
-    client.delete(request, RequestOptions.DEFAULT);
+    operationsService.deleteIndexMetadata(ID);
 
     // This block is for debugging presence of the iMeta still in the index
     // Thread.sleep(2000);
