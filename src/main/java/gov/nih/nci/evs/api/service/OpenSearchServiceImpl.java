@@ -7,6 +7,7 @@ import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.query.Typeahead;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -34,6 +35,7 @@ import org.opensearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
@@ -70,6 +72,31 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
+  /* see superclass */
+  @Override
+  public ConceptResultList findTypeaheadConcepts(
+      final Typeahead typeahead, final SearchCriteria searchCriteria) {
+    // Typeahead only returns the best matches, which are on the first page
+    final int bestMatchesPage = 0;
+    final SearchHits<Concept> hits =
+        typeahead.fetchConcepts(
+            operations,
+            PageRequest.of(bestMatchesPage, searchCriteria.getPageSize()),
+            new IncludeParam(searchCriteria.getInclude()));
+
+    final ConceptResultList results = new ConceptResultList();
+    results.setParameters(searchCriteria);
+    // Capped at 10,000 on purpose: typeahead doesn't page, so it doesn't need the exact count
+    // that findConcepts runs a second query for
+    results.setTotal(hits.getTotalHits());
+    results.setConcepts(
+        hits.stream()
+            .peek(OpenSearchServiceImpl::addHighlightsToConcept)
+            .map(SearchHit::getContent)
+            .collect(Collectors.toList()));
+    return results;
+  }
+
   /**
    * search for the given search criteria.
    *
@@ -100,17 +127,19 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     final BoolQueryBuilder boolQuery = new BoolQueryBuilder();
 
-    if ("".equals(term) && searchCriteria.getCodeList().isEmpty()) {
-      // don't create anything
-    } else {
+    final boolean userHasSearchArgument =
+        !("".equals(term)) || !searchCriteria.getCodeList().isEmpty();
+    final boolean shouldAddUserSearch = userHasSearchArgument;
+    if (shouldAddUserSearch) {
       boolQuery.must(getTermQuery(searchCriteria, term));
     }
 
     // Append concept status clause. Boosts active to the top of the list, and maintains inactive at
     // the bottom
     BoolQueryBuilder activeQuery = new BoolQueryBuilder();
-    activeQuery.should(QueryBuilders.matchQuery("active", true).boost(100000f));
-    activeQuery.should(QueryBuilders.matchQuery("active", false).boost(0.0001f));
+
+    boostActiveTerms(activeQuery);
+    suppressInactiveTerms(activeQuery);
     boolQuery.must(activeQuery);
 
     // append terminology query
@@ -189,24 +218,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     if (fromOffset == 0) {
       result.setConcepts(
           hits.stream()
-              .peek(
-                  h -> {
-                    if (Concept.class.isAssignableFrom(h.getContent().getClass())) {
-                      Map<String, List<String>> highlightMap = h.getHighlightFields();
-                      // searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));
-                      for (String field : highlightMap.keySet()) {
-                        // Avoid highlights from "terminology" match
-                        if (field.equals("terminology")) {
-                          continue;
-                        }
-                        for (String text : highlightMap.get(field)) {
-                          h.getContent()
-                              .getHighlights()
-                              .put(text.replaceAll("<em>", "").replaceAll("</em>", ""), text);
-                        }
-                      }
-                    }
-                  })
+              .peek(OpenSearchServiceImpl::addHighlightsToConcept)
               .map(SearchHit::getContent)
               .collect(Collectors.toList()));
     } else {
@@ -219,6 +231,35 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       }
     }
     return result;
+  }
+
+  /**
+   * Copies a hit's OpenSearch highlights onto its concept, keyed by the unmarked text, for {@link
+   * ConceptUtils#applyHighlights}.
+   *
+   * @param hit the hit
+   */
+  private static void addHighlightsToConcept(final SearchHit<Concept> hit) {
+    final Map<String, List<String>> highlightMap = hit.getHighlightFields();
+    for (String field : highlightMap.keySet()) {
+      // Avoid highlights from "terminology" match
+      if (field.equals("terminology")) {
+        continue;
+      }
+      for (String text : highlightMap.get(field)) {
+        hit.getContent()
+            .getHighlights()
+            .put(text.replaceAll("<em>", "").replaceAll("</em>", ""), text);
+      }
+    }
+  }
+
+  private void suppressInactiveTerms(BoolQueryBuilder activeQuery) {
+    activeQuery.should(QueryBuilders.matchQuery("active", false).boost(0.0001f));
+  }
+
+  private void boostActiveTerms(BoolQueryBuilder activeQuery) {
+    activeQuery.should(QueryBuilders.matchQuery("active", true).boost(100000f));
   }
 
   /**

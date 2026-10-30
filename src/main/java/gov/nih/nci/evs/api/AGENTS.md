@@ -18,6 +18,7 @@ application entry point and package-level context links for the main implementat
 - `service/AGENTS.md` - search, SPARQL, metadata, form, and load service implementations.
 - `fhir/AGENTS.md` - HAPI FHIR R4/R5 servlets, providers, metadata, and OpenAPI interceptors.
 - `model/AGENTS.md` - API models, result lists, criteria objects, and SPARQL JSON bindings.
+- `query/AGENTS.md` - composable search query nodes (`EvsQuery`); see its rule on logical operators.
 - `support/AGENTS.md` - support classes, especially OpenSearch cached object wrappers.
 - `util/AGENTS.md` - utility helpers for terminology, concepts, hierarchy, JSON, REST, and FHIR.
 - `aop/AGENTS.md` - metric recording aspect and annotation.

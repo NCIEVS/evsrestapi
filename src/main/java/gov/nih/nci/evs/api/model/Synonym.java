@@ -10,7 +10,9 @@ import java.util.List;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.InnerField;
 import org.springframework.data.elasticsearch.annotations.Mapping;
+import org.springframework.data.elasticsearch.annotations.MultiField;
 import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 
 /** Represents a synonym of a concept. */
@@ -19,7 +21,13 @@ import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 public class Synonym extends BaseModel implements Comparable<Synonym> {
 
   /** The name. */
-  @Field(type = FieldType.Text)
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {
+        @InnerField(
+            suffix = ConceptMinimal.SEARCH_AS_YOU_TYPE_SUFFIX,
+            type = FieldType.Search_As_You_Type)
+      })
   private String name;
 
   /** The norm name. */

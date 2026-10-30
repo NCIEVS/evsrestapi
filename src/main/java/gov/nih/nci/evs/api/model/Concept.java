@@ -94,6 +94,14 @@ public class Concept extends ConceptMinimal {
   private Boolean leaf;
 
   /**
+   * The number of descendants, stored so searches can rank on it without loading {@link
+   * #descendants}. Like normName, it is written to the index but not read back.
+   */
+  @WriteOnlyProperty
+  @Field(type = FieldType.Integer)
+  private Integer descendantCount;
+
+  /**
    * The active flag. Intentionally not on ConceptMinimal to avoid parents/children having to have
    * flag maintained
    */
@@ -362,6 +370,7 @@ public class Concept extends ConceptMinimal {
     highlights = new HashMap<>(other.getHighlights());
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
+    descendantCount = other.getDescendantCount();
     active = other.getActive();
     defining = other.getDefining();
     normName = other.getNormName();
@@ -550,6 +559,25 @@ public class Concept extends ConceptMinimal {
    */
   public void setLeaf(final Boolean leaf) {
     this.leaf = leaf;
+  }
+
+  /**
+   * Returns the descendant count.
+   *
+   * @return the descendant count
+   */
+  @Schema(hidden = true)
+  public Integer getDescendantCount() {
+    return descendantCount;
+  }
+
+  /**
+   * Sets the descendant count.
+   *
+   * @param descendantCount the descendant count
+   */
+  public void setDescendantCount(final Integer descendantCount) {
+    this.descendantCount = descendantCount;
   }
 
   /**
