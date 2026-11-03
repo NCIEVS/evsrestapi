@@ -57,6 +57,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
           "\\b(?:not elsewhere classified|not otherwise specified|nec|nos)\\b",
           Pattern.CASE_INSENSITIVE);
 
+  /** A ':' not already escaped with a backslash. */
+  private static final Pattern UNESCAPED_COLON_PATTERN = Pattern.compile("(?<!\\\\):");
+
   /** The Opensearch operations service *. */
   @Autowired OpensearchOperationsService esOperationsService;
 
@@ -586,7 +589,13 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // 9. Code queries
     String codeList = codeTerm;
     if (hasCodeList) {
-      codeList = String.join(" OR ", searchCriteria.getCodeList());
+      // Escape the ':' in codes like GO:0008150 or HGNC:5, otherwise it is parsed as a field name
+      // and nothing matches. Only ':' is escaped, so wildcards like C32* still work, and codes
+      // already escaped by the caller (GO\:0008150) are left alone.
+      codeList =
+          searchCriteria.getCodeList().stream()
+              .map(code -> UNESCAPED_COLON_PATTERN.matcher(code).replaceAll("\\\\:"))
+              .collect(Collectors.joining(" OR "));
     }
     final BoolQueryBuilder codeQuery = getCodeQuery(codeList, 50f);
 
