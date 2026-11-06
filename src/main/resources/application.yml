@@ -69,6 +69,7 @@ nci:
   evs:
     application:
       adminKey: ${NCI_EVS_ADMIN_KEY:Default}
+      cacheClearUrls: ${NCI_EVS_CACHE_CLEAR_URLS:}
       contextPath: ${NCI_EVS_API_PATH:/api/v1}
       mailRecipient: ${MAIL_RECIPIENT:}
       metricsEnabled: ${METRICS_ENABLED:false}

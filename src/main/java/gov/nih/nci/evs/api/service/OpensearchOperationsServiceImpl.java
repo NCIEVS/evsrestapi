@@ -17,6 +17,7 @@ import org.opensearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.elasticsearch.core.RefreshPolicy;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -44,6 +45,14 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   @Autowired OpenSearchOperations operations;
 
   /* see superclass */
+  @CacheEvict(
+      value = {
+        OpensearchQueryCacheService.INDEX_METADATA_CACHE,
+        OpensearchQueryCacheService.PROPERTIES_CACHE
+      },
+      allEntries = true,
+      condition =
+          "T(gov.nih.nci.evs.api.service.OpensearchQueryCacheService).isCachedIndex(#index)")
   @Override
   public boolean createIndex(String index, boolean force) throws IOException {
     boolean indexExists = operations.indexOps(IndexCoordinates.of(index)).exists();
@@ -76,6 +85,14 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
 
   /* see superclass */
   @SuppressWarnings("rawtypes")
+  @CacheEvict(
+      value = {
+        OpensearchQueryCacheService.INDEX_METADATA_CACHE,
+        OpensearchQueryCacheService.PROPERTIES_CACHE
+      },
+      allEntries = true,
+      condition =
+          "T(gov.nih.nci.evs.api.service.OpensearchQueryCacheService).isCachedIndex(#index)")
   @Override
   public void bulkIndex(List objects, String index, Class clazz) throws IOException {
     if (CollectionUtils.isEmpty(objects)) {
@@ -94,6 +111,14 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
 
   /* see superclass */
   @SuppressWarnings("rawtypes")
+  @CacheEvict(
+      value = {
+        OpensearchQueryCacheService.INDEX_METADATA_CACHE,
+        OpensearchQueryCacheService.PROPERTIES_CACHE
+      },
+      allEntries = true,
+      condition =
+          "T(gov.nih.nci.evs.api.service.OpensearchQueryCacheService).isCachedIndex(#index)")
   @Override
   public void bulkIndexAndWait(List objects, String index, Class clazz) throws IOException {
     if (CollectionUtils.isEmpty(objects)) {
@@ -141,6 +166,14 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   }
 
   /* see superclass */
+  @CacheEvict(
+      value = {
+        OpensearchQueryCacheService.INDEX_METADATA_CACHE,
+        OpensearchQueryCacheService.PROPERTIES_CACHE
+      },
+      allEntries = true,
+      condition =
+          "T(gov.nih.nci.evs.api.service.OpensearchQueryCacheService).isCachedIndex(#index)")
   @Override
   public void index(Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
       throws IOException {
@@ -154,6 +187,14 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
     operations.index(query, IndexCoordinates.of(index));
   }
 
+  @CacheEvict(
+      value = {
+        OpensearchQueryCacheService.INDEX_METADATA_CACHE,
+        OpensearchQueryCacheService.PROPERTIES_CACHE
+      },
+      allEntries = true,
+      condition =
+          "T(gov.nih.nci.evs.api.service.OpensearchQueryCacheService).isCachedIndex(#index)")
   @Override
   public void update(
       String id, Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
@@ -194,6 +235,14 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   }
 
   /* see superclass */
+  @CacheEvict(
+      value = {
+        OpensearchQueryCacheService.INDEX_METADATA_CACHE,
+        OpensearchQueryCacheService.PROPERTIES_CACHE
+      },
+      allEntries = true,
+      condition =
+          "T(gov.nih.nci.evs.api.service.OpensearchQueryCacheService).isCachedIndex(#index)")
   @Override
   public boolean deleteIndex(String index) {
     return operations.indexOps(IndexCoordinates.of(index)).delete();
@@ -206,18 +255,40 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   }
 
   /* see superclass */
+  @CacheEvict(
+      value = {
+        OpensearchQueryCacheService.INDEX_METADATA_CACHE,
+        OpensearchQueryCacheService.PROPERTIES_CACHE
+      },
+      allEntries = true,
+      condition =
+          "T(gov.nih.nci.evs.api.service.OpensearchQueryCacheService).isCachedIndex(#indexName)")
   @Override
   public String delete(String indexName, String id) {
     return operations.delete(id, IndexCoordinates.of(indexName));
   }
 
   /* see superclass */
+  @CacheEvict(
+      value = {
+        OpensearchQueryCacheService.INDEX_METADATA_CACHE,
+        OpensearchQueryCacheService.PROPERTIES_CACHE
+      },
+      allEntries = true)
   @Override
   public String deleteIndexMetadata(String id) {
     return operations.delete(id, IndexCoordinates.of(METADATA_INDEX));
   }
 
   /* see superclass */
+  @CacheEvict(
+      value = {
+        OpensearchQueryCacheService.INDEX_METADATA_CACHE,
+        OpensearchQueryCacheService.PROPERTIES_CACHE
+      },
+      allEntries = true,
+      condition =
+          "T(gov.nih.nci.evs.api.service.OpensearchQueryCacheService).isCachedIndex(#indexName)")
   @Override
   public Boolean deleteQuery(String query, String indexName) throws Exception {
     final NativeSearchQuery deleteQuery =

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.model.TerminologyStats;
 import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -31,6 +33,32 @@ public class IndexMetadata {
   /** The terminology. */
   @Field(type = FieldType.Object)
   private Terminology terminology;
+
+  /** Instantiates an empty {@link IndexMetadata}. */
+  public IndexMetadata() {
+    // n/a
+  }
+
+  /**
+   * Instantiates a {@link IndexMetadata} from the specified parameters. The terminology, including
+   * its metadata and stats, is copied so changes to the copy do not affect the original.
+   *
+   * @param other the other
+   */
+  public IndexMetadata(final IndexMetadata other) {
+    indexName = other.getIndexName();
+    totalConcepts = other.getTotalConcepts();
+    completed = other.isCompleted();
+    if (other.getTerminology() != null) {
+      terminology = new Terminology(other.getTerminology());
+      if (terminology.getMetadata() != null) {
+        terminology.setMetadata(new TerminologyMetadata(terminology.getMetadata()));
+      }
+      if (terminology.getStats() != null) {
+        terminology.setStats(new TerminologyStats(terminology.getStats()));
+      }
+    }
+  }
 
   /**
    * Get index name.

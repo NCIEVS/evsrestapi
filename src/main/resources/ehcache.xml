@@ -28,6 +28,20 @@
 		</resources>
 	</cache>
 	
+	<!-- OpensearchQueryCacheService: index metadata, keyed by completedOnly -->
+	<cache alias="indexMetadata">
+		<resources>
+			<heap unit="entries">10</heap>
+		</resources>
+	</cache>
+
+	<!-- OpensearchQueryCacheService: properties, keyed by terminology object index name -->
+	<cache alias="properties">
+		<resources>
+			<heap unit="entries">200</heap>
+		</resources>
+	</cache>
+
 	<cache alias="subsets">
 		<resources>
 			<heap unit="entries">1000</heap>
