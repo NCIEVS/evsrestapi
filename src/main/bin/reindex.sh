@@ -65,6 +65,14 @@ fi
 
 # Set variables
 l_graph_db_port=${GRAPH_DB_PORT:-"3030"}
+# Local API to clear caches on after reindexing. Capture the port now, EVS_SERVER_PORT
+# is overridden below for the loader runs. Defaults match application(-local).yml.
+if [[ $config -eq 0 ]]; then
+    l_api_port=${EVS_SERVER_PORT:-"8082"}
+else
+    l_api_port=${EVS_SERVER_PORT:-"8080"}
+fi
+l_api_url="http://localhost:${l_api_port}${NCI_EVS_API_PATH:-/api/v1}"
 metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 
 # Check config
@@ -153,6 +161,24 @@ check_http_status() {
       echo "$message (returned $status)"
       exit 1
     fi
+}
+
+# Retry transient OpenSearch responses with curl's bounded exponential backoff.
+# Keep the final body separate so a failed probe cannot be mistaken for index metadata.
+opensearch_curl() {
+    local response_file http_status curl_status
+    response_file=$(mktemp /tmp/evs-opensearch-curl.XXXXXX) || return 1
+    http_status=$(curl --silent --show-error --retry 4 --retry-max-time 20 \
+        --output "$response_file" --write-out '%{http_code}' "$@")
+    curl_status=$?
+    if [[ $curl_status -ne 0 || "$http_status" == "429" || "$http_status" == 5* ]]; then
+        echo "ERROR: OpenSearch request failed with HTTP $http_status" >&2
+        cat "$response_file" >&2
+        rm -f "$response_file"
+        return 1
+    fi
+    cat "$response_file"
+    rm -f "$response_file"
 }
 
 # Lookup databases and put into a temp file db.$$.txt
@@ -277,7 +303,7 @@ get_graphs() {
 # we can probably remove this when we figure a better answer
 set_total_fields_limit_5000() {
     echo "    Set index.mapping.total_fields.limit = 5000 ...`/bin/date`"  
-    curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_settings" \
+    opensearch_curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_settings" \
         -H "Content-type: application/json" -d '{ "index.mapping.total_fields.limit": 5000 }' >> /dev/null
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error setting index.mapping.total_fields in evs_metadata"
@@ -457,7 +483,7 @@ for x in `cat /tmp/y.$$.txt`; do
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
         # Check for index
-        curl -s -o /tmp/x.$$.txt ${ES_SCHEME}://${ES_HOST}:${ES_PORT}/_cat/indices    
+        opensearch_curl "${ES_SCHEME}://${ES_HOST}:${ES_PORT}/_cat/indices" > /tmp/x.$$.txt
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected problem attempting to list indexes"
             exit 1
@@ -472,7 +498,12 @@ for x in `cat /tmp/y.$$.txt`; do
         if [[ $y == "evs_metadata" ]]; then
             echo "  Checking for existence of concept_${term}_$cv"
             # Check whether the entry for this terminology exists        
-            if [[ `curl -s "${ES_SCHEME}://${ES_HOST}:${ES_PORT}/evs_metadata/_doc/concept_${term}_$cv" | grep '"found":false' | wc -l` -eq 1 ]]; then
+            metadata_response=$(opensearch_curl "${ES_SCHEME}://${ES_HOST}:${ES_PORT}/evs_metadata/_doc/concept_${term}_$cv")
+            if [[ $? -ne 0 ]]; then
+                echo "ERROR: unexpected problem checking index metadata"
+                exit 1
+            fi
+            if [[ "$metadata_response" == *'"found":false'* ]]; then
                 echo "    MISSING evs_metadata entry for concept_${term}_$cv"
                 exists=0
             fi
@@ -526,7 +557,7 @@ for x in `cat /tmp/y.$$.txt`; do
 
         # Set the indexes to have a larger max_result_window
         echo "    Set max result window to 300000 for concept_${term}_$cv"
-        curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
+        opensearch_curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
               -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 300000 } }' >> /dev/null
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error setting max_result_window"
@@ -589,15 +620,34 @@ else
     fi
 
     # Verify that max_result_window on evs_mappings is set to 3000000
-    if [[ `curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" | grep -c max_result_window` -eq 0 ]]; then
+    mapping_settings=$(opensearch_curl "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings")
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected problem checking evs_mappings settings"
+        exit 1
+    fi
+    if [[ "$mapping_settings" != *max_result_window* ]]; then
         # Set the indexes to have a larger max_result_window
         echo "  Set max result window to 300000 for evs_mappings"
-        curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" \
+        opensearch_curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" \
              -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 300000 } }' >> /dev/null
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error setting max_result_window for evs_mappings"
             exit 1
         fi
+    fi
+fi
+
+# Clear the local API's caches so it serves the new index metadata right away.
+# If this fails, the caches expire on their own (see ehcache.xml), so do not fail the reindex.
+if [[ -z $NCI_EVS_ADMIN_KEY ]]; then
+    echo "    SKIP clearing API caches (NCI_EVS_ADMIN_KEY not set)"
+else
+    echo "    Clear API caches at $l_api_url"
+    # -G puts the url-encoded key in the query string; do not echo it
+    http_status=$(curl -s -G -o /dev/null -w "%{http_code}" --max-time 30 -X DELETE \
+        --data-urlencode "key=$NCI_EVS_ADMIN_KEY" "${l_api_url%/}/admin/cache")
+    if [[ "$http_status" != "204" ]]; then
+        echo "      WARNING: unable to clear API caches (HTTP $http_status)"
     fi
 fi
 

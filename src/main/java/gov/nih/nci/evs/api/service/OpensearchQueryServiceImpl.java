@@ -45,7 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -70,6 +69,9 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
 
   /** the term utils. */
   @Autowired TerminologyUtils termUtils;
+
+  /** the cached lookups. */
+  @Autowired OpensearchQueryCacheService cacheService;
 
   /**
    * see superclass *.
@@ -498,16 +500,10 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
    */
   @Override
   public List<IndexMetadata> getIndexMetadata(boolean completedOnly) {
-    // Get first 1000 records
-    final Pageable pageable = new EVSPageable(0, 1000, 0);
-    NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder().withPageable(pageable);
-
-    if (completedOnly) {
-      queryBuilder = queryBuilder.withFilter(QueryBuilders.matchQuery("completed", true));
-    }
-
-    return getResults(
-        queryBuilder.build(), IndexMetadata.class, OpensearchOperationsService.METADATA_INDEX);
+    // Cached; return copies so callers cannot modify the cached objects
+    return cacheService.getIndexMetadata(completedOnly).stream()
+        .map(IndexMetadata::new)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -596,7 +592,12 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
   @Override
   public List<Concept> getProperties(Terminology terminology, IncludeParam ip)
       throws JsonMappingException, JsonProcessingException {
-    return getConceptList("properties", terminology, ip);
+    // Cached; copy before applying the include param so callers cannot modify the cached objects
+    final List<Concept> copies =
+        cacheService.getProperties(terminology).stream()
+            .map(Concept::new)
+            .collect(Collectors.toList());
+    return ConceptUtils.applyInclude(copies, ip);
   }
 
   /**

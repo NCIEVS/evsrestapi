@@ -5,7 +5,6 @@ package gov.nih.nci.evs.api.configuration;
 import org.apache.http.HttpHost;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestHighLevelClient;
-import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +75,6 @@ public class OpensearchConfiguration {
   @SuppressWarnings("resource")
   @Bean
   public OpenSearchOperations openSearchOperations() {
-    //    return new EvsOpenSearchRestTemplate(client());
-    return new OpenSearchRestTemplate(client());
+    return new EvsOpenSearchRestTemplate(client());
   }
 }
