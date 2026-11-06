@@ -40,8 +40,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
- * Checks caching of index metadata and properties: repeated reads hit OpenSearch once, callers get
- * copies, and writes to the metadata or object indexes evict the cache.
+ * Checks caching of index metadata and properties: repeated reads hit OpenSearch once and callers
+ * get copies.
  */
 @SpringJUnitConfig(OpensearchQueryCacheServiceTest.Config.class)
 class OpensearchQueryCacheServiceTest {
@@ -49,11 +49,7 @@ class OpensearchQueryCacheServiceTest {
   /** Minimal context with real caching; OpenSearch and terminology utils are mocked below. */
   @Configuration
   @EnableCaching
-  @Import({
-    OpensearchQueryCacheService.class,
-    OpensearchQueryServiceImpl.class,
-    OpensearchOperationsServiceImpl.class
-  })
+  @Import({OpensearchQueryCacheService.class, OpensearchQueryServiceImpl.class})
   static class Config {
 
     @Bean
@@ -65,8 +61,6 @@ class OpensearchQueryCacheServiceTest {
   }
 
   @Autowired OpensearchQueryService queryService;
-
-  @Autowired OpensearchOperationsService operationsService;
 
   @MockitoBean OpenSearchOperations operations;
 
@@ -130,58 +124,6 @@ class OpensearchQueryCacheServiceTest {
         queryService.getProperties(terminology, new IncludeParam("summary")).get(0);
     assertEquals("Property One", second.getName());
     assertEquals(1, second.getSynonyms().size());
-  }
-
-  @Test
-  void metadataIndexWriteEvictsCache() throws Exception {
-    queryService.getIndexMetadata(true);
-    operationsService.bulkIndexAndWait(
-        List.of(indexMetadata()), OpensearchOperationsService.METADATA_INDEX, IndexMetadata.class);
-    queryService.getIndexMetadata(true);
-
-    verifySearches(IndexMetadata.class, 2);
-  }
-
-  @Test
-  void objectIndexWriteEvictsCache() throws Exception {
-    queryService.getProperties(terminology, new IncludeParam());
-    operationsService.index(
-        propertiesObject(), terminology.getObjectIndexName(), OpensearchObject.class);
-    queryService.getProperties(terminology, new IncludeParam());
-
-    verifySearches(OpensearchObject.class, 2);
-  }
-
-  @Test
-  void deleteIndexMetadataEvictsCache() {
-    queryService.getIndexMetadata(true);
-    operationsService.deleteIndexMetadata("concept_ncit_2610d");
-    queryService.getIndexMetadata(true);
-
-    verifySearches(IndexMetadata.class, 2);
-  }
-
-  @Test
-  void otherIndexWritesKeepCache() throws Exception {
-    queryService.getIndexMetadata(true);
-    queryService.getProperties(terminology, new IncludeParam());
-    operationsService.bulkIndex(List.of(new Concept()), "concept_ncit_2610d", Concept.class);
-    operationsService.index(new Concept(), OpensearchOperationsService.AUDIT_INDEX, Concept.class);
-    queryService.getIndexMetadata(true);
-    queryService.getProperties(terminology, new IncludeParam());
-
-    verifySearches(IndexMetadata.class, 1);
-    verifySearches(OpensearchObject.class, 1);
-  }
-
-  @Test
-  void cachedIndexNames() {
-    assertTrue(
-        OpensearchQueryCacheService.isCachedIndex(OpensearchOperationsService.METADATA_INDEX));
-    assertTrue(OpensearchQueryCacheService.isCachedIndex("evs_object_ncit_2610d"));
-    assertFalse(OpensearchQueryCacheService.isCachedIndex("concept_ncit_2610d"));
-    assertFalse(OpensearchQueryCacheService.isCachedIndex(OpensearchOperationsService.AUDIT_INDEX));
-    assertFalse(OpensearchQueryCacheService.isCachedIndex(null));
   }
 
   @Test

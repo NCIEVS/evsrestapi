@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import gov.nih.nci.evs.api.configuration.CacheConfiguration;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
@@ -52,6 +53,9 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
 
   /** The Opensearch query service *. */
   @Autowired private OpensearchQueryService osQueryService;
+
+  /** The cache configuration. */
+  @Autowired private CacheConfiguration cacheConfig;
 
   /** The sparql query service *. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
@@ -463,7 +467,9 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     operationsService.bulkIndexAndWait(
         Arrays.asList(iMeta), OpensearchOperationsService.METADATA_INDEX, IndexMetadata.class);
 
-    // This block is for debugging presence of the iMeta
+    // This block is for debugging presence of the iMeta.
+    // Clear cached metadata first so the log reflects the write above.
+    cacheConfig.evictAll();
     List<IndexMetadata> iMetas = osQueryService.getIndexMetadata(true);
     final List<String> completed =
         iMetas.stream().map(t -> t.getTerminologyVersion()).sorted().collect(Collectors.toList());

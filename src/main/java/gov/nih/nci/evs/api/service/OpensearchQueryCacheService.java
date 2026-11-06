@@ -27,9 +27,9 @@ import org.springframework.stereotype.Service;
  * <p>Cached values are shared between requests. Callers must not modify them; {@link
  * OpensearchQueryServiceImpl} returns copies to the rest of the application.
  *
- * <p>Entries are evicted by {@link OpensearchOperationsServiceImpl} whenever the metadata index or
- * an object index is written, by the nightly {@code CacheConfiguration#evictAll()}, and by the
- * {@code DELETE /admin/cache} endpoint, which the loader calls when it finishes.
+ * <p>Only the loader writes these indexes, so entries are not evicted on writes. They are cleared
+ * when the loader finishes (in-process and through the API's {@code DELETE /admin/cache} endpoint),
+ * and by the nightly {@code CacheConfiguration#evictAll()}.
  */
 @Service
 public class OpensearchQueryCacheService {
@@ -40,23 +40,8 @@ public class OpensearchQueryCacheService {
   /** Cache name for terminology properties. */
   public static final String PROPERTIES_CACHE = "properties";
 
-  /** Prefix of the per-terminology object indexes (see Terminology#getObjectIndexName()). */
-  public static final String OBJECT_INDEX_PREFIX = "evs_object_";
-
   /** The OpenSearch operations. */
   @Autowired OpenSearchOperations operations;
-
-  /**
-   * Indicates whether writing to the specified index can change a cached value.
-   *
-   * @param index the index name
-   * @return true, if so
-   */
-  public static boolean isCachedIndex(final String index) {
-    return index != null
-        && (OpensearchOperationsService.METADATA_INDEX.equals(index)
-            || index.startsWith(OBJECT_INDEX_PREFIX));
-  }
 
   /**
    * Returns the index metadata.
