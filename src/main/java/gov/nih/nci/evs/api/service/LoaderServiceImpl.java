@@ -2,7 +2,6 @@ package gov.nih.nci.evs.api.service;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gov.nih.nci.evs.api.Application;
-import gov.nih.nci.evs.api.configuration.CacheConfiguration;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyStats;
@@ -65,9 +64,6 @@ public class LoaderServiceImpl {
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
-  /** The cache configuration. */
-  @Autowired CacheConfiguration cacheConfig;
-
   /** The static operations service. */
   private static OpensearchOperationsService staticOperationsService;
 
@@ -76,9 +72,6 @@ public class LoaderServiceImpl {
 
   /** The static term utils. */
   private static TerminologyUtils staticTermUtils;
-
-  /** The static cache configuration. */
-  private static CacheConfiguration staticCacheConfig;
 
   /**
    * Sets the static services.
@@ -98,7 +91,6 @@ public class LoaderServiceImpl {
   @PostConstruct
   public void init() {
     setStaticServices(this.operationsService, this.osQueryService, this.termUtils);
-    staticCacheConfig = this.cacheConfig;
   }
 
   /**
@@ -218,7 +210,6 @@ public class LoaderServiceImpl {
         loadService = app.getBean(MappingLoaderServiceImpl.class);
         loadService.initialize();
         loadService.loadObjects(null, null, null);
-        clearCaches();
         // Exit app here
         if (app.isRunning()) {
           logger.info("Finished mappings (app running), exit 0");
@@ -273,7 +264,6 @@ public class LoaderServiceImpl {
 
           loadService.updateLatestFlag(terminology, removed);
         }
-        clearCaches();
         System.exit(0);
       }
       final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_FILE);
@@ -350,9 +340,6 @@ public class LoaderServiceImpl {
           e.getMessage(),
           "ERROR");
 
-      // A failed load may already have changed index metadata, so clear caches anyway
-      clearCaches();
-
       // If app is null, initialization failed immediately, return nonzero code
       if (app != null && app.isRunning()) {
         logger.info("Finished (app running), exit 1");
@@ -364,7 +351,6 @@ public class LoaderServiceImpl {
       }
     }
 
-    clearCaches();
     if (app != null && app.isRunning()) {
       logger.info("Finished (app running), exit 0");
       SpringApplication.exit(app, () -> 0);
@@ -372,24 +358,6 @@ public class LoaderServiceImpl {
     } else {
       logger.info("Finished, exit 0");
       System.exit(0);
-    }
-  }
-
-  /**
-   * Clears this process's caches. Running API instances are cleared separately by reindex.sh
-   * (DELETE /admin/cache), and their index metadata and properties caches also expire on their own
-   * (see ehcache.xml). Failures are logged and never fail the load.
-   */
-  static void clearCaches() {
-    // Not set if startup failed before this bean was created
-    if (staticCacheConfig == null) {
-      return;
-    }
-    try {
-      staticCacheConfig.evictAll();
-      TerminologyUtils.clearCache();
-    } catch (Exception e) {
-      logger.warn("Unable to clear caches: {}", e.getMessage());
     }
   }
 
