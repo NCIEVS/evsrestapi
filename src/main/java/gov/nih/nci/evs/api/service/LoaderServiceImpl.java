@@ -6,13 +6,10 @@ import gov.nih.nci.evs.api.configuration.CacheConfiguration;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyStats;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.annotation.PostConstruct;
-import java.net.URI;
-import java.time.Duration;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -31,10 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /** The implementation for {@link LoaderService}. */
 @Service
@@ -71,6 +65,9 @@ public class LoaderServiceImpl {
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
+  /** The cache configuration. */
+  @Autowired CacheConfiguration cacheConfig;
+
   /** The static operations service. */
   private static OpensearchOperationsService staticOperationsService;
 
@@ -79,6 +76,9 @@ public class LoaderServiceImpl {
 
   /** The static term utils. */
   private static TerminologyUtils staticTermUtils;
+
+  /** The static cache configuration. */
+  private static CacheConfiguration staticCacheConfig;
 
   /**
    * Sets the static services.
@@ -98,6 +98,7 @@ public class LoaderServiceImpl {
   @PostConstruct
   public void init() {
     setStaticServices(this.operationsService, this.osQueryService, this.termUtils);
+    staticCacheConfig = this.cacheConfig;
   }
 
   /**
@@ -217,7 +218,7 @@ public class LoaderServiceImpl {
         loadService = app.getBean(MappingLoaderServiceImpl.class);
         loadService.initialize();
         loadService.loadObjects(null, null, null);
-        clearCaches(app);
+        clearCaches();
         // Exit app here
         if (app.isRunning()) {
           logger.info("Finished mappings (app running), exit 0");
@@ -272,7 +273,7 @@ public class LoaderServiceImpl {
 
           loadService.updateLatestFlag(terminology, removed);
         }
-        clearCaches(app);
+        clearCaches();
         System.exit(0);
       }
       final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_FILE);
@@ -350,7 +351,7 @@ public class LoaderServiceImpl {
           "ERROR");
 
       // A failed load may already have changed index metadata, so clear caches anyway
-      clearCaches(app);
+      clearCaches();
 
       // If app is null, initialization failed immediately, return nonzero code
       if (app != null && app.isRunning()) {
@@ -363,7 +364,7 @@ public class LoaderServiceImpl {
       }
     }
 
-    clearCaches(app);
+    clearCaches();
     if (app != null && app.isRunning()) {
       logger.info("Finished (app running), exit 0");
       SpringApplication.exit(app, () -> 0);
@@ -375,68 +376,21 @@ public class LoaderServiceImpl {
   }
 
   /**
-   * Clears this process's caches and asks each configured API instance to clear its caches, so
-   * newly loaded data (index metadata, latest flags, properties) is served without waiting for the
-   * nightly eviction. The loader runs in its own JVM, so clearing its local caches alone does not
-   * affect a running API. Failures are logged and never fail the load.
-   *
-   * @param app the application context (may be null if startup failed)
+   * Clears this process's caches. Running API instances are cleared separately by reindex.sh
+   * (DELETE /admin/cache), and their index metadata and properties caches also expire on their own
+   * (see ehcache.xml). Failures are logged and never fail the load.
    */
-  static void clearCaches(final ConfigurableApplicationContext app) {
-    if (app == null || !app.isActive()) {
+  static void clearCaches() {
+    // Not set if startup failed before this bean was created
+    if (staticCacheConfig == null) {
       return;
     }
     try {
-      app.getBean(CacheConfiguration.class).evictAll();
+      staticCacheConfig.evictAll();
       TerminologyUtils.clearCache();
-      final ApplicationProperties props = app.getBean(ApplicationProperties.class);
-      final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-      factory.setConnectTimeout(Duration.ofSeconds(10));
-      factory.setReadTimeout(Duration.ofSeconds(30));
-      clearApiCaches(props.getCacheClearUrls(), props.getAdminKey(), new RestTemplate(factory));
     } catch (Exception e) {
       logger.warn("Unable to clear caches: {}", e.getMessage());
     }
-  }
-
-  /**
-   * Calls DELETE {url}/admin/cache on each API base URL.
-   *
-   * @param urls comma-separated API base URLs including the context path
-   * @param adminKey the admin key
-   * @param restTemplate the rest template
-   * @return the number of API instances whose caches were cleared
-   */
-  static int clearApiCaches(
-      final String urls, final String adminKey, final RestTemplate restTemplate) {
-    if (StringUtils.isBlank(urls)) {
-      logger.info(
-          "No API cache clear URLs configured (NCI_EVS_CACHE_CLEAR_URLS), "
-              + "API caches refresh at the nightly eviction");
-      return 0;
-    }
-    int cleared = 0;
-    for (final String url : urls.split(",")) {
-      if (StringUtils.isBlank(url)) {
-        continue;
-      }
-      final URI uri =
-          UriComponentsBuilder.fromUriString(url.trim())
-              .pathSegment("admin", "cache")
-              .queryParam("key", adminKey)
-              .encode()
-              .build()
-              .toUri();
-      try {
-        restTemplate.delete(uri);
-        logger.info("Cleared API cache at {}", url.trim());
-        cleared++;
-      } catch (Exception e) {
-        // Do not log the uri, it contains the admin key
-        logger.warn("Unable to clear API cache at {}: {}", url.trim(), e.getMessage());
-      }
-    }
-    return cleared;
   }
 
   /**

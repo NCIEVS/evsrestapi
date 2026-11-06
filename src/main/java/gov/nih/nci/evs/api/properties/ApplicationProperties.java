@@ -38,12 +38,6 @@ public class ApplicationProperties {
   /** FTP neoplasm site. */
   private String ftpNeoplasmUrl;
 
-  /**
-   * Comma-separated API base URLs (including the context path, e.g. http://host:8080/api/v1) whose
-   * caches the loader clears when it finishes.
-   */
-  private String cacheClearUrls;
-
   /** The recaptcha secret key. */
   @Value("${google.recaptcha.site.key}")
   private String recaptchaSiteKey;
@@ -226,24 +220,6 @@ public class ApplicationProperties {
    */
   public void setFtpNeoplasmUrl(final String ftpNeoplasmUrl) {
     this.ftpNeoplasmUrl = ftpNeoplasmUrl;
-  }
-
-  /**
-   * Returns the API base URLs whose caches the loader clears.
-   *
-   * @return the cache clear urls
-   */
-  public String getCacheClearUrls() {
-    return cacheClearUrls;
-  }
-
-  /**
-   * Sets the API base URLs whose caches the loader clears.
-   *
-   * @param cacheClearUrls the cache clear urls
-   */
-  public void setCacheClearUrls(final String cacheClearUrls) {
-    this.cacheClearUrls = cacheClearUrls;
   }
 
   /**

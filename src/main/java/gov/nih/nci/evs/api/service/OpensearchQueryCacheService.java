@@ -27,8 +27,8 @@ import org.springframework.stereotype.Service;
  * <p>Cached values are shared between requests. Callers must not modify them; {@link
  * OpensearchQueryServiceImpl} returns copies to the rest of the application.
  *
- * <p>Only the loader writes these indexes, so entries are not evicted on writes. They are cleared
- * when the loader finishes (in-process and through the API's {@code DELETE /admin/cache} endpoint),
+ * <p>Only the loader writes these indexes, so entries are not evicted on writes. They expire after
+ * 10 minutes (see ehcache.xml), and are cleared by reindex.sh through {@code DELETE /admin/cache}
  * and by the nightly {@code CacheConfiguration#evictAll()}.
  */
 @Service

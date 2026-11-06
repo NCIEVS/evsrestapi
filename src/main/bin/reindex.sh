@@ -65,6 +65,14 @@ fi
 
 # Set variables
 l_graph_db_port=${GRAPH_DB_PORT:-"3030"}
+# Local API to clear caches on after reindexing. Capture the port now, EVS_SERVER_PORT
+# is overridden below for the loader runs. Defaults match application(-local).yml.
+if [[ $config -eq 0 ]]; then
+    l_api_port=${EVS_SERVER_PORT:-"8082"}
+else
+    l_api_port=${EVS_SERVER_PORT:-"8080"}
+fi
+l_api_url="http://localhost:${l_api_port}${NCI_EVS_API_PATH:-/api/v1}"
 metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 
 # Check config
@@ -626,6 +634,20 @@ else
             echo "ERROR: unexpected error setting max_result_window for evs_mappings"
             exit 1
         fi
+    fi
+fi
+
+# Clear the local API's caches so it serves the new index metadata right away.
+# If this fails, the caches expire on their own (see ehcache.xml), so do not fail the reindex.
+if [[ -z $NCI_EVS_ADMIN_KEY ]]; then
+    echo "    SKIP clearing API caches (NCI_EVS_ADMIN_KEY not set)"
+else
+    echo "    Clear API caches at $l_api_url"
+    # -G puts the url-encoded key in the query string; do not echo it
+    http_status=$(curl -s -G -o /dev/null -w "%{http_code}" --max-time 30 -X DELETE \
+        --data-urlencode "key=$NCI_EVS_ADMIN_KEY" "${l_api_url%/}/admin/cache")
+    if [[ "$http_status" != "204" ]]; then
+        echo "      WARNING: unable to clear API caches (HTTP $http_status)"
     fi
 fi
 
