@@ -9,7 +9,6 @@ import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
 import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,10 +64,6 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
   /** The Opensearch query service *. */
   @Autowired OpensearchQueryService osQueryService;
-
-  /** The term utils. */
-  /* The terminology utils */
-  @Autowired TerminologyUtils termUtils;
 
   /**
    * search for the given search criteria.
@@ -163,23 +158,21 @@ public class OpenSearchServiceImpl implements OpenSearchService {
           .withSorts(SortBuilders.fieldSort("code").order(SortOrder.ASC));
     }
 
+    final IndexCoordinates indices =
+        CollectionUtils.isEmpty(terminologies)
+            ? IndexCoordinates.of("_all")
+            : IndexCoordinates.of(
+                terminologies.stream().map(Terminology::getIndexName).toArray(String[]::new));
+
     // query on operations
-    final SearchHits<Concept> hits =
-        operations.search(
-            searchQuery.build(),
-            Concept.class,
-            IndexCoordinates.of(buildIndicesArray(searchCriteria)));
+    final SearchHits<Concept> hits = operations.search(searchQuery.build(), Concept.class, indices);
 
     // logger.debug("result count: {}", hits.getTotalHits());
 
     final ConceptResultList result = new ConceptResultList();
 
     if (hits.getTotalHits() >= 10000) {
-      result.setTotal(
-          operations.count(
-              searchQuery.build(),
-              Concept.class,
-              IndexCoordinates.of(buildIndicesArray(searchCriteria))));
+      result.setTotal(operations.count(searchQuery.build(), Concept.class, indices));
     } else {
       result.setTotal(hits.getTotalHits());
     }
@@ -1522,30 +1515,5 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // nested query on properties
     return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
-  }
-
-  /**
-   * build array of index names.
-   *
-   * @param searchCriteria the search criteria
-   * @return the array of index names
-   * @throws Exception the exception
-   */
-  private String[] buildIndicesArray(SearchCriteria searchCriteria) throws Exception {
-    List<String> terminologies = searchCriteria.getTerminology();
-
-    if (CollectionUtils.isEmpty(searchCriteria.getTerminology())) {
-      return new String[] {"_all"};
-    }
-
-    String[] indices = new String[terminologies.size()];
-    for (int i = 0; i < terminologies.size(); i++) {
-      indices[i] =
-          termUtils
-              .getIndexedTerminology(terminologies.get(i), osQueryService, true)
-              .getIndexName();
-    }
-    // logger.info("indices array: " + Arrays.asList(indices));
-    return indices;
   }
 }
