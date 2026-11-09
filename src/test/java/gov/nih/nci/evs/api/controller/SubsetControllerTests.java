@@ -4,12 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +18,13 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 
 /** subset tests. */
 @ExtendWith(SpringExtension.class)
@@ -48,12 +51,42 @@ public class SubsetControllerTests {
     baseUrl = "/api/v1/";
   }
 
-  @Test
   /**
-   * test get trailing slash 404
+   * Test get subsets.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
+  @Test
+  public void testGetSubsets() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    url = baseUrl + "subset/ncit";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list =
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list).isNotNull();
+    assertThat(list.size() > 0).isTrue();
+    // Verify that it's the latest monthly version from the test data set
+    assertThat(list.get(0).getVersion()).isEqualTo("25.12e");
+  }
+
+  /**
+   * test get trailing slash 404.
+   *
+   * @throws Exception the exception
+   */
+  @Test
   public void testGetTrailingSlashSubset() throws Exception {
     String url = baseUrl + "/subset/ncit/C116978/?include=minimal";
     log.info("Testing url - " + url);
