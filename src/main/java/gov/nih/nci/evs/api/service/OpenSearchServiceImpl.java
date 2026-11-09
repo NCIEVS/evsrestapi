@@ -76,6 +76,19 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   @Override
   public ConceptResultList findConcepts(
       List<Terminology> terminologies, SearchCriteria searchCriteria) throws Exception {
+    if (CollectionUtils.isEmpty(terminologies)) {
+      throw new IllegalArgumentException("At least one terminology is required for concept search");
+    }
+    final List<String> indexNames = new ArrayList<>();
+    for (final Terminology terminology : terminologies) {
+      final String indexName = terminology == null ? null : terminology.getIndexName();
+      if (StringUtils.isBlank(indexName)) {
+        throw new IllegalArgumentException("Each terminology must have a concept index name");
+      }
+      indexNames.add(indexName);
+    }
+    final IndexCoordinates indices = IndexCoordinates.of(indexNames.toArray(String[]::new));
+
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 
@@ -157,12 +170,6 @@ public class OpenSearchServiceImpl implements OpenSearchService {
           .withSorts(SortBuilders.scoreSort())
           .withSorts(SortBuilders.fieldSort("code").order(SortOrder.ASC));
     }
-
-    final IndexCoordinates indices =
-        CollectionUtils.isEmpty(terminologies)
-            ? IndexCoordinates.of("_all")
-            : IndexCoordinates.of(
-                terminologies.stream().map(Terminology::getIndexName).toArray(String[]::new));
 
     // query on operations
     final SearchHits<Concept> hits = operations.search(searchQuery.build(), Concept.class, indices);
