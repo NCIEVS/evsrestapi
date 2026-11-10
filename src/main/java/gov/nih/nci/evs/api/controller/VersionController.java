@@ -25,11 +25,7 @@ public class VersionController extends BaseController {
   private static final Logger log = LoggerFactory.getLogger(VersionController.class);
 
   // Used for FHIR metadata and other places where the version is needed
-<<<<<<< HEAD
-  public static final String VERSION = "2.5.0.RELEASE";
-=======
-  public static final String VERSION = "2.4.1.RELEASE";
->>>>>>> main
+  public static final String VERSION = "2.5.1.RELEASE";
 
   /**
    * Returns the evs concept detail.

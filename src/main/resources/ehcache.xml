@@ -28,6 +28,28 @@
 		</resources>
 	</cache>
 	
+	<!-- OpensearchQueryCacheService: index metadata, keyed by completedOnly.
+	     Expires so a running API picks up new loads even if reindex.sh cannot clear it. -->
+	<cache alias="indexMetadata">
+		<expiry>
+			<ttl unit="minutes">10</ttl>
+		</expiry>
+		<resources>
+			<heap unit="entries">10</heap>
+		</resources>
+	</cache>
+
+	<!-- OpensearchQueryCacheService: properties, keyed by terminology object index name.
+	     Expires so a running API picks up new loads even if reindex.sh cannot clear it. -->
+	<cache alias="properties">
+		<expiry>
+			<ttl unit="minutes">10</ttl>
+		</expiry>
+		<resources>
+			<heap unit="entries">200</heap>
+		</resources>
+	</cache>
+
 	<cache alias="subsets">
 		<resources>
 			<heap unit="entries">1000</heap>
