@@ -7,6 +7,7 @@ COPY --chown=gradle:gradle build.gradle settings.gradle gradle.properties ./
 # RUN gradle --no-daemon dependencies
 
 COPY --chown=gradle:gradle src/main ./src/main
+COPY --chown=gradle:gradle evsrestapi-core ./evsrestapi-core
 RUN gradle --no-daemon bootWar -x test -x javadoc
 
 # Run only the packaged application as an unprivileged user.

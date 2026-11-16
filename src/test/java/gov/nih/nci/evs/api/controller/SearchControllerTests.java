@@ -4493,6 +4493,7 @@ public class SearchControllerTests {
     assertThat(content).isNotNull();
     log.info("  ncit prefixes = " + content);
     assertThat(content).startsWith("\"PREFIX ");
+    assertThat(ThreadLocalMapper.get().readTree(content).asText()).startsWith("PREFIX ");
     assertThat(content).contains(" :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>");
     assertThat(content).doesNotContain("HGNC.owl");
 
@@ -4505,6 +4506,7 @@ public class SearchControllerTests {
     assertThat(content).isNotNull();
     log.info("  hgnc prefixes = " + content);
     assertThat(content).startsWith("\"PREFIX ");
+    assertThat(ThreadLocalMapper.get().readTree(content).asText()).startsWith("PREFIX ");
     assertThat(content).doesNotContain("Thesaurus.owl");
     assertThat(content).doesNotContain("\r");
     assertThat(content).contains(":<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#>");

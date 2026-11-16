@@ -17,8 +17,7 @@ WEB-INF/*
 .idea/jarRepositories.xml
 .idea/misc.xml
 .idea/vcs.xml
-.vscode/launch.json
-.vscode/settings.json
+/.vscode/
 .idea/.gitignore
 .temp*
 
@@ -37,3 +36,12 @@ src/main/main.iml
 src/test/test.iml
 report-docker.html
 /.docker-secrets/
+/.agents/
+/.codex/
+/node_modules/
+/BOOT-INF/
+/scan.tar
+*.log
+*.hprof
+audit_reports/
+DownloadSuccessfull.lck

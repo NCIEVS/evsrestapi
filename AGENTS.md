@@ -2,7 +2,7 @@
 
 ## Global Architecture Overview
 
-EVS REST API is a Java 17, Gradle, Spring Boot application using a Maven-standard
+EVS REST API is a Java 25, Gradle, Spring Boot 4 application using a Maven-standard
 `src/main` and `src/test` directory layout. The API exposes EVS terminology data through
 Spring MVC REST controllers and HAPI FHIR R4/R5 endpoints.
 
@@ -40,6 +40,8 @@ graph service and OpenSearch to be running.
   that child context and does not duplicate its implementation rules.
 
 ## Context Hierarchy Map
+
+- `evsrestapi-core/AGENTS.md` - shared Java library; data-management implementations live in operations.
 
 - `src/main/java/gov/nih/nci/evs/api/AGENTS.md` - production Java package root and package map.
   - `configuration/AGENTS.md` - Spring bean and external system wiring.

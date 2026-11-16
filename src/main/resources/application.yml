@@ -98,6 +98,7 @@ nci:
       password: ${GRAPH_DB_PASSWORD:REPLACE_WITH_PASSWORD}
       readTimeout: ${GRAPH_DB_READ_TIMEOUT:60}
       connectTimeout: ${GRAPH_DB_CONNECT_TIMEOUT:60}
+      batchTimeoutSeconds: ${GRAPH_DB_BATCH_TIMEOUT:900}
     opensearch:
       server:
         host: ${ES_HOST:localhost}
@@ -110,6 +111,8 @@ nci:
 # Springdoc
 springdoc:
   swagger-ui:
+    # Match the resolved WebJar and the customized META-INF resources.
+    version: 5.32.13
     tagsSorter: alpha
     operationsSorter: alpha
     doc-expansion: none

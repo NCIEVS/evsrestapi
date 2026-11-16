@@ -23,3 +23,5 @@ jobs:
 
       - name: Run Tests for PR
         run: make test
+      - name: Shared library checks
+        run: ./gradlew :evsrestapi-core:check

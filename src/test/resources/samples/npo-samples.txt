@@ -1,5 +1,6 @@
 http://purl.bioontology.org/ontology/npo#GO_0007596	NPO_1988	rdfs:label	blood coagulation
-http://purl.bioontology.org/ontology/npo#GO_0007596	NPO_1988	definition	<ncicp:ComplexDefinition xmlns:ncicp="http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#"><ncicp:def-definition>For definition, please refer to Gene Ontology (v. 1.1.2341)</ncicp:def-definition><ncicp:attr>Gene Ontology (v. 1.1.2341)</ncicp:attr></ncicp:ComplexDefinition>
+http://purl.bioontology.org/ontology/npo#GO_0007596	NPO_1988	definition	For definition, please refer to Gene Ontology (v. 1.1.2341)
+http://purl.bioontology.org/ontology/npo#GO_0007596	NPO_1988	qualifier-definition~attr	For definition, please refer to Gene Ontology (v. 1.1.2341)~Gene Ontology (v. 1.1.2341)
 http://purl.bioontology.org/ontology/npo#GO_0007596	NPO_1988	preferred_Name	blood coagulation
 http://purl.bioontology.org/ontology/npo#NPO_100	NPO_100	dBXrefID	NCIT:C63806
 http://purl.bioontology.org/ontology/npo#NPO_103	NPO_103	owl:disjointWith	NPO_108

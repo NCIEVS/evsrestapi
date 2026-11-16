@@ -1,0 +1,24 @@
+// Preserve the effective shared dependency versions of the Java 25 upgrade baseline.
+// Applied by core, the server and the operations composite; no Maven publication is required.
+ext.evsCoreVersions = [
+  'com.google.guava:guava': '33.2.1-jre',
+  'com.h2database:h2': '2.4.240',
+  'com.sun.xml.bind:jaxb-impl': '2.3.3',
+  'io.swagger.core.v3:swagger-annotations-jakarta': '2.2.47',
+  'javax.xml.bind:jaxb-api': '2.3.1',
+  'org.apache.commons:commons-lang3': '3.18.0',
+  'org.apache.commons:commons-text': '1.10.0',
+  'org.apache.httpcomponents.core5:httpcore5': '5.4.3',
+  'org.apache.httpcomponents.core5:httpcore5-h2': '5.4.3',
+  'org.apache.httpcomponents:httpclient': '4.5.14',
+  'org.apache.poi:poi': '5.4.0',
+  'org.apache.poi:poi-ooxml': '5.4.0',
+  'org.ehcache:ehcache': '3.10.9',
+  'org.opensearch.client:spring-data-opensearch': '3.1.4',
+  'org.opensearch:opensearch-common': '3.3.2'
+]
+dependencyManagement {
+  dependencies {
+    evsCoreVersions.each { module, selected -> dependency "${module}:${selected}" }
+  }
+}

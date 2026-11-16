@@ -418,6 +418,7 @@ public class ConceptSampleTester {
       for (final String err : errors) {
         log.error(err);
       }
+      fail("Metadata sampling errors found");
     } else {
       log.info("No metadata errors found for terminology " + terminology.getName());
     }
@@ -699,7 +700,7 @@ public class ConceptSampleTester {
       for (final String err : errors) {
         log.error(err);
       }
-      // fail("Sampling errors found");
+      fail("Sampling errors found");
     } else {
       log.info("No sampling errors found for terminology " + terminology.getName());
     }
@@ -2254,10 +2255,11 @@ public class ConceptSampleTester {
     assertThat(fullFirstAssociationByCode.getTotal())
         .isEqualTo(fullFirstAssociationByName.getTotal());
     assertThat(
-        firstFromRecord
-            .getAssociationEntries()
-            .get(1)
-            .equals(secondFromRecord.getAssociationEntries().get(0)));
+            firstFromRecord
+                .getAssociationEntries()
+                .get(1)
+                .equals(secondFromRecord.getAssociationEntries().get(0)))
+        .isTrue();
   }
 
   public String standardizeText(String toStandardize) {

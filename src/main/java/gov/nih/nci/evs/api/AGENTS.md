@@ -7,6 +7,12 @@ application entry point and package-level context links for the main implementat
 
 ## Application Entry Point
 
+Shared model, data-access, support, property and utility classes retain their packages
+under `evsrestapi-core/src/main/java`. Loader implementations now live in
+evsrestapi-operations `web/`; the server must not depend on that project.
+Server-only classes remain here, including `MapResultList`, `HistoryUtils`,
+`OpensearchServerProperties`, `JsonUtils`, and `MetadataServiceImpl`.
+
 - `Application.java` starts the Spring Boot application, enables caching and scheduling, excludes
   JDBC and Elasticsearch auto-configuration, and configures SpringDoc map handling.
 

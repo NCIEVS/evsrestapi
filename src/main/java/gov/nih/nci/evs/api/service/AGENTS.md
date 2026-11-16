@@ -31,13 +31,11 @@ handling.
 
 ## Loader Patterns
 
-- `LoaderServiceImpl` is the jar start class for load workflows.
-- `BaseLoaderService` contains shared OpenSearch load behavior.
-- `AbstractGraphLoadServiceImpl`, `GraphOpensearchLoadServiceImpl`, and
-  `GraphReportLoadServiceImpl` handle graph-derived indexing/report load paths.
-- `MetaOpensearchLoadServiceImpl`, `MetaSourceOpensearchLoadServiceImpl`, and
-  `MappingLoaderServiceImpl` handle metadata, source metadata, and map loading.
-- `SamplingApplication` supports the Gradle `rrfSample` task.
+Loader implementations and sampling entry points have moved to evsrestapi-operations
+`web/`, preserving their Java package names. Shared data-access services named below
+now live in `evsrestapi-core`; keep the server independent of loader classes.
+`MetadataService` remains a shared interface; its server implementation,
+`MetadataServiceImpl`, stays in this package.
 
 ## Entry Points/Core Logic Files
 
@@ -49,7 +47,6 @@ handling.
 - `MetadataService.java`, `MetadataServiceImpl.java`
 - `TermSuggestionFormService.java`, `TermSuggestionFormServiceImpl.java`
 - `CaptchaService.java`
-- loader classes listed in the loader section above
 
 ## Verification Notes
 

@@ -19,8 +19,9 @@ DOCKER_IMAGE            ?= $(SERVICE):$(DOCKER_TAG)
 DOCKER_IMG              := $(shell docker images -q "$(DOCKER_IMAGE)")
 
 GRADLEW                 ?= ./gradlew
+UNIT_TEST_DATA          ?= ../data/UnitTestData
 
-.PHONY: build docker dockerpush scandocker rundocker scan
+.PHONY: build library devreset docker dockerpush scandocker rundocker scan
 
 # consider also "docker save..." and "docker load..." to avoid registry.
 clean:
@@ -98,8 +99,13 @@ rmtag:
 version:
 	@echo $(APP_VERSION)
 
-devreset: build
-	./src/main/bin/devreset.sh ../data/UnitTestData > log 2>&1 &
+library:
+	$(GRADLEW) :evsrestapi-core:jar :evsrestapi-core:spotlessCheck
+
+# Build the operations loader first, then reset in the background as before (tail -f log).
+devreset:
+	EVSRESTAPI_SOURCE="$(CURDIR)" bash ./src/main/bin/ops-forward.sh --build-loader
+	bash ./src/main/bin/ops-forward.sh --quiet devreset.sh "$(UNIT_TEST_DATA)" > log 2>&1 &
 
 # Report all HIGH and CRITICAL dependency vulnerabilities with installed and fixed versions.
 # The complete HTML report is written to report.html. Generated dependency locks are always removed.

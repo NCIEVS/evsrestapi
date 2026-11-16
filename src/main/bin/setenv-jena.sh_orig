@@ -46,3 +46,13 @@ export DATA_DIR=/evs/data/ncim
 # Replace "main" with "develop" for dev/qa servers
 export CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata
 
+#
+# Data loading runs from evsrestapi-operations (see its docs/operations-api.md)
+#
+# Java 25, used by this server's launcher and by the loader scripts
+# export JAVA_HOME=/path/to/jdk-25
+export EVS_OPS_HOME=/local/content/evsrestapi-operations
+# Lock and job history shared by the scripts and the API; keep it outside the installation
+export OPS_STATE_DIR=/local/content/evsrestapi/config/operations-state
+# Only for the private operations API
+# export ADMIN_KEY=replace-with-a-private-random-value

@@ -120,6 +120,7 @@ nci:
 # Springdoc
 springdoc:
   swagger-ui:
+    version: 5.32.13
     tagsSorter: alpha
     operationsSorter: alpha
     doc-expansion: none

@@ -27,6 +27,13 @@ In a terminal, run the following to have an opensearch instance running on the b
       -e DISABLE_SECURITY_PLUGIN=true \
       --name opensearch-node -d opensearchproject/opensearch:2.18.0
 
+## Java client response headers
+
+During delete-by-query, OpenSearch can return one `TASK_RESOURCE_USAGE` header per
+scroll batch, more than the HTTP client's default limit of 100, so the server and the
+loader accept up to 4096. Change it with `nci.evs.opensearch.max-response-header-count`
+(environment variable `NCI_EVS_OPENSEARCH_MAX_RESPONSE_HEADER_COUNT`).
+
 ## Configure refresh interval globally
 
 To prevent "too many requests" issue from happening while loader is running, it may be useful
