@@ -108,7 +108,7 @@ loader compiles core from this checkout, so rebuild the loader after changing co
 ### Run application from command line
 * Run with `java -Xmx4096m -Dspring.profiles.active=local -jar build/libs/evsrestapi*.war`
 
-### Build, scan, and run the application image
+### Build, scan, and run the docker image
 
 - `make docker` builds the WAR inside a Linux/AMD64 Gradle build stage and creates
   `evsrestapi:<version>` without a local Gradle installation. The image runs the
