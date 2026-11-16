@@ -125,7 +125,8 @@ public class HierarchyUtilsTest {
 
     HierarchyUtils.applyAncestors(concept);
 
-    assertEquals(Arrays.asList("P", "Root"), concept.getAncestors());
+    // Only the depths come from the paths; the ancestors come from getAncestors
+    assertTrue(concept.getAncestors().isEmpty());
     assertEquals(Arrays.asList("P|1", "Root|2"), concept.getAncestorDepths());
   }
 
@@ -160,7 +161,6 @@ public class HierarchyUtilsTest {
 
     HierarchyUtils.applyAncestors(concept);
 
-    assertEquals(Arrays.asList("A", "B", "C", "D", "E"), concept.getAncestors());
     assertEquals(Arrays.asList("A|3", "B|2", "C|2", "D|1", "E|1"), concept.getAncestorDepths());
   }
 
@@ -211,7 +211,6 @@ public class HierarchyUtilsTest {
 
     HierarchyUtils.applyAncestors(concept);
 
-    assertEquals(Arrays.asList("GO:0000002", "GO:0008150"), concept.getAncestors());
     assertEquals(Arrays.asList("GO:0000002|1", "GO:0008150|2"), concept.getAncestorDepths());
     final String token = concept.getAncestorDepths().get(1);
     final int sep = token.lastIndexOf('|');
@@ -234,8 +233,92 @@ public class HierarchyUtilsTest {
     HierarchyUtils.applyAncestors(concept);
 
     assertEquals(first, concept.getAncestorDepths());
-    assertEquals(Arrays.asList("B", "M", "Root", "Z"), concept.getAncestors());
     assertEquals(Arrays.asList("B|1", "M|2", "Root|2", "Z|1"), concept.getAncestorDepths());
+  }
+
+  /**
+   * Test ancestors along a single path: each with its level, name and leaf flag.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetAncestorsSinglePath() throws Exception {
+    final List<Concept> ancestors = branchingHierarchy().getAncestors("G");
+
+    assertEquals(Arrays.asList("E|1", "C|2", "A|3", "R|4"), codeLevels(ancestors));
+    assertEquals(
+        Arrays.asList("Name E", "Name C", "Name A", "Name R"),
+        ancestors.stream().map(Concept::getName).toList());
+    assertTrue(ancestors.stream().noneMatch(Concept::getLeaf));
+  }
+
+  /**
+   * Test ancestors under polyhierarchy. F has parents B and D, so R is two levels up through B and
+   * three through D and A: it is listed once, at its shortest distance. Results are sorted by level
+   * and then name.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetAncestorsPolyhierarchy() throws Exception {
+    final List<Concept> ancestors = branchingHierarchy().getAncestors("F");
+
+    assertEquals(Arrays.asList("B|1", "D|1", "A|2", "R|2"), codeLevels(ancestors));
+  }
+
+  /**
+   * Test that a root concept and an unknown code have no ancestors.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetAncestorsRootAndUnknownCode() throws Exception {
+    final HierarchyUtils hierarchy = branchingHierarchy();
+
+    assertTrue(hierarchy.getAncestors("R").isEmpty());
+    assertTrue(hierarchy.getAncestors("UNKNOWN").isEmpty());
+  }
+
+  /**
+   * Test that a concept listed as its own parent is skipped.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetAncestorsSkipsSelfAsParent() throws Exception {
+    final HierarchyUtils hierarchy =
+        new HierarchyUtils(null, Arrays.asList("X\tName X\tX\tName X", "P\tName P\tX\tName X"));
+
+    assertEquals(Arrays.asList("P|1"), codeLevels(hierarchy.getAncestors("X")));
+  }
+
+  /**
+   * Builds the hierarchy R-A, R-B, A-C, A-D, B-F, C-E, D-F, E-G (parent-child).
+   *
+   * @return the hierarchy
+   */
+  private HierarchyUtils branchingHierarchy() {
+    return new HierarchyUtils(
+        null,
+        Arrays.asList(
+            "R\tName R\tA\tName A",
+            "R\tName R\tB\tName B",
+            "A\tName A\tC\tName C",
+            "A\tName A\tD\tName D",
+            "B\tName B\tF\tName F",
+            "C\tName C\tE\tName E",
+            "D\tName D\tF\tName F",
+            "E\tName E\tG\tName G"));
+  }
+
+  /**
+   * Returns each concept as "code|level", in order.
+   *
+   * @param concepts the concepts
+   * @return the code and level tokens
+   */
+  private List<String> codeLevels(final List<Concept> concepts) {
+    return concepts.stream().map(c -> c.getCode() + "|" + c.getLevel()).toList();
   }
 
   /**

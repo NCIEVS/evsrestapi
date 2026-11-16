@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gov.nih.nci.evs.api.CopyConstructorTester;
@@ -234,5 +235,32 @@ public class ConceptUnitTest {
     tester.proxy("paths", 1, null);
 
     assertTrue(tester.testJsonSerialization());
+  }
+
+  /** Test that sortLists sorts the ancestors, as it does the descendants. */
+  @Test
+  public void testSortListsSortsAncestors() {
+    final Concept concept = new Concept("X");
+    concept.setAncestors(
+        new ArrayList<>(
+            List.of(new Concept("ncit", "C2", "Beta"), new Concept("ncit", "C1", "Alpha"))));
+
+    concept.sortLists();
+
+    assertEquals(
+        List.of("Alpha", "Beta"), concept.getAncestors().stream().map(Concept::getName).toList());
+  }
+
+  /** Test that clearHidden keeps the ancestors, which are returned, but clears their depths. */
+  @Test
+  public void testClearHiddenKeepsAncestors() {
+    final Concept concept = new Concept("X");
+    concept.setAncestors(new ArrayList<>(List.of(new Concept("P"))));
+    concept.setAncestorDepths(new ArrayList<>(List.of("P|1")));
+
+    concept.clearHidden();
+
+    assertEquals(1, concept.getAncestors().size());
+    assertTrue(concept.getAncestorDepths().isEmpty());
   }
 }

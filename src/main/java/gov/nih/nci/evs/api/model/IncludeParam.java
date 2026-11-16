@@ -26,6 +26,9 @@ public class IncludeParam extends BaseModel {
   /** The descendants. */
   private boolean descendants;
 
+  /** The ancestors. */
+  private boolean ancestors;
+
   /** The parents. */
   private boolean parents;
 
@@ -99,6 +102,8 @@ public class IncludeParam extends BaseModel {
           children = true;
         } else if (part.equals("descendants")) {
           descendants = true;
+        } else if (part.equals("ancestors")) {
+          ancestors = true;
         } else if (part.equals("parents")) {
           parents = true;
         } else if (part.equals("associations")) {
@@ -154,6 +159,7 @@ public class IncludeParam extends BaseModel {
     properties = other.isProperties();
     children = other.isChildren();
     descendants = other.isDescendants();
+    ancestors = other.isAncestors();
     parents = other.isParents();
     associations = other.isAssociations();
     inverseAssociations = other.isInverseAssociations();
@@ -199,8 +205,9 @@ public class IncludeParam extends BaseModel {
     subsetLink = true;
     mapsetLink = true;
 
-    // Full doesn't include descendants and paths
+    // Full doesn't include descendants, ancestors and paths
     // descendants = false;
+    // ancestors = false;
     // paths = false;
     // extensions = false;
 
@@ -210,6 +217,7 @@ public class IncludeParam extends BaseModel {
   public void populateEverything() {
     populateFull();
     descendants = true;
+    ancestors = true;
     paths = true;
     extensions = true;
   }
@@ -225,6 +233,7 @@ public class IncludeParam extends BaseModel {
         || properties
         || children
         || descendants
+        || ancestors
         || parents
         || associations
         || inverseAssociations
@@ -304,6 +313,9 @@ public class IncludeParam extends BaseModel {
     }
     if (descendants) {
       fields.add("descendants");
+    }
+    if (ancestors) {
+      fields.add("ancestors");
     }
     if (extensions) {
       fields.add("extensions");
@@ -397,6 +409,9 @@ public class IncludeParam extends BaseModel {
     }
     if (!descendants) {
       fields.add("descendants");
+    }
+    if (!ancestors) {
+      fields.add("ancestors");
     }
     if (!extensions) {
       fields.add("extensions");
@@ -510,6 +525,24 @@ public class IncludeParam extends BaseModel {
    */
   public void setDescendant(boolean descendants) {
     this.descendants = descendants;
+  }
+
+  /**
+   * Indicates whether or not ancestors is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isAncestors() {
+    return ancestors;
+  }
+
+  /**
+   * Sets the ancestors.
+   *
+   * @param ancestors the ancestors
+   */
+  public void setAncestors(boolean ancestors) {
+    this.ancestors = ancestors;
   }
 
   /**

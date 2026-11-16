@@ -73,10 +73,35 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Text)
   private String stemName;
 
-  /** The ancestor codes (all paths to root, excluding self). Used for hierarchy search filters. */
-  @WriteOnlyProperty
-  @Field(type = FieldType.Keyword)
-  private List<String> ancestors;
+  /**
+   * The ancestors (all paths to root, excluding self), each at its shortest distance. Given this is
+   * a List<Concept>, we will not set enabled = false even though we don't need most of the field
+   * data associated with ancestor. Otherwise, we are creating a self circular reference that
+   * results in a StackOverflowError
+   */
+  @Field(
+      type = FieldType.Object,
+      ignoreFields = {
+        "ancestorDepths",
+        "ancestors",
+        "associations",
+        "children",
+        "descendants",
+        "definitions",
+        "disjointWith",
+        "extensions",
+        "history",
+        "inverseAssociations",
+        "inverseRoles",
+        "maps",
+        "parents",
+        "paths",
+        "properties",
+        "qualifiers",
+        "roles",
+        "synonyms",
+      })
+  private List<Concept> ancestors;
 
   /**
    * The ancestor codes with shortest distance, as "code|depth" tokens (e.g. "C3262|3"). Used for
@@ -507,8 +532,8 @@ public class Concept extends ConceptMinimal {
    *
    * @return the ancestors
    */
-  @Schema(hidden = true)
-  public List<String> getAncestors() {
+  @Schema(description = "Ancestor concepts in the hierarchy")
+  public List<Concept> getAncestors() {
     if (ancestors == null) {
       ancestors = new ArrayList<>();
     }
@@ -520,7 +545,7 @@ public class Concept extends ConceptMinimal {
    *
    * @param ancestors the ancestors
    */
-  public void setAncestors(final List<String> ancestors) {
+  public void setAncestors(final List<Concept> ancestors) {
     this.ancestors = ancestors;
   }
 
@@ -1094,6 +1119,9 @@ public class Concept extends ConceptMinimal {
     if (descendants != null) {
       Collections.sort(descendants);
     }
+    if (ancestors != null) {
+      Collections.sort(ancestors);
+    }
     if (associations != null) {
       Collections.sort(associations);
     }
@@ -1128,7 +1156,6 @@ public class Concept extends ConceptMinimal {
   public void clearHidden() {
     normName = null;
     stemName = null;
-    ancestors = null;
     ancestorDepths = null;
     getSynonyms().forEach(s -> s.clearHidden());
   }

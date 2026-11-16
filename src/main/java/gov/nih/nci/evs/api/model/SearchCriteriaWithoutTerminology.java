@@ -85,6 +85,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The code whose ancestors results are restricted to. */
   private String ancestorOf;
 
+  /** The code whose subtree (the code and its descendants) results must be in. */
+  private String ancestor;
+
+  /** The code whose ancestors, or the code itself, results must be. */
+  private String descendant;
+
   /** The maximum depth below descendantOf codes. */
   private Integer maxLevel;
 
@@ -144,6 +150,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     descendantOf = new ArrayList<>(other.getDescendantOf());
     notDescendantOf = new ArrayList<>(other.getNotDescendantOf());
     ancestorOf = other.getAncestorOf();
+    ancestor = other.getAncestor();
+    descendant = other.getDescendant();
     maxLevel = other.getMaxLevel();
     includeSelf = other.getIncludeSelf();
   }
@@ -635,6 +643,50 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
+   * Returns the code whose subtree results must be in (the code itself is included).
+   *
+   * @return the ancestor code
+   */
+  @Schema(
+      description =
+          "Concept code; results are restricted to its subtree: the code itself and the concepts"
+              + " that have it as an ancestor, e.g. 'C4872'")
+  public String getAncestor() {
+    return ancestor;
+  }
+
+  /**
+   * Sets the code results must have as an ancestor.
+   *
+   * @param ancestor the ancestor code
+   */
+  public void setAncestor(final String ancestor) {
+    this.ancestor = ancestor;
+  }
+
+  /**
+   * Returns the code whose ancestors results must be (the code itself is included).
+   *
+   * @return the descendant code
+   */
+  @Schema(
+      description =
+          "Concept code; results are restricted to the code itself and the concepts that have it"
+              + " as a descendant, e.g. 'C4872'")
+  public String getDescendant() {
+    return descendant;
+  }
+
+  /**
+   * Sets the code results must have as a descendant.
+   *
+   * @param descendant the descendant code
+   */
+  public void setDescendant(final String descendant) {
+    this.descendant = descendant;
+  }
+
+  /**
    * Returns the maximum depth below descendantOf codes.
    *
    * @return the max level
@@ -681,12 +733,14 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * Indicates whether any hierarchy constraint is set.
    *
-   * @return true, if descendantOf, notDescendantOf, or ancestorOf is set
+   * @return true, if descendantOf, notDescendantOf, ancestorOf, ancestor, or descendant is set
    */
   public boolean hasHierarchyConstraints() {
     return !getDescendantOf().isEmpty()
         || !getNotDescendantOf().isEmpty()
-        || (ancestorOf != null && !ancestorOf.isBlank());
+        || (ancestorOf != null && !ancestorOf.isBlank())
+        || (ancestor != null && !ancestor.isBlank())
+        || (descendant != null && !descendant.isBlank());
   }
 
   /**
@@ -871,6 +925,14 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Parameter 'ancestorOf' has an invalid value = " + ancestorOf);
     }
+    if (ancestor != null && ancestor.isBlank()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Parameter 'ancestor' has an invalid value = " + ancestor);
+    }
+    if (descendant != null && descendant.isBlank()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Parameter 'descendant' has an invalid value = " + descendant);
+    }
   }
 
   /**
@@ -926,6 +988,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     result = prime * result + ((descendantOf == null) ? 0 : descendantOf.hashCode());
     result = prime * result + ((notDescendantOf == null) ? 0 : notDescendantOf.hashCode());
     result = prime * result + ((ancestorOf == null) ? 0 : ancestorOf.hashCode());
+    result = prime * result + ((ancestor == null) ? 0 : ancestor.hashCode());
+    result = prime * result + ((descendant == null) ? 0 : descendant.hashCode());
     result = prime * result + ((maxLevel == null) ? 0 : maxLevel.hashCode());
     result = prime * result + ((includeSelf == null) ? 0 : includeSelf.hashCode());
     return result;
@@ -1078,6 +1142,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         return false;
       }
     } else if (!ancestorOf.equals(other.ancestorOf)) {
+      return false;
+    }
+    if (ancestor == null) {
+      if (other.ancestor != null) {
+        return false;
+      }
+    } else if (!ancestor.equals(other.ancestor)) {
+      return false;
+    }
+    if (descendant == null) {
+      if (other.descendant != null) {
+        return false;
+      }
+    } else if (!descendant.equals(other.descendant)) {
       return false;
     }
     if (maxLevel == null) {

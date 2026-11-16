@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import org.junit.jupiter.api.Test;
@@ -84,5 +86,49 @@ public class ConceptUtilsTest {
     assertEquals("subset display", ConceptUtils.normalizeWithStemming("subsets displays"));
     assertEquals("all site", ConceptUtils.normalizeWithStemming("All sites"));
     assertEquals("cancer", ConceptUtils.normalizeWithStemming("cancerous"));
+  }
+
+  /**
+   * Test that ancestors are dropped unless included, as descendants are.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testApplyIncludeAncestors() throws Exception {
+    final Concept concept = getConceptWithAncestors(5);
+    ConceptUtils.applyInclude(concept, new IncludeParam("ancestors"));
+    assertEquals(5, concept.getAncestors().size());
+
+    ConceptUtils.applyInclude(concept, new IncludeParam("minimal"));
+    assertTrue(concept.getAncestors().isEmpty());
+  }
+
+  /**
+   * Test that the list limit applies to ancestors, adding the "ct" placeholder for the total.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testApplyLimitAncestors() throws Exception {
+    final Concept concept = getConceptWithAncestors(5);
+
+    ConceptUtils.applyLimit(concept, 2);
+
+    assertEquals(3, concept.getAncestors().size());
+    assertEquals(5, concept.getAncestors().get(2).getCt());
+  }
+
+  /**
+   * Returns a concept with the given number of ancestors.
+   *
+   * @param count the number of ancestors
+   * @return the concept
+   */
+  private Concept getConceptWithAncestors(final int count) {
+    final Concept concept = new Concept("X");
+    for (int i = 1; i <= count; i++) {
+      concept.getAncestors().add(new Concept("P" + i));
+    }
+    return concept;
   }
 }

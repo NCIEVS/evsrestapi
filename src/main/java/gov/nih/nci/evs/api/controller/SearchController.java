@@ -15,12 +15,12 @@ import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.query.EvsQuery;
 import gov.nih.nci.evs.api.query.QueryTooBroadException;
-import gov.nih.nci.evs.api.query.Typeahead;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.OpenSearchService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.service.QueryBuilderService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.service.Typeahead;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -333,6 +333,20 @@ public class SearchController extends BaseController {
         required = false,
         schema = @Schema(implementation = String.class)),
     @Parameter(
+        name = "ancestor",
+        description =
+            "Concept code to restrict search results to its subtree: the code itself and the"
+                + " concepts that have it as an ancestor, e.g. 'C4872'",
+        required = false,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
+        name = "descendant",
+        description =
+            "Concept code to restrict search results to the code itself and the concepts that"
+                + " have it as a descendant, e.g. 'C4872'",
+        required = false,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
         name = "maxLevel",
         description =
             "Used with <i>descendantOf</i>, the maximum depth below the descendantOf codes,"
@@ -543,7 +557,7 @@ public class SearchController extends BaseController {
 
     final Typeahead typeahead = new Typeahead(incompleteTerm);
     final ConceptResultList results =
-        openSearchService.findQueryConcepts(typeahead, terminologies, searchCriteria);
+        openSearchService.findTypeaheadConcepts(typeahead, terminologies, searchCriteria);
     highlightConceptMatches(results);
 
     results.setTimeTaken(System.currentTimeMillis() - timerStartDate);
@@ -957,6 +971,20 @@ public class SearchController extends BaseController {
         description =
             "Concept code to restrict search results to its ancestors (and the code itself unless"
                 + " <i>includeSelf=false</i>), e.g. 'C4872'",
+        required = false,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
+        name = "ancestor",
+        description =
+            "Concept code to restrict search results to its subtree: the code itself and the"
+                + " concepts that have it as an ancestor, e.g. 'C4872'",
+        required = false,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
+        name = "descendant",
+        description =
+            "Concept code to restrict search results to the code itself and the concepts that"
+                + " have it as a descendant, e.g. 'C4872'",
         required = false,
         schema = @Schema(implementation = String.class)),
     @Parameter(
@@ -1375,6 +1403,20 @@ public class SearchController extends BaseController {
         description =
             "Concept code to restrict search results to its ancestors (and the code itself unless"
                 + " <i>includeSelf=false</i>), e.g. 'C4872'",
+        required = false,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
+        name = "ancestor",
+        description =
+            "Concept code to restrict search results to its subtree: the code itself and the"
+                + " concepts that have it as an ancestor, e.g. 'C4872'",
+        required = false,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
+        name = "descendant",
+        description =
+            "Concept code to restrict search results to the code itself and the concepts that"
+                + " have it as a descendant, e.g. 'C4872'",
         required = false,
         schema = @Schema(implementation = String.class)),
     @Parameter(

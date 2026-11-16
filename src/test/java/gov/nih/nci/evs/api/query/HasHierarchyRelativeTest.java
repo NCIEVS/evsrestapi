@@ -507,10 +507,27 @@ public class HasHierarchyRelativeTest {
     }
 
     final Map<String, Integer> depths = getShortestAncestorDepths(code);
-    concept.setAncestors(new ArrayList<>(new TreeSet<>(depths.keySet())));
+    concept.setAncestors(getAncestors(depths));
     concept.setAncestorDepths(getAncestorDepthTokens(depths));
 
     return concept;
+  }
+
+  /**
+   * Returns the ancestors, sorted by code, each with its shortest depth as its level.
+   *
+   * @param depths the ancestors and their depths
+   * @return the ancestors
+   */
+  private static List<Concept> getAncestors(final Map<String, Integer> depths) {
+    final List<Concept> ancestors = new ArrayList<>();
+    for (final String code : new TreeSet<>(depths.keySet())) {
+      final Concept ancestor = new Concept(code);
+      ancestor.setLevel(depths.get(code));
+      ancestors.add(ancestor);
+    }
+
+    return ancestors;
   }
 
   /**

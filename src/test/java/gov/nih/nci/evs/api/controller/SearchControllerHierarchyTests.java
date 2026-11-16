@@ -32,9 +32,9 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 /**
  * Integration tests for hierarchy-constrained search (descendantOf, notDescendantOf, ancestorOf,
- * maxLevel, includeSelf). Expected results are computed from the existing hierarchy endpoints
- * (/descendants, /children, /pathsToRoot, plain search), so the tests pass whether a terminology
- * was indexed with ancestor fields or is served by the query-time fallback.
+ * ancestor, descendant, maxLevel, includeSelf). Expected results are computed from the existing
+ * hierarchy endpoints (/descendants, /children, /pathsToRoot, plain search), so the tests pass
+ * whether a terminology was indexed with ancestor fields or is served by the query-time fallback.
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -46,6 +46,9 @@ public class SearchControllerHierarchyTests {
 
   /** The anchor used for NCIt branch tests (Breast Carcinoma). */
   private static final String ANCHOR = "C4872";
+
+  /** The anchor used for MA tests (organ system), from an index with ancestors. */
+  private static final String MA_ANCHOR = "MA:0000003";
 
   /** The mvc. */
   @Autowired private MockMvc mvc;
@@ -193,6 +196,80 @@ public class SearchControllerHierarchyTests {
     final SearchResult combined =
         searchAll("ncit", Map.of("ancestorOf", code, "descendantOf", ANCHOR));
     assertThat(new HashSet<>(combined.codes)).isEqualTo(between);
+  }
+
+  /**
+   * Test that ancestor returns the code's subtree: the code itself and its descendants. Uses MA,
+   * which is indexed with ancestors.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAncestor() throws Exception {
+    final Set<String> subtree = new HashSet<>(descendants("ma", MA_ANCHOR));
+    assertThat(subtree).isNotEmpty();
+    subtree.add(MA_ANCHOR);
+
+    final SearchResult result = searchAll("ma", Map.of("ancestor", MA_ANCHOR));
+    assertThat(result.total).isEqualTo(subtree.size());
+    assertThat(new HashSet<>(result.codes)).isEqualTo(subtree);
+  }
+
+  /**
+   * Test that descendant returns the code itself and the codes on its paths to root. MA:0002450 has
+   * two parents.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testDescendant() throws Exception {
+    final String code = "MA:0002450";
+    final Set<String> ancestorsAndSelf = pathsToRootCodes("ma", code);
+    assertThat(ancestorsAndSelf).contains(code).hasSizeGreaterThan(2);
+
+    final SearchResult result = searchAll("ma", Map.of("descendant", code));
+    assertThat(result.total).isEqualTo(ancestorsAndSelf.size());
+    assertThat(new HashSet<>(result.codes)).isEqualTo(ancestorsAndSelf);
+  }
+
+  /**
+   * Test that ancestor and descendant together return the concepts between the two codes, including
+   * both codes.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAncestorAndDescendant() throws Exception {
+    final String code = "MA:0000922";
+    final Set<String> subtree = new HashSet<>(descendants("ma", MA_ANCHOR));
+    subtree.add(MA_ANCHOR);
+    final Set<String> between = pathsToRootCodes("ma", code);
+    between.retainAll(subtree);
+    assertThat(between).contains(MA_ANCHOR, code);
+
+    final SearchResult result = searchAll("ma", Map.of("ancestor", MA_ANCHOR, "descendant", code));
+    assertThat(new HashSet<>(result.codes)).isEqualTo(between);
+  }
+
+  /**
+   * Test validation errors for the ancestor and descendant parameters.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAncestorAndDescendantValidation() throws Exception {
+    assertBadRequest(
+        get("/api/v1/concept/ma/search").param("ancestor", "MA:9999999"),
+        "'ancestor' has an invalid code = MA:9999999");
+    assertBadRequest(
+        get("/api/v1/concept/ma/search").param("descendant", "MA:9999999"),
+        "'descendant' has an invalid code = MA:9999999");
+    assertBadRequest(
+        get("/api/v1/concept/ncim/search").param("ancestor", "C0006826"),
+        "does not support hierarchy parameters");
+    assertBadRequest(
+        get("/api/v1/concept/search").param("terminology", "ma,go").param("descendant", MA_ANCHOR),
+        "require exactly one terminology");
   }
 
   /**

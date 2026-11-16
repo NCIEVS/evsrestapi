@@ -12,16 +12,16 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.query.EvsQuery;
-import gov.nih.nci.evs.api.query.Typeahead;
 import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
+import gov.nih.nci.evs.api.service.Typeahead;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -32,20 +32,31 @@ import org.opensearch.data.core.OpenSearchOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Tests typeahead, which completes an incomplete term to the best matching concepts, through GET
- * /concept/typeahead and through the Typeahead node of the query endpoint.
+ * /concept/typeahead.
  */
-public class SearchControllerTypeaheadTests extends AbstractSearchControllerQueryTests {
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+public class SearchControllerTypeaheadTests {
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(SearchControllerTypeaheadTests.class);
+
+  /** The mvc. */
+  @Autowired private MockMvc mvc;
 
   /** The application properties. */
   @Autowired ApplicationProperties appProperties;
@@ -76,38 +87,6 @@ public class SearchControllerTypeaheadTests extends AbstractSearchControllerQuer
 
   /** The largest page size typeahead accepts. */
   private static final int TYPEAHEAD_MAX_PAGE_SIZE = 1000;
-
-  /** The typeahead for the term "melanoma". */
-  private static final String MELANOMA_TYPEAHEAD_QUERY =
-      """
-      {"type": "Typeahead", "term": "melanoma"}
-      """;
-
-  /**
-   * Test Typeahead returns Melanoma first for "melanoma".
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testTypeaheadReturnsBestMatchFirst() throws Exception {
-    assertThat(fetchCodes(MELANOMA_TYPEAHEAD_QUERY)).first().isEqualTo(MELANOMA);
-  }
-
-  /**
-   * Test Typeahead with a misspelled property (incompleteTerm, not term) is rejected as a bad
-   * request.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testTypeaheadWithMisspelledPropertyReturnsBadRequest() throws Exception {
-    final String incompleteTermInsteadOfTermQuery =
-        """
-        {"type": "Typeahead", "incompleteTerm": "melanoma"}
-        """;
-
-    postQuery(incompleteTermInsteadOfTermQuery).andExpect(status().isBadRequest());
-  }
 
   /**
    * Test typeahead with no terminology falls back on ncit and returns only ncit concepts.
@@ -545,10 +524,9 @@ public class SearchControllerTypeaheadTests extends AbstractSearchControllerQuer
     final List<Terminology> terminologies = List.of(ncit);
     final OpenSearchOperations operations = opensearchOperationsService.getOpenSearchOperations();
     final NativeSearchQuery countQuery =
-        new NativeSearchQueryBuilder()
-            .withQuery(typeahead.fetchOpenSearchQuery(operations, terminologies))
-            .build();
-    return operations.count(countQuery, Concept.class, EvsQuery.getIndexCoordinates(terminologies));
+        new NativeSearchQueryBuilder().withQuery(typeahead.getOpenSearchQuery()).build();
+    return operations.count(
+        countQuery, Concept.class, TerminologyUtils.getIndexCoordinates(terminologies));
   }
 
   /**
@@ -876,51 +854,5 @@ public class SearchControllerTypeaheadTests extends AbstractSearchControllerQuer
     final Map<String, Object> nameSubfields =
         (Map<String, Object>) nameField.getOrDefault("fields", Map.of());
     return nameSubfields.containsKey(ConceptMinimal.SEARCH_AS_YOU_TYPE_SUFFIX);
-  }
-
-  /**
-   * Test Typeahead without a term is rejected as a bad request.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testTypeaheadWithoutTermReturnsBadRequest() throws Exception {
-    final String withoutTermQuery =
-        """
-        {"type": "Typeahead"}
-        """;
-
-    postQuery(withoutTermQuery).andExpect(status().isBadRequest());
-  }
-
-  /**
-   * Test Typeahead with a blank term, which has no words to complete, is rejected as a bad request.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testTypeaheadWithBlankTermReturnsBadRequest() throws Exception {
-    final String blankTermQuery =
-        """
-        {"type": "Typeahead", "term": "   "}
-        """;
-
-    postQuery(blankTermQuery).andExpect(status().isBadRequest());
-  }
-
-  /**
-   * Test Typeahead with a punctuation-only term, which has no words to complete, is rejected as a
-   * bad request.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testTypeaheadWithPunctuationOnlyTermReturnsBadRequest() throws Exception {
-    final String punctuationOnlyTermQuery =
-        """
-        {"type": "Typeahead", "term": "---"}
-        """;
-
-    postQuery(punctuationOnlyTermQuery).andExpect(status().isBadRequest());
   }
 }

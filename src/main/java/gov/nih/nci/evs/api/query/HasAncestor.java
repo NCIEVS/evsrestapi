@@ -18,6 +18,10 @@ import org.opensearch.index.query.QueryBuilder;
  * shortest distance, so a concept that is a direct child of X on one path and deeper on another
  * counts as depth 1.
  *
+ * <p>The target codes are looked up first (see {@link HierarchyQuery#fetchTargetCodes}).
+ * Terminologies indexed with ancestor fields then match with one query on {@code ancestors.code}
+ * (or {@code ancestorDepths} for a depth limit). Older indexes fall back to reading the stored
+ * hierarchy (see {@link StoredHierarchyFallback}).
  * <p>The {@code ancestors} field only holds codes, so the target codes are looked up first (see
  * {@link HasHierarchyRelative#fetchTargetCodes}). Terminologies indexed with ancestor fields then
  * match with one query on {@code ancestors} (or {@code ancestorDepths} for a depth limit). Older
@@ -28,8 +32,8 @@ import org.opensearch.index.query.QueryBuilder;
  */
 public class HasAncestor extends HasHierarchyRelative {
 
-  /** Field listing every ancestor code of a concept. */
-  static final String ANCESTORS_FIELD = "ancestors";
+  /** Field holding the code of each of a concept's ancestors. */
+  static final String ANCESTORS_FIELD = "ancestors.code";
 
   /** Field listing "code|depth" tokens, each ancestor with its shortest distance. */
   private static final String ANCESTOR_DEPTHS_FIELD = "ancestorDepths";

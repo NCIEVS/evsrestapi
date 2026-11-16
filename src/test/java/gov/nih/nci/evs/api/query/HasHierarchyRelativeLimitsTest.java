@@ -59,7 +59,7 @@ public class HasHierarchyRelativeLimitsTest {
   private static final String VERSION = "1";
 
   /** Field name used when building a {@link MatchAnyOf}. */
-  private static final String ANCESTORS_FIELD = "ancestors";
+  private static final String ANCESTORS_FIELD = "ancestors.code";
 
   /** One more than fits in a {@code terms} query. */
   private static final int TOO_MANY = MatchAnyOf.MAX_VALUES + 1;
