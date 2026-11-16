@@ -1,5 +1,8 @@
 // Preserve the effective shared dependency versions of the Java 25 upgrade baseline.
 // Applied by core, the server and the operations composite; no Maven publication is required.
+// Boot 4 reserves jackson-bom.version for Jackson 3; keep Jackson 2 on its own BOM.
+ext['jackson-2-bom.version'] = '2.21.7'
+
 ext.evsCoreVersions = [
   'com.google.guava:guava': '33.2.1-jre',
   'com.h2database:h2': '2.4.240',

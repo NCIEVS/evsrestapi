@@ -55,10 +55,8 @@ apply from: 'evsrestapi-core/dependency-versions.gradle'
 ext['commons-lang3.version'] = '3.18.0'
 ext['httpclient5.version'] = '5.6.3'
 ext['httpcore5.version'] = '5.4.3'
-ext['jackson-bom.version'] = '2.21.7'
 ext['log4j2.version'] = '2.25.5'
 ext['opentelemetry.version'] = '1.62.0'
-ext['tomcat.version'] = '10.1.60'
 
 // Extra Properties
 ext {
@@ -156,7 +154,6 @@ dependencies {
 
   // other explicit vulnerability overrides
   implementation "org.apache.commons:commons-lang3:3.18.0"
-  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.60"
   implementation "org.apache.thrift:libthrift:0.24.0"
   implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
 
