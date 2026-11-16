@@ -1,15 +1,13 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertRoundTripsUnchanged;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertSerializesTo;
 
 import gov.nih.nci.evs.api.query.HasInverseRole;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the HasInverseRole query node, which matches the concepts a target concept has a role to,
- * through the query endpoint.
- */
-public class HasInverseRoleEndpointTest extends AbstractQueryEndpointTest {
+/** Unit test for the JSON wire format of {@link HasInverseRole}. */
+public class HasInverseRoleUnitTest {
 
   /** The query for the primary anatomic site of Breast Carcinoma. */
   private static final String PRIMARY_ANATOMIC_SITE_OF_BREAST_CARCINOMA_QUERY =
@@ -17,16 +15,11 @@ public class HasInverseRoleEndpointTest extends AbstractQueryEndpointTest {
       {"type": "HasInverseRole", "role": "R101", "target": "C4872"}
       """;
 
-  /**
-   * Test HasInverseRole returns the concepts the target has the role to: the primary anatomic site
-   * of Breast Carcinoma, which is Breast.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasInverseRoleReturnsConceptsTheTargetPointsTo() throws Exception {
-    assertThat(fetchCodes(PRIMARY_ANATOMIC_SITE_OF_BREAST_CARCINOMA_QUERY)).containsExactly(BREAST);
-  }
+  /** Breast Carcinoma, whose primary anatomic site is Breast. */
+  private static final String BREAST_CARCINOMA = "C4872";
+
+  /** The role from a disease to its primary anatomic site (Disease_Has_Primary_Anatomic_Site). */
+  private static final String PRIMARY_ANATOMIC_SITE_ROLE = "R101";
 
   /**
    * Test the HasInverseRole query reads from and writes back to the same JSON.

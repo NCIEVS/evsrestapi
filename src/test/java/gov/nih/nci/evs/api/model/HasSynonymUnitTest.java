@@ -1,32 +1,19 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertRoundTripsUnchanged;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertSerializesTo;
 
 import gov.nih.nci.evs.api.query.HasSynonym;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the HasSynonym node, which matches concepts with a synonym matching the given name, source,
- * and term type, through the query endpoint.
- */
-public class HasSynonymEndpointTest extends AbstractQueryEndpointTest {
+/** Unit test for the JSON wire format of {@link HasSynonym}. */
+public class HasSynonymUnitTest {
 
   /** The NCI preferred term "melanoma". */
   private static final String MELANOMA_PREFERRED_TERM_QUERY =
       """
       {"type": "HasSynonym", "target": "melanoma", "source": "NCI", "termType": "PT"}
       """;
-
-  /**
-   * Test HasSynonym returns the concepts with a matching synonym: the NCI preferred term
-   * "melanoma".
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasSynonymReturnsMatchingConcepts() throws Exception {
-    assertThat(fetchCodes(MELANOMA_PREFERRED_TERM_QUERY)).containsExactly(MELANOMA);
-  }
 
   /**
    * Test HasSynonym round trips through Jackson unchanged.

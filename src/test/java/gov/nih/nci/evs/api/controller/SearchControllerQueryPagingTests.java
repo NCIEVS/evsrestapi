@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -13,7 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
 /** Tests paging through the query endpoint's matches with fromRecord and pageSize. */
-public class PagingEndpointTest extends AbstractQueryEndpointTest {
+public class SearchControllerQueryPagingTests extends AbstractSearchControllerQueryTests {
 
   /** The four children of Breast, a query with a few matches to page through. */
   private static final String BREAST_CHILDREN_QUERY =
@@ -26,6 +26,61 @@ public class PagingEndpointTest extends AbstractQueryEndpointTest {
       """
       {"type": "HasAncestor", "target": "C7057"}
       """;
+
+  /**
+   * Posts a query tree and returns the codes on one page of its matches.
+   *
+   * @param queryJson the query tree as JSON
+   * @param fromRecord the index of the first concept to return
+   * @param pageSize the maximum number of concepts to return
+   * @return the codes, in the order returned
+   * @throws Exception the exception
+   */
+  private List<String> fetchCodesOnPage(
+      final String queryJson, final int fromRecord, final int pageSize) throws Exception {
+    return fetchPage(queryJson, fromRecord, pageSize).getConcepts().stream()
+        .map(Concept::getCode)
+        .toList();
+  }
+
+  /**
+   * Posts a query tree, asserts the response is OK, and reads one page of its matches.
+   *
+   * @param queryJson the query tree as JSON
+   * @param fromRecord the index of the first concept to return
+   * @param pageSize the maximum number of concepts to return
+   * @return the result list
+   * @throws Exception the exception
+   */
+  private ConceptResultList fetchPage(
+      final String queryJson, final int fromRecord, final int pageSize) throws Exception {
+    final String content =
+        postQueryPage(queryJson, fromRecord, pageSize)
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    return ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+  }
+
+  /**
+   * Posts a query tree asking for one page of its matches, searching NCIt.
+   *
+   * @param queryJson the query tree as JSON
+   * @param fromRecord the index of the first concept to return
+   * @param pageSize the maximum number of concepts to return
+   * @return the result actions
+   * @throws Exception the exception
+   */
+  private ResultActions postQueryPage(
+      final String queryJson, final int fromRecord, final int pageSize) throws Exception {
+    return mvc.perform(
+        post(QUERY_URL, TERMINOLOGY)
+            .param("fromRecord", String.valueOf(fromRecord))
+            .param("pageSize", String.valueOf(pageSize))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(queryJson));
+  }
 
   /**
    * Test a page from a record returns the matches at those positions: records 1-2 of the four
@@ -82,60 +137,5 @@ public class PagingEndpointTest extends AbstractQueryEndpointTest {
   @Test
   public void testNegativeFromRecordReturnsBadRequest() throws Exception {
     postQueryPage(BREAST_CHILDREN_QUERY, -1, 10).andExpect(status().isBadRequest());
-  }
-
-  /**
-   * Posts a query tree and returns the codes on one page of its matches.
-   *
-   * @param queryJson the query tree as JSON
-   * @param fromRecord the index of the first concept to return
-   * @param pageSize the maximum number of concepts to return
-   * @return the codes, in the order returned
-   * @throws Exception the exception
-   */
-  private List<String> fetchCodesOnPage(
-      final String queryJson, final int fromRecord, final int pageSize) throws Exception {
-    return fetchPage(queryJson, fromRecord, pageSize).getConcepts().stream()
-        .map(Concept::getCode)
-        .toList();
-  }
-
-  /**
-   * Posts a query tree, asserts the response is OK, and reads one page of its matches.
-   *
-   * @param queryJson the query tree as JSON
-   * @param fromRecord the index of the first concept to return
-   * @param pageSize the maximum number of concepts to return
-   * @return the result list
-   * @throws Exception the exception
-   */
-  private ConceptResultList fetchPage(
-      final String queryJson, final int fromRecord, final int pageSize) throws Exception {
-    final String content =
-        postQueryPage(queryJson, fromRecord, pageSize)
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-    return ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
-  }
-
-  /**
-   * Posts a query tree asking for one page of its matches, searching NCIt.
-   *
-   * @param queryJson the query tree as JSON
-   * @param fromRecord the index of the first concept to return
-   * @param pageSize the maximum number of concepts to return
-   * @return the result actions
-   * @throws Exception the exception
-   */
-  private ResultActions postQueryPage(
-      final String queryJson, final int fromRecord, final int pageSize) throws Exception {
-    return mvc.perform(
-        post(QUERY_URL, TERMINOLOGY)
-            .param("fromRecord", String.valueOf(fromRecord))
-            .param("pageSize", String.valueOf(pageSize))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(queryJson));
   }
 }

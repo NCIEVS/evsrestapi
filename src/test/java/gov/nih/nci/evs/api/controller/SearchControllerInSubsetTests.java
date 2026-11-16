@@ -1,13 +1,12 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import gov.nih.nci.evs.api.query.InSubset;
 import org.junit.jupiter.api.Test;
 
 /** Tests the InSubset node, which matches the members of a subset, through the query endpoint. */
-public class InSubsetEndpointTest extends AbstractQueryEndpointTest {
+public class SearchControllerInSubsetTests extends AbstractSearchControllerQueryTests {
 
   /** The members of the subset whose only member is Breast Carcinoma. */
   private static final String BREAST_CARCINOMA_SUBSET_MEMBERS_QUERY =
@@ -39,27 +38,5 @@ public class InSubsetEndpointTest extends AbstractQueryEndpointTest {
         """;
 
     postQuery(subsetCodeQuery).andExpect(status().isBadRequest());
-  }
-
-  /**
-   * Test InSubset round trips through Jackson unchanged.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testInSubsetRoundTripsUnchanged() throws Exception {
-    assertRoundTripsUnchanged(BREAST_CARCINOMA_SUBSET_MEMBERS_QUERY);
-  }
-
-  /**
-   * Test InSubset serializes to the expected JSON, the wire format clients use.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testInSubsetSerializesToExpectedJson() throws Exception {
-    final InSubset breastCarcinomaSubsetMembers = new InSubset(BREAST_CARCINOMA_ONLY_SUBSET);
-
-    assertSerializesTo(breastCarcinomaSubsetMembers, BREAST_CARCINOMA_SUBSET_MEMBERS_QUERY);
   }
 }

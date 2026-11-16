@@ -1,15 +1,13 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertRoundTripsUnchanged;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertSerializesTo;
 
 import gov.nih.nci.evs.api.query.HasDescendantOrIs;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the HasDescendantOrIs query node, which matches a target concept and its ancestors, through
- * the query endpoint.
- */
-public class HasDescendantOrIsEndpointTest extends AbstractQueryEndpointTest {
+/** Unit test for the JSON wire format of {@link HasDescendantOrIs}. */
+public class HasDescendantOrIsUnitTest {
 
   /** The query for Female Breast and its parent, with a max level of 1. */
   private static final String FEMALE_BREAST_AND_PARENT_QUERY =
@@ -17,16 +15,11 @@ public class HasDescendantOrIsEndpointTest extends AbstractQueryEndpointTest {
       {"type": "HasDescendantOrIs", "target": "C12851", "maxLevel": 1}
       """;
 
-  /**
-   * Test HasDescendantOrIs with a max level of 1 returns the target and its parent.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasDescendantOrIsReturnsTargetAndParent() throws Exception {
-    assertThat(fetchCodes(FEMALE_BREAST_AND_PARENT_QUERY))
-        .containsExactlyInAnyOrder(FEMALE_BREAST, BREAST);
-  }
+  /** The max level that limits hierarchy queries to direct children or parents. */
+  private static final int DIRECT_RELATIVES_MAX_LEVEL = 1;
+
+  /** Female Breast, whose only parent is Breast. */
+  private static final String FEMALE_BREAST = "C12851";
 
   /**
    * Test the HasDescendantOrIs query reads from and writes back to the same JSON.

@@ -1,20 +1,15 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import gov.nih.nci.evs.api.query.And;
-import gov.nih.nci.evs.api.query.EvsQuery;
-import gov.nih.nci.evs.api.query.HasAncestor;
-import gov.nih.nci.evs.api.query.StartsWith;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests And, which matches the concepts every one of its children matches, through the query
  * endpoint.
  */
-public class AndEndpointTest extends AbstractQueryEndpointTest {
+public class SearchControllerAndTests extends AbstractSearchControllerQueryTests {
 
   /** The children of Breast with a name or synonym starting "left", combined with And. */
   private static final String LEFT_CHILD_OF_BREAST_QUERY =
@@ -50,30 +45,5 @@ public class AndEndpointTest extends AbstractQueryEndpointTest {
         """;
 
     postQuery(misspelledChildrenQuery).andExpect(status().isBadRequest());
-  }
-
-  /**
-   * Test And round trips unchanged through Jackson.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testAndRoundTripsUnchanged() throws Exception {
-    assertRoundTripsUnchanged(LEFT_CHILD_OF_BREAST_QUERY);
-  }
-
-  /**
-   * Test And serializes to the expected JSON when built in Java: the And of the children of Breast
-   * and the names or synonyms starting "left".
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testAndSerializesToExpectedJson() throws Exception {
-    final EvsQuery leftChildOfBreast =
-        new And(
-            List.of(new HasAncestor(BREAST, DIRECT_RELATIVES_MAX_LEVEL), new StartsWith("left")));
-
-    assertSerializesTo(leftChildOfBreast, LEFT_CHILD_OF_BREAST_QUERY);
   }
 }

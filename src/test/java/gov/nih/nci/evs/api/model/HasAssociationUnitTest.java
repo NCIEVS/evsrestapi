@@ -1,15 +1,13 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertRoundTripsUnchanged;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertSerializesTo;
 
 import gov.nih.nci.evs.api.query.HasAssociation;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the HasAssociation query node, which matches the concepts with an association to a target
- * concept, through the query endpoint.
- */
-public class HasAssociationEndpointTest extends AbstractQueryEndpointTest {
+/** Unit test for the JSON wire format of {@link HasAssociation}. */
+public class HasAssociationUnitTest {
 
   /** The query for the members of the subset whose only member is Breast Carcinoma. */
   private static final String MEMBERS_OF_BREAST_CARCINOMA_ONLY_SUBSET_QUERY =
@@ -17,17 +15,11 @@ public class HasAssociationEndpointTest extends AbstractQueryEndpointTest {
       {"type": "HasAssociation", "association": "A8", "target": "C103042"}
       """;
 
-  /**
-   * Test HasAssociation returns the concepts with the association to the target: the members of a
-   * subset whose only member is Breast Carcinoma.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasAssociationReturnsConceptsWithTheAssociation() throws Exception {
-    assertThat(fetchCodes(MEMBERS_OF_BREAST_CARCINOMA_ONLY_SUBSET_QUERY))
-        .containsExactly(BREAST_CARCINOMA);
-  }
+  /** The association from a concept to a subset it's in (Concept_In_Subset). */
+  private static final String IN_SUBSET_ASSOCIATION = "A8";
+
+  /** A subset whose only member is Breast Carcinoma. */
+  private static final String BREAST_CARCINOMA_ONLY_SUBSET = "C103042";
 
   /**
    * Test the HasAssociation query reads from and writes back to the same JSON.

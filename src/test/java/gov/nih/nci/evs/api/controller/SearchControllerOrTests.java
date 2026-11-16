@@ -1,19 +1,14 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import gov.nih.nci.evs.api.query.EvsQuery;
-import gov.nih.nci.evs.api.query.HasAncestor;
-import gov.nih.nci.evs.api.query.HasDescendant;
-import gov.nih.nci.evs.api.query.Or;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests Or, which matches the concepts any one of its children matches, through the query endpoint.
  */
-public class OrEndpointTest extends AbstractQueryEndpointTest {
+public class SearchControllerOrTests extends AbstractSearchControllerQueryTests {
 
   /** The children of Breast or the parent of Female Breast, combined with Or. */
   private static final String CHILDREN_OR_PARENT_QUERY =
@@ -49,32 +44,5 @@ public class OrEndpointTest extends AbstractQueryEndpointTest {
         """;
 
     postQuery(childrenNotInListQuery).andExpect(status().isBadRequest());
-  }
-
-  /**
-   * Test Or round trips unchanged through Jackson.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testOrRoundTripsUnchanged() throws Exception {
-    assertRoundTripsUnchanged(CHILDREN_OR_PARENT_QUERY);
-  }
-
-  /**
-   * Test Or serializes to the expected JSON when built in Java: the Or of the children of Breast
-   * and the parent of Female Breast.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testOrSerializesToExpectedJson() throws Exception {
-    final EvsQuery childrenOrParent =
-        new Or(
-            List.of(
-                new HasAncestor(BREAST, DIRECT_RELATIVES_MAX_LEVEL),
-                new HasDescendant(FEMALE_BREAST, DIRECT_RELATIVES_MAX_LEVEL)));
-
-    assertSerializesTo(childrenOrParent, CHILDREN_OR_PARENT_QUERY);
   }
 }

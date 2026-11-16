@@ -1,23 +1,15 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import gov.nih.nci.evs.api.query.AllQualifiers;
-import gov.nih.nci.evs.api.query.AnyQualifiers;
-import gov.nih.nci.evs.api.query.EvsQuery;
-import gov.nih.nci.evs.api.query.HasProperty;
-import gov.nih.nci.evs.api.query.NoQualifiers;
-import gov.nih.nci.evs.api.query.PropertyQualifier;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests HasProperty, which matches the concepts with a property entry matching its type, value and
  * qualifiers, through the query endpoint.
  */
-public class HasPropertyEndpointTest extends AbstractQueryEndpointTest {
-
+public class SearchControllerHasPropertyTests extends AbstractSearchControllerQueryTests {
   /**
    * The nucleotide-excision repair GO annotations with go-id GO:0006289 whose evidence is neither
    * TAS nor NR.
@@ -60,39 +52,5 @@ public class HasPropertyEndpointTest extends AbstractQueryEndpointTest {
         """;
 
     postQuery(misspelledQualifierTypeQuery).andExpect(status().isBadRequest());
-  }
-
-  /**
-   * Test HasProperty round trips unchanged through Jackson.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasPropertyRoundTripsUnchanged() throws Exception {
-    assertRoundTripsUnchanged(REPAIR_ANNOTATION_WITHOUT_TAS_OR_NR_QUERY);
-  }
-
-  /**
-   * Test HasProperty serializes to the expected JSON when built in Java: the HasProperty with
-   * qualifiers.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasPropertySerializesToExpectedJson() throws Exception {
-    final EvsQuery repairAnnotationWithoutTasOrNr =
-        new HasProperty(
-            "P211",
-            "nucleotide-excision repair",
-            new AllQualifiers(
-                List.of(
-                    new PropertyQualifier("P387", "GO:0006289"),
-                    new NoQualifiers(
-                        new AnyQualifiers(
-                            List.of(
-                                new PropertyQualifier("P389", "TAS"),
-                                new PropertyQualifier("P389", "NR")))))));
-
-    assertSerializesTo(repairAnnotationWithoutTasOrNr, REPAIR_ANNOTATION_WITHOUT_TAS_OR_NR_QUERY);
   }
 }

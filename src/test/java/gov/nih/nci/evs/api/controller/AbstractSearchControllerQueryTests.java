@@ -1,15 +1,11 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Role;
-import gov.nih.nci.evs.api.query.EvsQuery;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import java.util.stream.Stream;
@@ -26,7 +22,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 /**
  * Base class for the per-node tests of the query endpoint ({@code POST
- * /concept/{terminology}/search} with a JSON body). Each subclass tests one query node with three
+ * /concept/{terminology}/search} with a JSON body). Each subclass tests one query node with two
  * kinds of test:
  *
  * <ol>
@@ -35,9 +31,6 @@ import org.springframework.test.web.servlet.ResultActions;
  *       concepts that come back.
  *   <li><b>Mistake test</b>: posts JSON with a mistake a client could make using {@link
  *       #postQuery(String)}, and expects a bad request.
- *   <li><b>Round-trip test</b>: calls {@link #assertRoundTripsUnchanged(String)}, which reads the
- *       JSON as an {@link EvsQuery} with the application's {@link ObjectMapper} and writes it back,
- *       and checks the result equals the original JSON.
  * </ol>
  *
  * <p>Integration tests run against the test OpenSearch with NCIt loaded, as the concept search
@@ -48,10 +41,11 @@ import org.springframework.test.web.servlet.ResultActions;
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public abstract class AbstractQueryEndpointTest {
+public abstract class AbstractSearchControllerQueryTests {
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(AbstractQueryEndpointTest.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(AbstractSearchControllerQueryTests.class);
 
   /** The query endpoint url, with the terminology as a path variable. */
   protected static final String QUERY_URL = "/api/v1/concept/{terminology}/search";
@@ -67,9 +61,6 @@ public abstract class AbstractQueryEndpointTest {
 
   /** Breast, the target of most hierarchy tests. */
   protected static final String BREAST = "C12971";
-
-  /** The max level that limits hierarchy queries to direct children or parents. */
-  protected static final int DIRECT_RELATIVES_MAX_LEVEL = 1;
 
   /** The four children of Breast. */
   protected static final List<String> BREAST_CHILDREN =
@@ -90,49 +81,8 @@ public abstract class AbstractQueryEndpointTest {
   /** The role from a disease to its primary anatomic site (Disease_Has_Primary_Anatomic_Site). */
   protected static final String PRIMARY_ANATOMIC_SITE_ROLE = "R101";
 
-  /** The association from a concept to a subset it's in (Concept_In_Subset). */
-  protected static final String IN_SUBSET_ASSOCIATION = "A8";
-
-  /** A subset whose only member is Breast Carcinoma. */
-  protected static final String BREAST_CARCINOMA_ONLY_SUBSET = "C103042";
-
   /** Autowired mock MVC. */
   @Autowired protected MockMvc mvc;
-
-  /** Autowired application object mapper, the one configured by JacksonConfiguration. */
-  @Autowired protected ObjectMapper objectMapper;
-
-  /**
-   * Reads query JSON as an {@link EvsQuery}, writes it back, and asserts the result equals the
-   * original. The two are compared as {@link JsonNode}s, so key order and whitespace don't matter.
-   *
-   * @param queryJson the query tree as JSON
-   * @throws Exception the exception
-   */
-  protected void assertRoundTripsUnchanged(final String queryJson) throws Exception {
-    final JsonNode original = objectMapper.readTree(queryJson);
-
-    final EvsQuery query = objectMapper.readValue(queryJson, EvsQuery.class);
-    final JsonNode roundTripped = objectMapper.readTree(objectMapper.writeValueAsString(query));
-
-    assertThat(roundTripped).isEqualTo(original);
-  }
-
-  /**
-   * Asserts the app's object mapper writes the query as the expected JSON, compared as JSON trees
-   * so key order and whitespace don't matter. A regression check on the wire format: a renamed
-   * class, property, or enum constant changes the JSON clients send and receive.
-   *
-   * @param query the query, built in Java
-   * @param expectedJson the JSON it must be written as
-   * @throws Exception the exception
-   */
-  protected void assertSerializesTo(final EvsQuery query, final String expectedJson)
-      throws Exception {
-    final JsonNode serialized = objectMapper.readTree(objectMapper.writeValueAsString(query));
-
-    assertThat(serialized).isEqualTo(objectMapper.readTree(expectedJson));
-  }
 
   /**
    * Posts a query tree and returns the codes of the concepts it matches, in the order returned.

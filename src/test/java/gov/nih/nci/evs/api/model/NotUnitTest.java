@@ -1,7 +1,7 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertRoundTripsUnchanged;
+import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertSerializesTo;
 
 import gov.nih.nci.evs.api.query.And;
 import gov.nih.nci.evs.api.query.EvsQuery;
@@ -11,8 +11,8 @@ import gov.nih.nci.evs.api.query.Not;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** Tests Not, which leaves out the concepts its child matches, through the query endpoint. */
-public class NotEndpointTest extends AbstractQueryEndpointTest {
+/** Unit test for the JSON wire format of {@link Not}. */
+public class NotUnitTest {
 
   /** Breast and its children, without the children of Breast. */
   private static final String BREAST_WITHOUT_CHILDREN_QUERY =
@@ -23,31 +23,11 @@ public class NotEndpointTest extends AbstractQueryEndpointTest {
           {"type": "HasAncestor", "target": "C12971", "maxLevel": 1}}]}
       """;
 
-  /**
-   * Test Not leaves out the concepts its child matches: Breast and its children, without its
-   * children, is Breast alone.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testNotLeavesOutConceptsItsChildMatches() throws Exception {
-    assertThat(fetchCodes(BREAST_WITHOUT_CHILDREN_QUERY)).containsExactly(BREAST);
-  }
+  /** Breast, the target of most hierarchy tests. */
+  private static final String BREAST = "C12971";
 
-  /**
-   * Test Not with a child given as a type name, not a query, is rejected as a bad request.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testNotWithChildGivenAsTypeNameReturnsBadRequest() throws Exception {
-    final String childAsTypeNameQuery =
-        """
-        {"type": "Not", "child": "HasRole"}
-        """;
-
-    postQuery(childAsTypeNameQuery).andExpect(status().isBadRequest());
-  }
+  /** The max level that limits hierarchy queries to direct children or parents. */
+  private static final int DIRECT_RELATIVES_MAX_LEVEL = 1;
 
   /**
    * Test Not round trips unchanged through Jackson.

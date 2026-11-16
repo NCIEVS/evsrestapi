@@ -1,10 +1,9 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.query.HasRole;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +11,7 @@ import org.junit.jupiter.api.Test;
  * Tests the HasRole query node, which matches the concepts with a role to a target concept, through
  * the query endpoint.
  */
-public class HasRoleEndpointTest extends AbstractQueryEndpointTest {
+public class SearchControllerHasRoleTests extends AbstractSearchControllerQueryTests {
 
   /** The query for the concepts whose primary anatomic site is Breast. */
   private static final String PRIMARY_ANATOMIC_SITE_BREAST_QUERY =
@@ -34,7 +33,7 @@ public class HasRoleEndpointTest extends AbstractQueryEndpointTest {
         fetchQueryResults(PRIMARY_ANATOMIC_SITE_BREAST_QUERY, includeRoles).getConcepts();
 
     assertThat(concepts).extracting(Concept::getCode).contains(BREAST_CARCINOMA);
-    assertThat(concepts).allMatch(HasRoleEndpointTest::getHasPrimaryAnatomicSiteBreast);
+    assertThat(concepts).allMatch(SearchControllerHasRoleTests::getHasPrimaryAnatomicSiteBreast);
   }
 
   /**
@@ -50,27 +49,5 @@ public class HasRoleEndpointTest extends AbstractQueryEndpointTest {
         """;
 
     postQuery(withoutTypeQuery).andExpect(status().isBadRequest());
-  }
-
-  /**
-   * Test the HasRole query reads from and writes back to the same JSON.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasRoleRoundTripsUnchanged() throws Exception {
-    assertRoundTripsUnchanged(PRIMARY_ANATOMIC_SITE_BREAST_QUERY);
-  }
-
-  /**
-   * Test the HasRole query built in Java is written as the expected JSON.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasRoleSerializesToExpectedJson() throws Exception {
-    final HasRole primaryAnatomicSiteBreast = new HasRole(PRIMARY_ANATOMIC_SITE_ROLE, BREAST);
-
-    assertSerializesTo(primaryAnatomicSiteBreast, PRIMARY_ANATOMIC_SITE_BREAST_QUERY);
   }
 }

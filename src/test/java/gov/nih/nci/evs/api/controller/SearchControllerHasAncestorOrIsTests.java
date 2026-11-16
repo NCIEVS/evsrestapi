@@ -1,16 +1,15 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import gov.nih.nci.evs.api.query.HasAncestorOrIs;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests the HasAncestorOrIs node, which matches a target concept and its descendants, through the
  * query endpoint.
  */
-public class HasAncestorOrIsEndpointTest extends AbstractQueryEndpointTest {
+public class SearchControllerHasAncestorOrIsTests extends AbstractSearchControllerQueryTests {
 
   /** Breast and its descendants at most one level down, which are its children. */
   private static final String BREAST_AND_CHILDREN_QUERY =
@@ -43,28 +42,5 @@ public class HasAncestorOrIsEndpointTest extends AbstractQueryEndpointTest {
         """;
 
     postQuery(misspelledNodeTypeQuery).andExpect(status().isBadRequest());
-  }
-
-  /**
-   * Test HasAncestorOrIs round trips through Jackson unchanged.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasAncestorOrIsRoundTripsUnchanged() throws Exception {
-    assertRoundTripsUnchanged(BREAST_AND_CHILDREN_QUERY);
-  }
-
-  /**
-   * Test HasAncestorOrIs serializes to the expected JSON, the wire format clients use.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testHasAncestorOrIsSerializesToExpectedJson() throws Exception {
-    final HasAncestorOrIs breastAndChildren =
-        new HasAncestorOrIs(BREAST, DIRECT_RELATIVES_MAX_LEVEL);
-
-    assertSerializesTo(breastAndChildren, BREAST_AND_CHILDREN_QUERY);
   }
 }
