@@ -11,7 +11,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.InnerField;
-import org.springframework.data.elasticsearch.annotations.Mapping;
 import org.springframework.data.elasticsearch.annotations.MultiField;
 import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 
@@ -72,9 +71,9 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   private String subSource;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Object)
   //  @DynamicMapping(DynamicMappingValue.False)
-  @Mapping(enabled = false)
+  // @Mapping(enabled = false)
   private List<Qualifier> qualifiers;
 
   /** The active flag. */

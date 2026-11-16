@@ -229,8 +229,9 @@ public class Concept extends ConceptMinimal {
    * the index = false, to avoid indexing the fields in this Concept model. The
    * DynamicMappingValue.False will prevent indexing fields from the Qualifiers object.
    */
-  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
-  @Mapping(enabled = false)
+  //  @Field(type = FieldType.Object, includeInParent = false)
+  // @Mapping(enabled = false)
+  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**

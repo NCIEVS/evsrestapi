@@ -38,7 +38,7 @@ public class Property extends BaseModel implements Comparable<Property> {
    * The qualifiers. Nested so a qualifier's type and value can be searched together (see
    * HasProperty).
    */
-  @Field(type = FieldType.Nested)
+  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /** The source. */
