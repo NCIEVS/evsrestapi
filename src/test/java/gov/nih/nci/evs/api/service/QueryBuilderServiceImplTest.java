@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.annotation.PostConstruct;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@Tag("integration")
 public class QueryBuilderServiceImplTest {
 
   /** The logger. */

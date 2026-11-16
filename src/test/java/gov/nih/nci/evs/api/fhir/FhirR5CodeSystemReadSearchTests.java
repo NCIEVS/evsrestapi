@@ -26,6 +26,7 @@ import org.hl7.fhir.r5.model.ResourceType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -47,6 +48,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @AutoConfigureTestRestTemplate
+@Tag("integration")
 class FhirR5CodeSystemReadSearchTests {
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(FhirR5CodeSystemReadSearchTests.class);

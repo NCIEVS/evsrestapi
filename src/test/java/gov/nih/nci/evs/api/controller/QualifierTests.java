@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@Tag("integration")
 public class QualifierTests {
 
   /** The logger. */

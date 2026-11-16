@@ -7,6 +7,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import java.util.List;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 /** Unit test for TerminologyUtils. */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@Tag("integration")
 public class TerminologyUtilsTest {
 
   /** The term utils. */

@@ -21,7 +21,7 @@ DOCKER_IMG              := $(shell docker images -q "$(DOCKER_IMAGE)")
 GRADLEW                 ?= ./gradlew
 UNIT_TEST_DATA          ?= ../data/UnitTestData
 
-.PHONY: build library devreset docker dockerpush scandocker rundocker scan
+.PHONY: build library devreset docker dockerpush scandocker rundocker scan test test-unit test-integration
 
 # consider also "docker save..." and "docker load..." to avoid registry.
 clean:
@@ -79,6 +79,13 @@ rundocker:
 
 test:
 	$(GRADLEW) spotlessCheck test
+
+# PR checks run without graph/OpenSearch services or loaded terminology data.
+test-unit:
+	$(GRADLEW) spotlessCheck unitTest
+
+test-integration:
+	$(GRADLEW) spotlessCheck :integrationTest
 
 releasetag:
 	git tag -a "${VERSION}-RC-`/bin/date +%Y-%m-%d`" -m "Release ${VERSION}-RC-`/bin/date +%Y-%m-%d`"

@@ -21,7 +21,18 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
 
-      - name: Run Tests for PR
-        run: make test
+      - name: Run unit tests for PR
+        run: make test-unit
       - name: Shared library checks
         run: ./gradlew :evsrestapi-core:check
+      - name: Test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            build/reports/tests/
+            build/test-results/
+            evsrestapi-core/build/reports/tests/
+            evsrestapi-core/build/test-results/
+          if-no-files-found: ignore

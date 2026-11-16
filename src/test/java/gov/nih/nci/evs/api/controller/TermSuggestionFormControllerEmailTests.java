@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.InputStream;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,6 +53,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @ActiveProfiles("test")
 @EnabledIfEnvironmentVariable(named = "MAIL_USER", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "MAIL_PASSWORD", matches = ".+")
+@Tag("integration")
 public class TermSuggestionFormControllerEmailTests {
 
   /** The Constant log. */

@@ -8,6 +8,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @AutoConfigureTestRestTemplate
+@Tag("integration")
 public class FhirVersioningStrategyTests {
 
   /** The Constant log. */

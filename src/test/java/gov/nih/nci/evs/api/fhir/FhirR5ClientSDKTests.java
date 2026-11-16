@@ -29,6 +29,7 @@ import org.hl7.fhir.r5.model.ValueSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @AutoConfigureMockMvc
 @AutoConfigureTestRestTemplate
 @ActiveProfiles("test")
+@Tag("integration")
 class FhirR5ClientSDKTests {
 
   /** The port. */

@@ -73,6 +73,22 @@ loader compiles core from this checkout, so rebuild the loader after changing co
       tail -f log
     ```
 
+## Running tests
+
+`make test-unit` runs the PR checks without graph/OpenSearch services or loaded
+terminology data. The CI job also runs `:evsrestapi-core:check` separately.
+
+`make test` retains the full non-performance suite and requires the loaded local
+services described above. `make test-integration` runs only tests tagged
+`integration`. For selected terminology checks, use:
+
+```bash
+./gradlew integrationTest --tests '*SampleTest'
+```
+
+Tests that send real email remain subject to their existing environment-variable
+conditions. Run integration tests only against the intended test services and data.
+
 ## Steps for Building and Running EVSRESTAPI locally
 
 * Launch Jena/fuseki and Opensearch (as described above)

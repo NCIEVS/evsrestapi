@@ -21,6 +21,8 @@ Read these project docs before changing setup, infrastructure, graph, or OpenSea
 
 - Build: `make clean build`
 - Test: `make test`
+- PR checks without graph/OpenSearch data: `make test-unit`
+- Data-dependent integration tests: `make test-integration`
 - Format check: `./gradlew spotlessCheck`
 - Format fix: `./gradlew spotlessApply`
 - Vulnerability scan: `make scan` and review HIGH or CRITICAL entries in `report.html`

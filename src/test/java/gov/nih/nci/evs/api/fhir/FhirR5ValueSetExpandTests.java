@@ -36,6 +36,7 @@ import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,6 +61,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @AutoConfigureTestRestTemplate
+@Tag("integration")
 public class FhirR5ValueSetExpandTests {
 
   /** The logger. */

@@ -22,6 +22,7 @@ import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4.model.StringType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @AutoConfigureTestRestTemplate
+@Tag("integration")
 public class FhirR4CodeSystemLookupTests {
 
   /** The port. */

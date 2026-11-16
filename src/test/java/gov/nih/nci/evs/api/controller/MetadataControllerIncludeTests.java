@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@Tag("integration")
 public class MetadataControllerIncludeTests {
 
   /** The logger. */

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.service.CaptchaService;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import gov.nih.nci.evs.api.service.TermSuggestionFormService;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.FileNotFoundException;
@@ -69,6 +70,9 @@ public class TermSuggestionFormControllerTests {
 
   /** The captcha service. */
   @MockitoBean private CaptchaService captchaService;
+
+  /** Audit and metric writes are isolated from the controller tests. */
+  @MockitoBean private OpensearchOperationsService opensearchOperationsService;
 
   /** The recaptcha token. */
   final String recaptchaToken = "testTokenString";

@@ -30,6 +30,7 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @AutoConfigureMockMvc
 @AutoConfigureTestRestTemplate
 @ActiveProfiles("test")
+@Tag("integration")
 class FhirR4ClientSDKTests {
 
   /** The logger. */

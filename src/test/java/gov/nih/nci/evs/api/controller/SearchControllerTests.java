@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -48,6 +49,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 // @ActiveProfiles("test")
+@Tag("integration")
 public class SearchControllerTests {
 
   /** The logger. */
