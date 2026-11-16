@@ -332,19 +332,11 @@ spotbugsTest {
     }
 }
 
-// rrfSample moved to evsrestapi-operations; this stub says where to run it.
-tasks.register('rrfSample') {
-  doLast {
-    throw new GradleException('rrfSample moved to evsrestapi-operations. From ../evsrestapi-operations/web run:\n' +
-      '  ./gradlew rrfSample -Pterminology=NCIMTH,MDR,... -PlistFile=src/main/resources/cuis-202508.txt ' +
-      '-PinputPath=/absolute/path/to/NCIM/META [-PcopyMode=codesab|cui]')
-  }
-}
-
 tasks.register('zipFile', Zip) {
   def zipFileRootDirectory = "${project.name}-${project.version}"
 
   from('src/main/bin') {
+    include 'evsrestapi', 'evsrestapi.service', 'postman.sh', 'setenv-*.sh_orig', '*.postman_collection.json'
     filePermissions {
       unix('rwxr-xr-x')
     }

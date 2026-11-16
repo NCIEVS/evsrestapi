@@ -15,10 +15,9 @@ Information on the build and deployment process for the EVSRESTAPI project
 ## Data loading has moved to evsrestapi-operations
 
 Indexing and other data-management scripts now live in
-[evsrestapi-operations](https://github.com/NCIEVS/evsrestapi-operations). Its
-`docs/switching-from-evsrestapi.md` covers setup and maps each old command to its
-replacement. The old `src/main/bin` script paths keep working for one release, and
-`make devreset` works as before.
+[evsrestapi-operations](https://github.com/NCIEVS/evsrestapi-operations).
+Run reindexing, data loading, resets, and sampling there; see its
+[migration guide](https://github.com/NCIEVS/evsrestapi-operations/blob/develop/docs/switching-from-evsrestapi.md).
 
 Shared model and data-access code is in the `evsrestapi-core` subproject.
 `make library` builds it as a plain JAR in `evsrestapi-core/build/libs`. The operations
@@ -37,49 +36,20 @@ loader compiles core from this checkout, so rebuild the loader after changing co
 - Set a new variable `$ES_DIR` to the new directory just created. This `$ES_DIR` will be referenced in upcoming steps.
   * Bash: `export ES_DIR="$dir/opensearch/data"`
   * Windows CMD: `set ES_DIR=%dir%\\opensearch\\data`
-* Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your `$dir` folder (so that `$dir/UnitTestData` exists)
-  * run `prep.sh`
 
 ## Steps for Loading NCI Thesaurus Data and Indexes Locally
 
-* Launch Graph DB and load NCI Thesaurus data - (see [Jena/Fuseki Resources](JENA.md))
-* Launch Opensearch docker container - (see [Opensearch Resources](OPENSEARCH.md))
-
-* Make sure to set at least the following environment variables
-  * ES_SCHEME=http
-  * ES_HOST=localhost
-  * ES_PORT=9201
-  * GRAPH_DB_HOST=localhost
-  * GRAPH_DB_PORT=5820
-  * GRAPH_DB=NCIT2
-  * GRAPH_DB_USERNAME=admin
-  * GRAPH_DB_PASSWORD=admin
-  * CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata
-  * MAIL_USERNAME=<YOUR_WORK_EMAIL>
-  * MAIL_PASSWORD=<YOUR_GMAIL_APP_PASSWORD>
-  * MAIL_AUTH=true
-  * MAIL_TLS=true
-  * RECAPTCHA_KEY=<SITE_KEY_FROM_RECAPTCHA>
-  * RECAPTCHA_SECRET=<SECRET_KEY_FROM_RECAPTCHA>
-
-* Load the UnitTestData set by running `prep.sh`
-  * Make sure that you can run all programs in `bash`, especially if on Mac which defaults to `zsh`
-  * `make devreset` builds the loader in the `../evsrestapi-operations` checkout (or `$EVS_OPS_HOME`)
-    and runs its `bin/devreset.sh`
-
-      ```
-      cd evsrestapi
-      make devreset
-      tail -f log
-    ```
+Use [evsrestapi-operations](https://github.com/NCIEVS/evsrestapi-operations#loading-test-data-locally)
+to obtain and load test data. Graph and OpenSearch setup is described in
+[JENA.md](JENA.md) and [OPENSEARCH.md](OPENSEARCH.md).
 
 ## Running tests
 
 `make test-unit` runs the PR checks without graph/OpenSearch services or loaded
 terminology data. The CI job also runs `:evsrestapi-core:check` separately.
 
-`make test` retains the full non-performance suite and requires the loaded local
-services described above. `make test-integration` runs only tests tagged
+`make test` retains the full non-performance suite and requires loaded local
+graph/OpenSearch services. `make test-integration` runs only tests tagged
 `integration`. For selected terminology checks, use:
 
 ```bash
