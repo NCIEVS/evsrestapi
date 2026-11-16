@@ -6,6 +6,8 @@ import static gov.nih.nci.evs.api.query.RawBoolQueries.getMatchNothingQuery;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -79,9 +81,10 @@ public abstract class HasHierarchyRelative extends EvsQuery {
   private static final int FIRST_PAGE = 0;
 
   /** The target concepts' name or code. */
-  private String target;
+  @NotNull private String target;
 
   /** The maximum distance from the targets, or null for any distance. */
+  @Min(MIN_MAX_LEVEL)
   private Integer maxLevel;
 
   /** Instantiates an empty {@link HasHierarchyRelative}. */

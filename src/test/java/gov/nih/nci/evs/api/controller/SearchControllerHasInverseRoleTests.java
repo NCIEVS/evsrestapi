@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,5 +26,20 @@ public class SearchControllerHasInverseRoleTests extends AbstractSearchControlle
   @Test
   public void testHasInverseRoleReturnsConceptsTheTargetPointsTo() throws Exception {
     assertThat(fetchCodes(PRIMARY_ANATOMIC_SITE_OF_BREAST_CARCINOMA_QUERY)).containsExactly(BREAST);
+  }
+
+  /**
+   * Test HasInverseRole without a role is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasInverseRoleWithoutRoleReturnsBadRequest() throws Exception {
+    final String withoutRoleQuery =
+        """
+        {"type": "HasInverseRole", "target": "C4872"}
+        """;
+
+    postQuery(withoutRoleQuery).andExpect(status().isBadRequest());
   }
 }

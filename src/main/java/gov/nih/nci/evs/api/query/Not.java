@@ -1,6 +1,8 @@
 package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
 import org.opensearch.data.core.OpenSearchOperations;
@@ -18,7 +20,7 @@ import org.opensearch.index.query.QueryBuilders;
 public class Not extends EvsQuery {
 
   /** The query concepts must not match. */
-  private EvsQuery child;
+  @NotNull @Valid private EvsQuery child;
 
   /** Instantiates an empty {@link Not}. */
   public Not() {

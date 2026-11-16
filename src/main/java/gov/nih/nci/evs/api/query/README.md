@@ -503,7 +503,12 @@ final EvsQuery query =
    names, codes, and values, not other queries, unless it's a logical query.
 3. Escape any characters in the term that are syntax for the OpenSearch query you use (see
    `OpenSearchServiceImpl.escape`, which `TermSearch` applies).
-4. Add a lesson to the node's test (e.g. `TermSearchTest`, `HasRoleTest`) that runs the query
+4. Annotate the fields a client must send, e.g. `@NotNull` on a required name or code, `@Min` on a
+   bound, `@Valid` on nested queries or qualifier conditions. The query endpoint validates the body
+   with `@Valid`, so a missing or out-of-range field is a 400 naming the field, not a 500 when the
+   node runs. If the node can match too much to run, throw `QueryTooBroadException`, which the
+   endpoint also reports as a 400.
+5. Add a lesson to the node's test (e.g. `TermSearchTest`, `HasRoleTest`) that runs the query
    against the test index and asserts which concepts it finds. Test behavior, not the built
    `QueryBuilder`.
-5. Run `./gradlew spotlessApply`.
+6. Run `./gradlew spotlessApply`.

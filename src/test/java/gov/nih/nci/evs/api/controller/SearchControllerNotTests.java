@@ -42,4 +42,19 @@ public class SearchControllerNotTests extends AbstractSearchControllerQueryTests
 
     postQuery(childAsTypeNameQuery).andExpect(status().isBadRequest());
   }
+
+  /**
+   * Test Not without a child is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNotWithoutChildReturnsBadRequest() throws Exception {
+    final String withoutChildQuery =
+        """
+        {"type": "Not"}
+        """;
+
+    postQuery(withoutChildQuery).andExpect(status().isBadRequest());
+  }
 }

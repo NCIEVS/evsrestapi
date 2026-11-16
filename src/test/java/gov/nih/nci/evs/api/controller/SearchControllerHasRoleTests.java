@@ -50,4 +50,19 @@ public class SearchControllerHasRoleTests extends AbstractSearchControllerQueryT
 
     postQuery(withoutTypeQuery).andExpect(status().isBadRequest());
   }
+
+  /**
+   * Test HasRole without a role is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasRoleWithoutRoleReturnsBadRequest() throws Exception {
+    final String withoutRoleQuery =
+        """
+        {"type": "HasRole", "target": "C12971"}
+        """;
+
+    postQuery(withoutRoleQuery).andExpect(status().isBadRequest());
+  }
 }

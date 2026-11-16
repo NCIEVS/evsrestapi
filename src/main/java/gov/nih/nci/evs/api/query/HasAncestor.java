@@ -99,7 +99,7 @@ public class HasAncestor extends HasHierarchyRelative {
     final long tokenCount = (long) targetCodes.size() * maxLevel;
     final boolean hasTooManyTokens = tokenCount > MatchAnyOf.MAX_VALUES;
     if (hasTooManyTokens) {
-      throw new IllegalArgumentException(
+      throw new QueryTooBroadException(
           "Too many targets for maxLevel "
               + maxLevel
               + ": "

@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,5 +25,20 @@ public class SearchControllerHasDescendantTests extends AbstractSearchController
   @Test
   public void testHasDescendantReturnsParent() throws Exception {
     assertThat(fetchCodes(PARENT_OF_FEMALE_BREAST_QUERY)).containsExactly(BREAST);
+  }
+
+  /**
+   * Test HasDescendant without a target is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasDescendantWithoutTargetReturnsBadRequest() throws Exception {
+    final String withoutTargetQuery =
+        """
+        {"type": "HasDescendant"}
+        """;
+
+    postQuery(withoutTargetQuery).andExpect(status().isBadRequest());
   }
 }

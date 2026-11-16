@@ -43,4 +43,19 @@ public class SearchControllerHasAncestorOrIsTests extends AbstractSearchControll
 
     postQuery(misspelledNodeTypeQuery).andExpect(status().isBadRequest());
   }
+
+  /**
+   * Test HasAncestorOrIs without a target is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasAncestorOrIsWithoutTargetReturnsBadRequest() throws Exception {
+    final String withoutTargetQuery =
+        """
+        {"type": "HasAncestorOrIs"}
+        """;
+
+    postQuery(withoutTargetQuery).andExpect(status().isBadRequest());
+  }
 }

@@ -53,4 +53,34 @@ public class SearchControllerHasPropertyTests extends AbstractSearchControllerQu
 
     postQuery(misspelledQualifierTypeQuery).andExpect(status().isBadRequest());
   }
+
+  /**
+   * Test HasProperty without a property is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasPropertyWithoutPropertyReturnsBadRequest() throws Exception {
+    final String withoutPropertyQuery =
+        """
+        {"type": "HasProperty", "target": "nucleotide-excision repair"}
+        """;
+
+    postQuery(withoutPropertyQuery).andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Test HasProperty whose NoQualifiers has no condition is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasPropertyWithQualifierConditionMissingReturnsBadRequest() throws Exception {
+    final String withoutQualifierConditionQuery =
+        """
+        {"type": "HasProperty", "property": "P211", "qualifiers": {"type": "NoQualifiers"}}
+        """;
+
+    postQuery(withoutQualifierConditionQuery).andExpect(status().isBadRequest());
+  }
 }

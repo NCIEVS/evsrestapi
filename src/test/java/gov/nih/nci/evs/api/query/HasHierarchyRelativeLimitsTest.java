@@ -169,9 +169,9 @@ public class HasHierarchyRelativeLimitsTest {
   /** MatchAnyOf with one more value than the limit throws an error naming the field and count. */
   @Test
   public void testMatchAnyOfOverLimitThrowsErrorNamingFieldAndCount() {
-    final IllegalArgumentException e =
+    final QueryTooBroadException e =
         assertThrows(
-            IllegalArgumentException.class,
+            QueryTooBroadException.class,
             () -> new MatchAnyOf(ANCESTORS_FIELD, getCodes(TOO_MANY)));
 
     assertTrue(e.getMessage().contains("'" + ANCESTORS_FIELD + "'"), e.getMessage());
@@ -205,16 +205,16 @@ public class HasHierarchyRelativeLimitsTest {
   @Test
   public void testDepthTokensWithTooManyTargetsThrowsError() {
     assertThrows(
-        IllegalArgumentException.class,
+        QueryTooBroadException.class,
         () -> HasAncestor.getDepthTokens(getCodes(TARGETS_OVER_LIMIT), ONE_LEVEL));
   }
 
   /** Targets times max level over the limit throws an error naming the max level. */
   @Test
   public void testDepthTokensOverLimitThroughMaxLevelThrowsErrorNamingMaxLevel() {
-    final IllegalArgumentException e =
+    final QueryTooBroadException e =
         assertThrows(
-            IllegalArgumentException.class,
+            QueryTooBroadException.class,
             () -> HasAncestor.getDepthTokens(getCodes(TARGETS_UNDER_LIMIT), LEVELS_OVER_LIMIT));
 
     assertTrue(e.getMessage().contains(MAX_LEVEL_MESSAGE), e.getMessage());
@@ -307,9 +307,9 @@ public class HasHierarchyRelativeLimitsTest {
   public void testHasDescendantMaxLevelWithTooManyAncestorsThrowsErrorNamingTooManyAncestors() {
     stubSearch(target -> getConceptWithAncestorCount(target, TOO_MANY));
 
-    final IllegalArgumentException e =
+    final QueryTooBroadException e =
         assertThrows(
-            IllegalArgumentException.class,
+            QueryTooBroadException.class,
             () ->
                 new HasDescendant(ANCESTOR_TARGET_CODE, LEVELS_REACHING_EVERY_ANCESTOR)
                     .fetchOpenSearchQuery(operations, terminologies));

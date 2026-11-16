@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
 
@@ -26,5 +27,20 @@ public class SearchControllerHasAssociationTests extends AbstractSearchControlle
   public void testHasAssociationReturnsConceptsWithTheAssociation() throws Exception {
     assertThat(fetchCodes(MEMBERS_OF_BREAST_CARCINOMA_ONLY_SUBSET_QUERY))
         .containsExactly(BREAST_CARCINOMA);
+  }
+
+  /**
+   * Test HasAssociation without an association is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasAssociationWithoutAssociationReturnsBadRequest() throws Exception {
+    final String withoutAssociationQuery =
+        """
+        {"type": "HasAssociation", "target": "C103042"}
+        """;
+
+    postQuery(withoutAssociationQuery).andExpect(status().isBadRequest());
   }
 }

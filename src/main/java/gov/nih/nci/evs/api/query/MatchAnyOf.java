@@ -48,7 +48,7 @@ class MatchAnyOf extends EvsQuery {
 
     final boolean hasTooManyValues = this.values.size() > MAX_VALUES;
     if (hasTooManyValues) {
-      throw new IllegalArgumentException(
+      throw new QueryTooBroadException(
           "Too many values for one terms query on '"
               + field
               + "': "
