@@ -25,7 +25,7 @@ dependencies {
   api 'io.swagger.core.v3:swagger-annotations-jakarta:2.2.47'
   api 'org.apache.commons:commons-lang3:3.18.0'
   api 'org.apache.commons:commons-text:1.10.0'
-  api 'com.google.guava:guava:33.2.1-jre'
+  api 'com.google.guava:guava:33.7.2-jre'
   api 'org.apache.httpcomponents:httpclient:4.5.14'
   api 'org.apache.httpcomponents.core5:httpcore5:5.4.3'
   api 'org.apache.httpcomponents.core5:httpcore5-h2:5.4.3'
