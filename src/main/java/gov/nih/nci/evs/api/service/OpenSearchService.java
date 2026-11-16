@@ -25,14 +25,28 @@ public interface OpenSearchService {
       List<Terminology> terminologies, SearchCriteria searchCriteria) throws Exception;
 
   /**
-   * Runs a query tree, e.g. a typeahead query, against the concept indexes of the terminologies,
-   * returning matches in the order the query ranks them.
+   * Runs a typeahead against the concept indexes of the terminologies, returning suggestions best
+   * first.
    *
-   * @param query the query, which decides what matches and how matches are ranked
+   * @param typeahead the typeahead, which decides what matches and how matches are ranked
+   * @param terminologies the terminologies to complete against
+   * @param searchCriteria the search criteria supplying the first record, page size, and included
+   *     fields, echoed back as the result parameters
+   * @return the requested page of suggestions, best first. The total counts matches only up to
+   *     OpenSearch's default limit of 10,000, then reports 10,000.
+   */
+  public ConceptResultList findTypeaheadConcepts(
+      Typeahead typeahead, List<Terminology> terminologies, SearchCriteria searchCriteria);
+
+  /**
+   * Runs a query tree against the concept indexes of the terminologies, returning matches in
+   * OpenSearch's default order, highest score first.
+   *
+   * @param query the query, which decides what matches
    * @param terminologies the terminologies to search
    * @param searchCriteria the search criteria supplying the first record, page size, and included
    *     fields, echoed back as the result parameters
-   * @return the requested page of matching concepts, best match first. The total counts matches
+   * @return the requested page of matching concepts, highest score first. The total counts matches
    *     only up to OpenSearch's default limit of 10,000, then reports 10,000. Unlike {@link
    *     #findQueryConceptsWithExactTotal}, it doesn't run a second query for the exact count.
    */
@@ -44,11 +58,11 @@ public interface OpenSearchService {
    * #findConcepts} does: when the total reaches OpenSearch's default limit of 10,000, it runs a
    * second query to count every match.
    *
-   * @param query the query, which decides what matches and how matches are ranked
+   * @param query the query, which decides what matches
    * @param terminologies the terminologies to search
    * @param searchCriteria the search criteria supplying the first record, page size, and included
    *     fields, echoed back as the result parameters
-   * @return the requested page of matching concepts, best match first, with the exact total
+   * @return the requested page of matching concepts, highest score first, with the exact total
    */
   public ConceptResultList findQueryConceptsWithExactTotal(
       EvsQuery query, List<Terminology> terminologies, SearchCriteria searchCriteria);

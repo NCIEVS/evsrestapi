@@ -14,12 +14,12 @@ import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.query.EvsQuery;
-import gov.nih.nci.evs.api.query.Typeahead;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.OpenSearchService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.service.QueryBuilderService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.service.Typeahead;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -555,7 +555,7 @@ public class SearchController extends BaseController {
 
     final Typeahead typeahead = new Typeahead(incompleteTerm);
     final ConceptResultList results =
-        openSearchService.findQueryConcepts(typeahead, terminologies, searchCriteria);
+        openSearchService.findTypeaheadConcepts(typeahead, terminologies, searchCriteria);
     highlightConceptMatches(results);
 
     results.setTimeTaken(System.currentTimeMillis() - timerStartDate);

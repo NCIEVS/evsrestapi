@@ -101,6 +101,22 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
   /* see superclass */
   @Override
+  public ConceptResultList findTypeaheadConcepts(
+      final Typeahead typeahead,
+      final List<Terminology> terminologies,
+      final SearchCriteria searchCriteria) {
+    final SearchHits<Concept> hits =
+        typeahead.fetchConcepts(
+            operations,
+            terminologies,
+            EVSPageable.fromRecord(searchCriteria.getFromRecord(), searchCriteria.getPageSize()),
+            new IncludeParam(searchCriteria.getInclude()));
+
+    return getConceptResultList(hits, searchCriteria);
+  }
+
+  /* see superclass */
+  @Override
   public ConceptResultList findQueryConcepts(
       final EvsQuery query,
       final List<Terminology> terminologies,
@@ -112,6 +128,19 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             EVSPageable.fromRecord(searchCriteria.getFromRecord(), searchCriteria.getPageSize()),
             new IncludeParam(searchCriteria.getInclude()));
 
+    return getConceptResultList(hits, searchCriteria);
+  }
+
+  /**
+   * Returns one page of hits as a result list, with each concept's highlights and the search
+   * criteria echoed back as the result parameters.
+   *
+   * @param hits the page of hits
+   * @param searchCriteria the search criteria
+   * @return the result list
+   */
+  private static ConceptResultList getConceptResultList(
+      final SearchHits<Concept> hits, final SearchCriteria searchCriteria) {
     final ConceptResultList results = new ConceptResultList();
     results.setParameters(searchCriteria);
     // Capped at 10,000: findQueryConceptsWithExactTotal runs a second query for the exact count

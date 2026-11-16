@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -296,7 +297,8 @@ public class HasRoleTest {
    */
   private Set<String> fetchMatchingNames(final EvsQuery query, final List<Terminology> searched) {
     return fetchMatchingNames(
-        query.fetchOpenSearchQuery(operations, searched), EvsQuery.getIndexCoordinates(searched));
+        query.fetchOpenSearchQuery(operations, searched),
+        TerminologyUtils.getIndexCoordinates(searched));
   }
 
   /**

@@ -7,9 +7,6 @@ import java.util.Objects;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.sort.SortBuilder;
-import org.opensearch.search.sort.SortBuilders;
-import org.opensearch.search.sort.SortOrder;
 
 /**
  * Searches concepts for a term the way the legacy {@code GET /concept/search} does: the term is
@@ -99,11 +96,5 @@ public abstract class TermSearch extends EvsQuery {
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  /** Ranks the most relevant concepts first, as the legacy search does. */
-  @Override
-  protected List<SortBuilder<?>> getSorts() {
-    return List.of(SortBuilders.scoreSort().order(SortOrder.DESC));
   }
 }

@@ -21,6 +21,11 @@ queries, and how to add a new node.
   (`HasHierarchyRelative.fetchTargetCodes`) only until ancestors and descendants are reindexed as nested
   entries. Don't add other searches that run before the main query.
 - `StoredPaths` and `StoredHierarchyFallback` belong to the reindexing work; leave them as they are.
+- Nodes don't sort. `fetchConcepts` returns OpenSearch's default order (highest score first);
+  callers that want another order add sorts to their own search around `fetchOpenSearchQuery`.
+  Don't add sort hooks to nodes.
+- Typeahead isn't a node: it's `service/Typeahead`, which ranks suggestions with its own sorts and
+  can't be nested in a tree.
 
 ## Combining Conditions: Raw OpenSearch For Now
 

@@ -9,6 +9,7 @@ import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -236,7 +237,7 @@ public class HasAssociationTest {
             .withPageable(ALL_CONCEPTS)
             .build();
     return operations
-        .search(search, Concept.class, EvsQuery.getIndexCoordinates(terminologies))
+        .search(search, Concept.class, TerminologyUtils.getIndexCoordinates(terminologies))
         .stream()
         .map(SearchHit::getContent)
         .map(Concept::getName)

@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.query;
+package gov.nih.nci.evs.api.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -9,7 +9,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.OpensearchOperationsService;
+import gov.nih.nci.evs.api.query.QueryTestTerminologies;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.util.ArrayList;
 import java.util.List;
