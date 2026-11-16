@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,5 +30,20 @@ public class SearchControllerHasInverseAssociationTests extends AbstractSearchCo
             "C102905", "C103042", "C116977", "C118168", "C118464", "C126659", "C138188", "C138190",
             "C156952", "C156966", "C157711", "C158035", "C158520", "C165258", "C177537", "C189762",
             "C54450", "C90259");
+  }
+
+  /**
+   * Test HasInverseAssociation without an association is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasInverseAssociationWithoutAssociationReturnsBadRequest() throws Exception {
+    final String withoutAssociationQuery =
+        """
+        {"type": "HasInverseAssociation", "target": "C4872"}
+        """;
+
+    postQuery(withoutAssociationQuery).andExpect(status().isBadRequest());
   }
 }

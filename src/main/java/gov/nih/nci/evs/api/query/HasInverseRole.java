@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.query;
 
+import jakarta.validation.constraints.NotNull;
+
 /**
  * Matches concepts that another concept points to with a role of the given type, optionally from
  * the given source, e.g. concepts that are the primary anatomic site of Melanoma. A {@link
@@ -47,6 +49,7 @@ public final class HasInverseRole extends HasRelationship {
    *
    * @return the role name or code
    */
+  @NotNull
   public String getRole() {
     return getRelationshipType();
   }

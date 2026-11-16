@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.query;
 
+import jakarta.validation.constraints.NotNull;
+
 /**
  * Matches concepts that have a role of the given type, optionally pointing to the given target,
  * e.g. concepts whose primary anatomic site is Skin. A {@link HasRelationship} on the concept's
@@ -39,6 +41,7 @@ public final class HasRole extends HasRelationship {
    *
    * @return the role name or code
    */
+  @NotNull
   public String getRole() {
     return getRelationshipType();
   }

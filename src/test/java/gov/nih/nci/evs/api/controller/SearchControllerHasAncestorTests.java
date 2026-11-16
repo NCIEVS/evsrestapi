@@ -42,4 +42,35 @@ public class SearchControllerHasAncestorTests extends AbstractSearchControllerQu
 
     postQuery(nonNumericMaxLevelQuery).andExpect(status().isBadRequest());
   }
+
+  /**
+   * Test HasAncestor without a target is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasAncestorWithoutTargetReturnsBadRequest() throws Exception {
+    final String withoutTargetQuery =
+        """
+        {"type": "HasAncestor", "maxLevel": 1}
+        """;
+
+    postQuery(withoutTargetQuery).andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Test HasAncestor with a max level of 0, below the smallest allowed (1), is rejected as a bad
+   * request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasAncestorWithMaxLevelZeroReturnsBadRequest() throws Exception {
+    final String maxLevelZeroQuery =
+        """
+        {"type": "HasAncestor", "target": "C12971", "maxLevel": 0}
+        """;
+
+    postQuery(maxLevelZeroQuery).andExpect(status().isBadRequest());
+  }
 }

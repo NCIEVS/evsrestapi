@@ -44,4 +44,19 @@ public class SearchControllerBoostTests extends AbstractSearchControllerQueryTes
 
     postQuery(nonNumericScoreQuery).andExpect(status().isBadRequest());
   }
+
+  /**
+   * Test Boost without a child is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testBoostWithoutChildReturnsBadRequest() throws Exception {
+    final String withoutChildQuery =
+        """
+        {"type": "Boost", "score": 2}
+        """;
+
+    postQuery(withoutChildQuery).andExpect(status().isBadRequest());
+  }
 }

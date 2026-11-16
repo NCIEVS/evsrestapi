@@ -39,4 +39,19 @@ public class SearchControllerInSubsetTests extends AbstractSearchControllerQuery
 
     postQuery(subsetCodeQuery).andExpect(status().isBadRequest());
   }
+
+  /**
+   * Test InSubset without a target is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testInSubsetWithoutTargetReturnsBadRequest() throws Exception {
+    final String withoutTargetQuery =
+        """
+        {"type": "InSubset"}
+        """;
+
+    postQuery(withoutTargetQuery).andExpect(status().isBadRequest());
+  }
 }

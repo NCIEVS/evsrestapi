@@ -141,7 +141,7 @@ public class Typeahead extends EvsQuery {
           .formatted(NORMALIZED_NAME_FIELD, DESCENDANT_COUNT_FIELD, DESCENDANT_LEAF_FIELD);
 
   /** The text typed so far, as entered. The search_as_you_type analyzer handles normalization. */
-  private String term;
+  @HasWordsToComplete private String term;
 
   /** Instantiates an empty {@link Typeahead}. */
   public Typeahead() {

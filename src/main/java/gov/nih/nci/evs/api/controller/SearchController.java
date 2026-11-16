@@ -14,6 +14,7 @@ import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.query.EvsQuery;
+import gov.nih.nci.evs.api.query.QueryTooBroadException;
 import gov.nih.nci.evs.api.query.Typeahead;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.OpenSearchService;
@@ -35,6 +36,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -676,7 +678,7 @@ public class SearchController extends BaseController {
       produces = "application/json")
   public @ResponseBody ConceptResultList search(
       @PathVariable(value = "terminology") final String terminology,
-      @org.springframework.web.bind.annotation.RequestBody final EvsQuery query,
+      @Valid @org.springframework.web.bind.annotation.RequestBody final EvsQuery query,
       @RequestParam(name = "fromRecord", required = false) final Integer fromRecord,
       @RequestParam(name = "pageSize", required = false) final Integer pageSize,
       @RequestParam(name = "include", required = false) final String include,
@@ -694,8 +696,13 @@ public class SearchController extends BaseController {
     final List<Terminology> terminologies =
         parseAndValidateTerminologiesFromSearchCriteria(searchCriteria, license);
 
-    final ConceptResultList results =
-        openSearchService.findQueryConceptsWithExactTotal(query, terminologies, searchCriteria);
+    final ConceptResultList results;
+    try {
+      results =
+          openSearchService.findQueryConceptsWithExactTotal(query, terminologies, searchCriteria);
+    } catch (final QueryTooBroadException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+    }
     highlightConceptMatches(results);
 
     results.setTimeTaken(System.currentTimeMillis() - timerStartDate);

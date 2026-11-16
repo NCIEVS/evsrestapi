@@ -1,6 +1,8 @@
 package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import org.opensearch.data.core.OpenSearchOperations;
@@ -15,7 +17,7 @@ import org.opensearch.index.query.QueryBuilders;
 public class Or extends EvsQuery {
 
   /** The queries of which at least one must match. */
-  private List<EvsQuery> children;
+  @NotNull private List<@NotNull @Valid EvsQuery> children;
 
   /** Instantiates an empty {@link Or}. */
   public Or() {

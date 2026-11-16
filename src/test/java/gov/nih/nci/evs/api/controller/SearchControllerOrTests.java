@@ -45,4 +45,19 @@ public class SearchControllerOrTests extends AbstractSearchControllerQueryTests 
 
     postQuery(childrenNotInListQuery).andExpect(status().isBadRequest());
   }
+
+  /**
+   * Test Or without its children property is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testOrWithoutChildrenPropertyReturnsBadRequest() throws Exception {
+    final String withoutChildrenQuery =
+        """
+        {"type": "Or"}
+        """;
+
+    postQuery(withoutChildrenQuery).andExpect(status().isBadRequest());
+  }
 }

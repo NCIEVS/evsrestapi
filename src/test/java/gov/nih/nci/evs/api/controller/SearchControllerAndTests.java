@@ -46,4 +46,35 @@ public class SearchControllerAndTests extends AbstractSearchControllerQueryTests
 
     postQuery(misspelledChildrenQuery).andExpect(status().isBadRequest());
   }
+
+  /**
+   * Test And without its children property is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAndWithoutChildrenPropertyReturnsBadRequest() throws Exception {
+    final String withoutChildrenQuery =
+        """
+        {"type": "And"}
+        """;
+
+    postQuery(withoutChildrenQuery).andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Test And with a child missing its required role, which validation finds inside the tree, is
+   * rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAndWithInvalidChildReturnsBadRequest() throws Exception {
+    final String invalidChildQuery =
+        """
+        {"type": "And", "children": [{"type": "HasRole"}]}
+        """;
+
+    postQuery(invalidChildQuery).andExpect(status().isBadRequest());
+  }
 }

@@ -877,4 +877,50 @@ public class SearchControllerTypeaheadTests extends AbstractSearchControllerQuer
         (Map<String, Object>) nameField.getOrDefault("fields", Map.of());
     return nameSubfields.containsKey(ConceptMinimal.SEARCH_AS_YOU_TYPE_SUFFIX);
   }
+
+  /**
+   * Test Typeahead without a term is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTypeaheadWithoutTermReturnsBadRequest() throws Exception {
+    final String withoutTermQuery =
+        """
+        {"type": "Typeahead"}
+        """;
+
+    postQuery(withoutTermQuery).andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Test Typeahead with a blank term, which has no words to complete, is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTypeaheadWithBlankTermReturnsBadRequest() throws Exception {
+    final String blankTermQuery =
+        """
+        {"type": "Typeahead", "term": "   "}
+        """;
+
+    postQuery(blankTermQuery).andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Test Typeahead with a punctuation-only term, which has no words to complete, is rejected as a
+   * bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTypeaheadWithPunctuationOnlyTermReturnsBadRequest() throws Exception {
+    final String punctuationOnlyTermQuery =
+        """
+        {"type": "Typeahead", "term": "---"}
+        """;
+
+    postQuery(punctuationOnlyTermQuery).andExpect(status().isBadRequest());
+  }
 }

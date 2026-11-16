@@ -1,6 +1,8 @@
 package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -46,13 +48,13 @@ public final class HasProperty extends EvsQuery {
   private static final String QUALIFIERS_FIELD = PROPERTIES_FIELD + ".qualifiers";
 
   /** The property's type name or code, e.g. "Neoplastic_Status" or "P363". */
-  private String property;
+  @NotNull private String property;
 
   /** The property's value, or null to match any value. */
   private String target;
 
   /** The condition the property's qualifiers must meet, or null to require none. */
-  private QualifierCondition qualifiers;
+  @Valid private QualifierCondition qualifiers;
 
   /** Instantiates an empty {@link HasProperty}. */
   public HasProperty() {

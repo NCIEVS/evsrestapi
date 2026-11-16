@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -34,7 +35,7 @@ public final class PropertyQualifier implements QualifierCondition {
   private static final String ENTRY_FIELD_SEPARATOR = ".";
 
   /** The qualifier's type name or code, e.g. "go-evi" or "P389". */
-  private String qualifier;
+  @NotNull private String qualifier;
 
   /** The qualifier's value, or null to match any value. */
   private String target;

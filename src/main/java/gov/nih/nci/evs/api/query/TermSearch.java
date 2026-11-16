@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpenSearchServiceImpl;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
 import org.opensearch.data.core.OpenSearchOperations;
@@ -28,7 +29,7 @@ public abstract class TermSearch extends EvsQuery {
   private static final float INACTIVE_BOOST = 0.0001f;
 
   /** The term to search for. */
-  private String term;
+  @NotNull private String term;
 
   /** Instantiates an empty {@link TermSearch}. */
   protected TermSearch() {
