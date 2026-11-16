@@ -896,6 +896,9 @@ public class SearchController extends BaseController {
       // validate query
       res = restUtils.runSPARQL(sparqlQuery, graphProperties.getQueryUrl(), sparqlTimeout);
 
+    } catch (final ResponseStatusException e) {
+      throw e;
+
     } catch (final QueryException e) {
       final String errorMessage = extractErrorMessage(e.getMessage());
       throw new QueryException(
