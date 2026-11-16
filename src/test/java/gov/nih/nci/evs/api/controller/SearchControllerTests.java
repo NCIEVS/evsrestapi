@@ -21,10 +21,9 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.query.EvsQuery;
-import gov.nih.nci.evs.api.query.Typeahead;
 import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
+import gov.nih.nci.evs.api.service.Typeahead;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
@@ -5944,10 +5943,9 @@ public class SearchControllerTests {
     final List<Terminology> terminologies = List.of(ncit);
     final OpenSearchOperations operations = opensearchOperationsService.getOpenSearchOperations();
     final NativeSearchQuery countQuery =
-        new NativeSearchQueryBuilder()
-            .withQuery(typeahead.fetchOpenSearchQuery(operations, terminologies))
-            .build();
-    return operations.count(countQuery, Concept.class, EvsQuery.getIndexCoordinates(terminologies));
+        new NativeSearchQueryBuilder().withQuery(typeahead.getOpenSearchQuery()).build();
+    return operations.count(
+        countQuery, Concept.class, TerminologyUtils.getIndexCoordinates(terminologies));
   }
 
   /**
