@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Metric;
@@ -8,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.opensearch.data.client.orhlc.NativeSearchQuery;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.data.core.OpenSearchOperations;
@@ -116,7 +118,9 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
       return;
     }
 
-    final IndexQuery query = new IndexQueryBuilder().withObject(metric).build();
+    // Replaying a 502 response must address the same document if the first write succeeded.
+    final IndexQuery query =
+        new IndexQueryBuilder().withId(UUID.randomUUID().toString()).withObject(metric).build();
     // BAC: removed this, we do not need to put the mapping on each request
     // operations.putMapping(index, OpensearchOperationsService.METRIC_TYPE,
     // Metric.class);
@@ -140,7 +144,12 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   @Override
   public void index(Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
       throws IOException {
-    IndexQuery query = new IndexQueryBuilder().withObject(clazz.cast(object)).build();
+    IndexQueryBuilder builder = new IndexQueryBuilder().withObject(clazz.cast(object));
+    if (object instanceof Audit) {
+      // Audit has no @Id; a retry must not create a second event after an ambiguous 502.
+      builder.withId(UUID.randomUUID().toString());
+    }
+    IndexQuery query = builder.build();
 
     operations.index(query, IndexCoordinates.of(index));
   }
