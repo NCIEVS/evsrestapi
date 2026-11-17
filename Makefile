@@ -74,9 +74,6 @@ rundocker:
 		-e GRAPH_DB="NCIT2" \
 		"$(DOCKER_IMAGE)"
 
-run: build
-	java -Dspring.profiles.active=local -jar build/libs/evsrestapi*.war
-
 test:
 	$(GRADLEW) spotlessCheck -x test
 
