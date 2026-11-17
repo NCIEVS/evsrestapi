@@ -42,17 +42,18 @@ JAVA_COMMAND="\${JAVA_HOME:+\$JAVA_HOME/bin/}java ${JAVA_OPTIONS} -jar ${JAR_FIL
 SHUTDOWN_WAIT=45
 
 #
-# Set up the environment for this application if necessary
+# Set up the environment for this application if necessary.
+# setenv.sh is shared with evsrestapi-operations; keep its ADMIN_KEY out of this public server.
 #
 if
     [ -f ${CONFIG_ENV_FILE} ]
 then
-    JAVA_COMMAND=". ${CONFIG_ENV_FILE} ; ${JAVA_COMMAND}"
+    JAVA_COMMAND=". ${CONFIG_ENV_FILE} ; unset ADMIN_KEY ; ${JAVA_COMMAND}"
 else
     if
         [ -f ${APP_ENV_FILE} ]
     then
-        JAVA_COMMAND=". ${APP_ENV_FILE} ; ${JAVA_COMMAND}"
+        JAVA_COMMAND=". ${APP_ENV_FILE} ; unset ADMIN_KEY ; ${JAVA_COMMAND}"
     fi
 fi
 

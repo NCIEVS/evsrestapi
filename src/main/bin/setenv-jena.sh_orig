@@ -54,5 +54,6 @@ export CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-opera
 export EVS_OPS_HOME=/local/content/evsrestapi-operations
 # Lock and job history shared by the scripts and the API; keep it outside the installation
 export OPS_STATE_DIR=/local/content/evsrestapi/config/operations-state
-# Only for the private operations API
+# Only for the private operations API; the evsrestapi launcher unsets it for this server.
+# At least 32 characters; generate with: openssl rand -hex 32
 # export ADMIN_KEY=replace-with-a-private-random-value
