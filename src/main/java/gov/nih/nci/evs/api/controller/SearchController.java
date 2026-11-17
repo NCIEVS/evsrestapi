@@ -37,6 +37,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -693,8 +695,13 @@ public class SearchController extends BaseController {
   public @ResponseBody ConceptResultList search(
       @PathVariable(value = "terminology") final String terminology,
       @Valid @org.springframework.web.bind.annotation.RequestBody final EvsQuery query,
-      @RequestParam(name = "fromRecord", required = false) final Integer fromRecord,
-      @RequestParam(name = "pageSize", required = false) final Integer pageSize,
+      @RequestParam(name = "fromRecord", required = false)
+          @Min(SearchCriteriaWithoutTerminology.MIN_FROM_RECORD)
+          final Integer fromRecord,
+      @RequestParam(name = "pageSize", required = false)
+          @Min(SearchCriteriaWithoutTerminology.MIN_PAGE_SIZE)
+          @Max(SearchCriteriaWithoutTerminology.MAX_PAGE_SIZE)
+          final Integer pageSize,
       @RequestParam(name = "include", required = false) final String include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {

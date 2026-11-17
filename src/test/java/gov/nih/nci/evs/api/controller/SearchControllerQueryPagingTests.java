@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -137,5 +138,31 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
   @Test
   public void testNegativeFromRecordReturnsBadRequest() throws Exception {
     postQueryPage(BREAST_CHILDREN_QUERY, -1, 10).andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Test a page size below the smallest allowed is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeBelowMinimumReturnsBadRequest() throws Exception {
+    final int pageSizeBelowMinimum = SearchCriteriaWithoutTerminology.MIN_PAGE_SIZE - 1;
+
+    postQueryPage(BREAST_CHILDREN_QUERY, 0, pageSizeBelowMinimum)
+        .andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Test a page size above the largest allowed is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeAboveMaximumReturnsBadRequest() throws Exception {
+    final int pageSizeAboveMaximum = SearchCriteriaWithoutTerminology.MAX_PAGE_SIZE + 1;
+
+    postQueryPage(BREAST_CHILDREN_QUERY, 0, pageSizeAboveMaximum)
+        .andExpect(status().isBadRequest());
   }
 }

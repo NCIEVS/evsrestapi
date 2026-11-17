@@ -25,6 +25,15 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The maximum number of codes allowed in a hierarchy code list parameter. */
   public static final int MAX_HIERARCHY_CODES = 100;
 
+  /** The lowest fromRecord allowed: the first match. */
+  public static final int MIN_FROM_RECORD = 0;
+
+  /** The smallest page size allowed. */
+  public static final int MIN_PAGE_SIZE = 1;
+
+  /** The largest page size allowed. */
+  public static final int MAX_PAGE_SIZE = 1000;
+
   /** The term. */
   private String term;
 
@@ -768,7 +777,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @throws Exception the exception
    */
   public void checkPagination() throws Exception {
-    checkPagination(1000);
+    checkPagination(MAX_PAGE_SIZE);
   }
 
   /**
@@ -778,10 +787,15 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @throws Exception the exception
    */
   public void checkPagination(final int upperPageSize) throws Exception {
-    if (pageSize < 1 || pageSize > upperPageSize) {
+    if (pageSize < MIN_PAGE_SIZE || pageSize > upperPageSize) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 1 and " + upperPageSize + " = " + pageSize);
+          "Parameter 'pageSize' must be between "
+              + MIN_PAGE_SIZE
+              + " and "
+              + upperPageSize
+              + " = "
+              + pageSize);
     }
 
     // This rule is no longer required, non-aligned fromRecord/pageSize
@@ -823,14 +837,21 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
           HttpStatus.BAD_REQUEST, "Required parameter 'type' has an invalid value = " + type);
     }
 
-    if (fromRecord < 0) {
+    if (fromRecord < MIN_FROM_RECORD) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
+          HttpStatus.BAD_REQUEST,
+          "Parameter 'fromRecord' must be >= " + MIN_FROM_RECORD + " = " + fromRecord);
     }
 
-    if ((pageSize < 1) || (pageSize > 1000)) {
+    if ((pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE)) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
+          HttpStatus.BAD_REQUEST,
+          "Parameter 'pageSize' must be between "
+              + MIN_PAGE_SIZE
+              + " and "
+              + MAX_PAGE_SIZE
+              + " = "
+              + pageSize);
     }
 
     // Restrict paging for license-restricted terminologies (unless term is set)
