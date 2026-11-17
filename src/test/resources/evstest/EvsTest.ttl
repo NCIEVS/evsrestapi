@@ -1,0 +1,340 @@
+# A small fake terminology for testing query nodes end to end: load it into the graph database,
+# index it with the graph loader, then run each node against the result.
+#
+# The terminology name comes from the ontology IRI's basename: EvsTest.owl -> "evstest". Concept
+# and property IRIs are <ontology IRI>#<code>, and each carries its code (NHC0) equal to its IRI
+# fragment, so the loader reads bare codes. Property codes copy NCIt's (P90 FULL_SYN, P108
+# Preferred_Name, ...) so the metadata JSON can follow ncit.json.
+#
+# Loader rules this file follows:
+# - Every synonym and definition with an owl:Axiom also has the plain triple on the class.
+# - Associations are annotation properties with rdfs:range xsd:anyURI; subset membership is A8,
+#   labeled Concept_In_Subset (the loader matches that name).
+# - Roles are object properties used in owl:Restriction / owl:someValuesFrom.
+# - Subsets are children of FK3 (the metadata "subset" root) with Publish_Value_Set "Yes".
+#
+# Concept codes are FK<n>, and a code's digits follow its place in the hierarchy where possible.
+#
+# FK1 Disease or Disorder
+#   FK10 Neoplasm
+#     FK100 Melanoma
+#       FK1000 Cutaneous Melanoma
+#         FK10000 Superficial Spreading Melanoma
+#         FK10001 Nodular Melanoma
+#       FK1001 Ocular Melanoma            (parent and role through owl:equivalentClass)
+#       FK1002 Obsolete Melanoma          (retired)
+#     FK101 Carcinoma
+#       FK1010 Lung Carcinoma             (also under FK10 and FK20: polyhierarchy)
+#       FK1011 Skin Carcinoma
+#     FK102 Non-Hodgkin's Lymphoma (NHL)
+#   FK11 Benign Skin Lesion
+#     FK110 Melanocytic Nevus
+#   FK20 Lung Disorder
+#     FK1010 Lung Carcinoma
+#     FK200 Pneumonia
+# FK2 Anatomic Structure
+#   FK21 Skin, FK22 Lung, FK23 Eye, FK24 Bone (no role points at Bone)
+# FK3 Fake Terminology Subsets
+#   FK31 Skin Disease Subset, FK32 Lung Disease Subset, FK33 Empty Subset,
+#   FK34 Melanoma Review Subset
+
+@prefix : <http://evs.example/fake/EvsTest.owl#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+
+<http://evs.example/fake/EvsTest.owl>
+    a owl:Ontology ;
+    owl:versionInfo "26.11a" ;
+    dc:date "2026-11-16" ;
+    rdfs:comment "Fake terminology for testing EVS query nodes" .
+
+# =================================================================================================
+# Annotation properties
+# =================================================================================================
+
+:NHC0 a owl:AnnotationProperty ; :NHC0 "NHC0" ; :P108 "code" ; rdfs:label "code" ;
+    rdfs:range xsd:string .
+:P108 a owl:AnnotationProperty ; :NHC0 "P108" ; :P108 "Preferred_Name" ;
+    rdfs:label "Preferred_Name" ; rdfs:range xsd:string .
+:P90 a owl:AnnotationProperty ; :NHC0 "P90" ; :P108 "FULL_SYN" ; rdfs:label "FULL_SYN" ;
+    rdfs:range xsd:string .
+:P97 a owl:AnnotationProperty ; :NHC0 "P97" ; :P108 "DEFINITION" ; rdfs:label "DEFINITION" ;
+    rdfs:range xsd:string .
+:P310 a owl:AnnotationProperty ; :NHC0 "P310" ; :P108 "Concept_Status" ;
+    rdfs:label "Concept_Status" ; rdfs:range xsd:string .
+:P106 a owl:AnnotationProperty ; :NHC0 "P106" ; :P108 "Semantic_Type" ;
+    rdfs:label "Semantic_Type" ; rdfs:range xsd:string .
+:P211 a owl:AnnotationProperty ; :NHC0 "P211" ; :P108 "GO_Annotation" ;
+    rdfs:label "GO_Annotation" ; rdfs:range xsd:string .
+:P372 a owl:AnnotationProperty ; :NHC0 "P372" ; :P108 "Publish_Value_Set" ;
+    rdfs:label "Publish_Value_Set" ; rdfs:range xsd:string .
+:P375 a owl:AnnotationProperty ; :NHC0 "P375" ; :P108 "Maps_To" ; rdfs:label "Maps_To" ;
+    rdfs:range xsd:string .
+
+# Synonym qualifiers (metadata synonymTermType, synonymSource, synonymCode, synonymSubSource)
+:P383 a owl:AnnotationProperty ; :NHC0 "P383" ; :P108 "term-group" ; rdfs:label "term-group" ;
+    rdfs:range xsd:string .
+:P384 a owl:AnnotationProperty ; :NHC0 "P384" ; :P108 "term-source" ;
+    rdfs:label "term-source" ; rdfs:range xsd:string .
+:P385 a owl:AnnotationProperty ; :NHC0 "P385" ; :P108 "source-code" ;
+    rdfs:label "source-code" ; rdfs:range xsd:string .
+:P386 a owl:AnnotationProperty ; :NHC0 "P386" ; :P108 "subsource-name" ;
+    rdfs:label "subsource-name" ; rdfs:range xsd:string .
+
+# Definition qualifier (metadata definitionSource)
+:P378 a owl:AnnotationProperty ; :NHC0 "P378" ; :P108 "def-source" ; rdfs:label "def-source" ;
+    rdfs:range xsd:string .
+
+# GO_Annotation qualifiers
+:P387 a owl:AnnotationProperty ; :NHC0 "P387" ; :P108 "go-id" ; rdfs:label "go-id" ;
+    rdfs:range xsd:string .
+:P389 a owl:AnnotationProperty ; :NHC0 "P389" ; :P108 "go-evi" ; rdfs:label "go-evi" ;
+    rdfs:range xsd:string .
+
+# Maps_To qualifiers (metadata relationshipToTarget, mapTargetTermType, mapTarget,
+# mapTargetTerminology, mapTargetTerminologyVersion)
+:P393 a owl:AnnotationProperty ; :NHC0 "P393" ; :P108 "Relationship_to_Target" ;
+    rdfs:label "Relationship_to_Target" ; rdfs:range xsd:string .
+:P394 a owl:AnnotationProperty ; :NHC0 "P394" ; :P108 "Target_Term_Type" ;
+    rdfs:label "Target_Term_Type" ; rdfs:range xsd:string .
+:P395 a owl:AnnotationProperty ; :NHC0 "P395" ; :P108 "Target_Code" ; rdfs:label "Target_Code" ;
+    rdfs:range xsd:string .
+:P396 a owl:AnnotationProperty ; :NHC0 "P396" ; :P108 "Target_Terminology" ;
+    rdfs:label "Target_Terminology" ; rdfs:range xsd:string .
+:P397 a owl:AnnotationProperty ; :NHC0 "P397" ; :P108 "Target_Terminology_Version" ;
+    rdfs:label "Target_Terminology_Version" ; rdfs:range xsd:string .
+
+# Associations: annotation properties whose values are concepts
+:A8 a owl:AnnotationProperty ; :NHC0 "A8" ; :P108 "Concept_In_Subset" ;
+    rdfs:label "Concept_In_Subset" ; rdfs:range xsd:anyURI .
+:A2 a owl:AnnotationProperty ; :NHC0 "A2" ; :P108 "Has_Related_Site" ;
+    rdfs:label "Has_Related_Site" ; rdfs:range xsd:anyURI .
+
+# =================================================================================================
+# Roles
+# =================================================================================================
+
+:R101 a owl:ObjectProperty ; :NHC0 "R101" ; :P108 "Disease_Has_Primary_Anatomic_Site" ;
+    rdfs:label "Disease_Has_Primary_Anatomic_Site" .
+:R102 a owl:ObjectProperty ; :NHC0 "R102" ; :P108 "Disease_Has_Associated_Anatomic_Site" ;
+    rdfs:label "Disease_Has_Associated_Anatomic_Site" .
+
+# =================================================================================================
+# FK1 Disease or Disorder
+# =================================================================================================
+
+:FK1 a owl:Class ; :NHC0 "FK1" ; :P108 "Disease or Disorder" ; rdfs:label "Disease or Disorder" ;
+    :P106 "Disease or Syndrome" .
+
+:FK10 a owl:Class ; :NHC0 "FK10" ; :P108 "Neoplasm" ; rdfs:label "Neoplasm" ;
+    rdfs:subClassOf :FK1 ;
+    :P106 "Neoplastic Process" .
+
+# Melanoma: the most general concept starting "melano" (typeahead ranks it first), and the
+# GO_Annotation trap: GO:0005737 has evidence TAS and GO:0005634 has evidence ND, on different
+# entries, so "GO:0005737 with evidence ND" must not match it. Its synonyms are the HasSynonym
+# trap: source FDA is on the SY synonym and term type AB on the NCI one, so "source FDA with term
+# type AB" must not match it.
+:FK100 a owl:Class ; :NHC0 "FK100" ; :P108 "Melanoma" ; rdfs:label "Melanoma" ;
+    rdfs:subClassOf :FK10 ;
+    :P106 "Neoplastic Process" ;
+    :P90 "Melanoma" , "Malignant Melanoma" , "MM" ;
+    :P97 "A malignant neoplasm of melanocytes." ;
+    :P211 "cytoplasm" , "nucleus" , "cell growth" ;
+    :P375 "Malignant melanoma, NOS" ;
+    :A8 :FK34 .
+
+[ a owl:Axiom ; owl:annotatedSource :FK100 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "Melanoma" ; :P383 "PT" ; :P384 "NCI" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK100 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "Malignant Melanoma" ; :P383 "SY" ; :P384 "FDA" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK100 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "MM" ; :P383 "AB" ; :P384 "NCI" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK100 ; owl:annotatedProperty :P97 ;
+  owl:annotatedTarget "A malignant neoplasm of melanocytes." ; :P378 "NCI" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK100 ; owl:annotatedProperty :P211 ;
+  owl:annotatedTarget "cytoplasm" ; :P387 "GO:0005737" ; :P389 "TAS" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK100 ; owl:annotatedProperty :P211 ;
+  owl:annotatedTarget "nucleus" ; :P387 "GO:0005634" ; :P389 "ND" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK100 ; owl:annotatedProperty :P375 ;
+  owl:annotatedTarget "Malignant melanoma, NOS" ; :P393 "Related To" ; :P394 "PT" ;
+  :P395 "8720/3" ; :P396 "ICDO3" ; :P397 "3.2" ] .
+
+# Cutaneous Melanoma: GO:0005737 with evidence ND on one entry, so it matches what Melanoma
+# doesn't. Its CDISC synonym carries a subsource and a source code.
+:FK1000 a owl:Class ; :NHC0 "FK1000" ; :P108 "Cutaneous Melanoma" ;
+    rdfs:label "Cutaneous Melanoma" ;
+    rdfs:subClassOf :FK100 ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :R101 ; owl:someValuesFrom :FK21 ] ;
+    :P106 "Neoplastic Process" ;
+    :P90 "Cutaneous Melanoma" , "Melanoma of Skin" ;
+    :P211 "cytoplasm" ;
+    :A8 :FK31 , :FK34 .
+
+[ a owl:Axiom ; owl:annotatedSource :FK1000 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "Cutaneous Melanoma" ; :P383 "PT" ; :P384 "NCI" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK1000 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "Melanoma of Skin" ; :P383 "SY" ; :P384 "CDISC" ; :P385 "CD1000" ;
+  :P386 "SDTM" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK1000 ; owl:annotatedProperty :P211 ;
+  owl:annotatedTarget "cytoplasm" ; :P387 "GO:0005737" ; :P389 "ND" ] .
+
+# Role trap, one side: primary site Skin and associated site Lung.
+:FK10000 a owl:Class ; :NHC0 "FK10000" ; :P108 "Superficial Spreading Melanoma" ;
+    rdfs:label "Superficial Spreading Melanoma" ;
+    rdfs:subClassOf :FK1000 ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :R101 ; owl:someValuesFrom :FK21 ] ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :R102 ; owl:someValuesFrom :FK22 ] ;
+    :P90 "Superficial Spreading Melanoma" , "SSM" ;
+    :A8 :FK31 .
+
+[ a owl:Axiom ; owl:annotatedSource :FK10000 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "Superficial Spreading Melanoma" ; :P383 "PT" ; :P384 "NCI" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK10000 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "SSM" ; :P383 "AB" ; :P384 "CDISC" ] .
+
+:FK10001 a owl:Class ; :NHC0 "FK10001" ; :P108 "Nodular Melanoma" ;
+    rdfs:label "Nodular Melanoma" ;
+    rdfs:subClassOf :FK1000 ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :R101 ; owl:someValuesFrom :FK21 ] .
+
+# Ocular Melanoma: its parent and its role come only through owl:equivalentClass with an
+# intersection, the defined-class form the loader reads as a complex role.
+:FK1001 a owl:Class ; :NHC0 "FK1001" ; :P108 "Ocular Melanoma" ; rdfs:label "Ocular Melanoma" ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:intersectionOf (
+            :FK100
+            [ a owl:Restriction ; owl:onProperty :R102 ; owl:someValuesFrom :FK23 ]
+        )
+    ] ;
+    :A8 :FK34 .
+
+# Retired: left out of typeahead, ranked below active concepts by the term searches.
+:FK1002 a owl:Class ; :NHC0 "FK1002" ; :P108 "Obsolete Melanoma" ;
+    rdfs:label "Obsolete Melanoma" ;
+    rdfs:subClassOf :FK100 ;
+    :P310 "Retired_Concept" ;
+    owl:deprecated "true"^^xsd:boolean .
+
+# Carcinoma: lowercase Semantic_Type, so a value search is shown to be case sensitive.
+:FK101 a owl:Class ; :NHC0 "FK101" ; :P108 "Carcinoma" ; rdfs:label "Carcinoma" ;
+    rdfs:subClassOf :FK10 ;
+    :P106 "neoplastic process" .
+
+# Lung Carcinoma: three parents. From FK10 it's both a child (directly) and a grandchild (through
+# FK101), so maxLevel uses the shortest distance. Role trap, other side: primary site Lung and
+# associated site Skin.
+:FK1010 a owl:Class ; :NHC0 "FK1010" ; :P108 "Lung Carcinoma" ; rdfs:label "Lung Carcinoma" ;
+    rdfs:subClassOf :FK101 , :FK10 , :FK20 ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :R101 ; owl:someValuesFrom :FK22 ] ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :R102 ; owl:someValuesFrom :FK21 ] ;
+    :A8 :FK32 , :FK34 .
+
+:FK1011 a owl:Class ; :NHC0 "FK1011" ; :P108 "Skin Carcinoma" ; rdfs:label "Skin Carcinoma" ;
+    rdfs:subClassOf :FK101 ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :R101 ; owl:someValuesFrom :FK21 ] ;
+    :A8 :FK31 .
+
+# Special characters in the name, for escaping, and a synonym differing only in case and
+# punctuation, for normalized name matching. No roles.
+:FK102 a owl:Class ; :NHC0 "FK102" ; :P108 "Non-Hodgkin's Lymphoma (NHL)" ;
+    rdfs:label "Non-Hodgkin's Lymphoma (NHL)" ;
+    rdfs:subClassOf :FK10 ;
+    :P90 "Non-Hodgkin's Lymphoma (NHL)" , "non hodgkins lymphoma" ;
+    :A2 :FK22 .
+
+[ a owl:Axiom ; owl:annotatedSource :FK102 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "Non-Hodgkin's Lymphoma (NHL)" ; :P383 "PT" ; :P384 "NCI" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK102 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "non hodgkins lymphoma" ; :P383 "SY" ; :P384 "NCI" ] .
+
+:FK11 a owl:Class ; :NHC0 "FK11" ; :P108 "Benign Skin Lesion" ;
+    rdfs:label "Benign Skin Lesion" ;
+    rdfs:subClassOf :FK1 .
+
+# Melanocytic Nevus: starts "melano" but has no descendants, so typeahead ranks it below Melanoma.
+# Its synonym "Black Mole" must not be suggested by typeahead. Points at Skin by association, not
+# role. Its Semantic_Type reuses a GO_Annotation value, so a value under the other property type
+# must not match it.
+:FK110 a owl:Class ; :NHC0 "FK110" ; :P108 "Melanocytic Nevus" ;
+    rdfs:label "Melanocytic Nevus" ;
+    rdfs:subClassOf :FK11 ;
+    :P106 "cytoplasm" ;
+    :P90 "Melanocytic Nevus" , "Black Mole" ;
+    :A2 :FK21 ;
+    :A8 :FK31 .
+
+[ a owl:Axiom ; owl:annotatedSource :FK110 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "Melanocytic Nevus" ; :P383 "PT" ; :P384 "NCI" ] .
+[ a owl:Axiom ; owl:annotatedSource :FK110 ; owl:annotatedProperty :P90 ;
+  owl:annotatedTarget "Black Mole" ; :P383 "SY" ; :P384 "NCI" ] .
+
+:FK20 a owl:Class ; :NHC0 "FK20" ; :P108 "Lung Disorder" ; rdfs:label "Lung Disorder" ;
+    rdfs:subClassOf :FK1 .
+
+:FK200 a owl:Class ; :NHC0 "FK200" ; :P108 "Pneumonia" ; rdfs:label "Pneumonia" ;
+    rdfs:subClassOf :FK20 ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :R101 ; owl:someValuesFrom :FK22 ] ;
+    :A8 :FK32 .
+
+# =================================================================================================
+# FK2 Anatomic Structure: role and association targets
+# =================================================================================================
+
+:FK2 a owl:Class ; :NHC0 "FK2" ; :P108 "Anatomic Structure" ; rdfs:label "Anatomic Structure" ;
+    :P106 "Body Part" .
+
+:FK21 a owl:Class ; :NHC0 "FK21" ; :P108 "Skin" ; rdfs:label "Skin" ;
+    rdfs:subClassOf :FK2 ;
+    owl:disjointWith :FK22 ;
+    :P97 "The outer covering of the body." .
+
+[ a owl:Axiom ; owl:annotatedSource :FK21 ; owl:annotatedProperty :P97 ;
+  owl:annotatedTarget "The outer covering of the body." ; :P378 "NCI" ] .
+
+:FK22 a owl:Class ; :NHC0 "FK22" ; :P108 "Lung" ; rdfs:label "Lung" ;
+    rdfs:subClassOf :FK2 .
+
+:FK23 a owl:Class ; :NHC0 "FK23" ; :P108 "Eye" ; rdfs:label "Eye" ;
+    rdfs:subClassOf :FK2 .
+
+# Bone: nothing points at it, by role or association.
+:FK24 a owl:Class ; :NHC0 "FK24" ; :P108 "Bone" ; rdfs:label "Bone" ;
+    rdfs:subClassOf :FK2 .
+
+# =================================================================================================
+# FK3 Subsets
+#
+# Members: Skin Disease Subset   FK1000, FK10000, FK1011, FK110
+#          Lung Disease Subset   FK1010, FK200
+#          Empty Subset          none
+#          Melanoma Review       FK100, FK1000, FK1001, FK1010
+# So Skin and Melanoma Review share only FK1000, Lung and Melanoma Review share only FK1010, and
+# Melanoma Review without Lung is FK100, FK1000, FK1001.
+# =================================================================================================
+
+:FK3 a owl:Class ; :NHC0 "FK3" ; :P108 "Fake Terminology Subsets" ;
+    rdfs:label "Fake Terminology Subsets" .
+
+:FK31 a owl:Class ; :NHC0 "FK31" ; :P108 "Skin Disease Subset" ;
+    rdfs:label "Skin Disease Subset" ;
+    rdfs:subClassOf :FK3 ;
+    :P372 "Yes" .
+
+:FK32 a owl:Class ; :NHC0 "FK32" ; :P108 "Lung Disease Subset" ;
+    rdfs:label "Lung Disease Subset" ;
+    rdfs:subClassOf :FK3 ;
+    :P372 "Yes" .
+
+:FK33 a owl:Class ; :NHC0 "FK33" ; :P108 "Empty Subset" ; rdfs:label "Empty Subset" ;
+    rdfs:subClassOf :FK3 ;
+    :P372 "Yes" .
+
+:FK34 a owl:Class ; :NHC0 "FK34" ; :P108 "Melanoma Review Subset" ;
+    rdfs:label "Melanoma Review Subset" ;
+    rdfs:subClassOf :FK3 ;
+    :P372 "Yes" .
