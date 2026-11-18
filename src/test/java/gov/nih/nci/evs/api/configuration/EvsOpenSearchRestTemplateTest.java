@@ -9,7 +9,8 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.http.StatusLine;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.junit.jupiter.api.Test;
 import org.opensearch.OpenSearchStatusException;
 import org.opensearch.client.Response;
@@ -131,10 +132,8 @@ class EvsOpenSearchRestTemplateTest {
   private static ResponseException responseException(int status) throws Exception {
     ResponseException exception = mock(ResponseException.class);
     Response response = mock(Response.class);
-    StatusLine statusLine = mock(StatusLine.class);
     when(exception.getResponse()).thenReturn(response);
-    when(response.getStatusLine()).thenReturn(statusLine);
-    when(statusLine.getStatusCode()).thenReturn(status);
+    when(response.getStatusLine()).thenReturn(new StatusLine(HttpVersion.HTTP_1_1, status, ""));
     return exception;
   }
 }
