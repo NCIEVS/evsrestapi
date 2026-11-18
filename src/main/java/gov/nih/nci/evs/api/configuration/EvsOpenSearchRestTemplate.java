@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.core.AbstractElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.index.MappingParametersCustomizer;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.Query;
 
@@ -49,9 +50,13 @@ public class EvsOpenSearchRestTemplate extends OpenSearchRestTemplate {
     this.sleeper = sleeper;
   }
 
+  // spring-data-opensearch 3.x copies templates with the converter and mapping customizer.
   private EvsOpenSearchRestTemplate(
-      RestHighLevelClient client, ElasticsearchConverter converter, Sleeper sleeper) {
-    super(client, converter);
+      RestHighLevelClient client,
+      ElasticsearchConverter converter,
+      MappingParametersCustomizer mappingParametersCustomizer,
+      Sleeper sleeper) {
+    super(client, converter, mappingParametersCustomizer);
     this.client = client;
     this.sleeper = sleeper;
   }
@@ -59,7 +64,8 @@ public class EvsOpenSearchRestTemplate extends OpenSearchRestTemplate {
   @Override
   protected AbstractElasticsearchTemplate doCopy() {
     EvsOpenSearchRestTemplate copy =
-        new EvsOpenSearchRestTemplate(client, elasticsearchConverter, sleeper);
+        new EvsOpenSearchRestTemplate(
+            client, elasticsearchConverter, getMappingParametersCustomizer(), sleeper);
     copy.requestFactory = requestFactory;
     return copy;
   }
