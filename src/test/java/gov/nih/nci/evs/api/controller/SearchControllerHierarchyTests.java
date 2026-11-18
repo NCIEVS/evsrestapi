@@ -47,6 +47,12 @@ public class SearchControllerHierarchyTests {
   /** The anchor used for NCIt branch tests (Breast Carcinoma). */
   private static final String ANCHOR = "C4872";
 
+  /**
+   * An NCIt descendant of the anchor with two parents and many paths to root (Metastatic Breast
+   * Carcinoma in the Central Nervous System).
+   */
+  private static final String NCIT_POLY_CODE = "C133501";
+
   /** The anchor used for MA tests (organ system), from an index with ancestors. */
   private static final String MA_ANCHOR = "MA:0000003";
 
@@ -252,6 +258,130 @@ public class SearchControllerHierarchyTests {
   }
 
   /**
+   * Test that ancestor on NCIt returns the anchor's subtree: the anchor and its descendants.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAncestorNcit() throws Exception {
+    final Set<String> subtree = union(descendants("ncit", ANCHOR), Set.of(ANCHOR));
+
+    final SearchResult result = searchAll("ncit", Map.of("ancestor", ANCHOR));
+    assertThat(result.total).isEqualTo(subtree.size());
+    assertThat(result.codes).doesNotHaveDuplicates();
+    assertThat(new HashSet<>(result.codes)).isEqualTo(subtree);
+  }
+
+  /**
+   * Test that ancestor on NCIt returns the same concepts as descendantOf with its default
+   * includeSelf.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAncestorMatchesDescendantOfNcit() throws Exception {
+    final SearchResult descendantOf = searchAll("ncit", Map.of("descendantOf", ANCHOR));
+
+    final SearchResult ancestor = searchAll("ncit", Map.of("ancestor", ANCHOR));
+    assertThat(ancestor.total).isEqualTo(descendantOf.total);
+    assertThat(new HashSet<>(ancestor.codes)).isEqualTo(new HashSet<>(descendantOf.codes));
+  }
+
+  /**
+   * Test that descendant on NCIt returns the code and every code on all of its paths to root, for a
+   * concept with two parents.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testDescendantPolyhierarchyNcit() throws Exception {
+    final Set<String> ancestorsAndSelf = pathsToRootCodes("ncit", NCIT_POLY_CODE);
+    assertThat(parents("ncit", NCIT_POLY_CODE)).hasSizeGreaterThan(1);
+
+    final SearchResult result = searchAll("ncit", Map.of("descendant", NCIT_POLY_CODE));
+    assertThat(result.total).isEqualTo(ancestorsAndSelf.size());
+    assertThat(new HashSet<>(result.codes)).isEqualTo(ancestorsAndSelf);
+  }
+
+  /**
+   * Test that ancestor and descendant together on NCIt return the concepts between the two codes,
+   * including both.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAncestorAndDescendantNcit() throws Exception {
+    final Set<String> between = pathsToRootCodes("ncit", NCIT_POLY_CODE);
+    between.retainAll(union(descendants("ncit", ANCHOR), Set.of(ANCHOR)));
+    assertThat(between).contains(ANCHOR, NCIT_POLY_CODE);
+
+    final SearchResult result =
+        searchAll("ncit", Map.of("ancestor", ANCHOR, "descendant", NCIT_POLY_CODE));
+    assertThat(new HashSet<>(result.codes)).isEqualTo(between);
+  }
+
+  /**
+   * Test that a term search with ancestor on NCIt returns exactly the plain search hits in the
+   * subtree, in the same order.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAncestorWithTermNcit() throws Exception {
+    final Set<String> subtree = union(descendants("ncit", ANCHOR), Set.of(ANCHOR));
+    final List<String> expected =
+        searchAll("ncit", Map.of("term", "adenocarcinoma")).codes.stream()
+            .filter(subtree::contains)
+            .collect(Collectors.toList());
+    assertThat(expected).isNotEmpty();
+
+    final SearchResult result =
+        searchAll("ncit", Map.of("term", "adenocarcinoma", "ancestor", ANCHOR));
+    assertThat(result.total).isEqualTo(expected.size());
+    assertThat(result.codes).isEqualTo(expected);
+  }
+
+  /**
+   * Test that an NCIt concept's stored ancestors are the codes on its paths to root, each once,
+   * with its parents at level 1.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testIncludeAncestorsNcit() throws Exception {
+    final Set<String> expected = pathsToRootCodes("ncit", NCIT_POLY_CODE);
+    expected.remove(NCIT_POLY_CODE);
+
+    final List<Concept> ancestors = concept("ncit", NCIT_POLY_CODE, "ancestors").getAncestors();
+    assertThat(ancestors).extracting(Concept::getCode).doesNotHaveDuplicates();
+    assertThat(ancestors)
+        .extracting(Concept::getCode)
+        .containsExactlyInAnyOrderElementsOf(expected);
+    assertThat(ancestors).allSatisfy(ancestor -> assertThat(ancestor.getName()).isNotBlank());
+    assertThat(
+            ancestors.stream()
+                .filter(ancestor -> Integer.valueOf(1).equals(ancestor.getLevel()))
+                .map(Concept::getCode)
+                .collect(Collectors.toSet()))
+        .isEqualTo(parents("ncit", NCIT_POLY_CODE));
+  }
+
+  /**
+   * Test that unknown ancestor and descendant codes on NCIt are rejected.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAncestorAndDescendantValidationNcit() throws Exception {
+    assertBadRequest(
+        get("/api/v1/concept/ncit/search").param("ancestor", "C9999999"),
+        "'ancestor' has an invalid code = C9999999");
+    assertBadRequest(
+        get("/api/v1/concept/ncit/search").param("descendant", "C9999999"),
+        "'descendant' has an invalid code = C9999999");
+  }
+
+  /**
    * Test validation errors for the ancestor and descendant parameters.
    *
    * @throws Exception the exception
@@ -446,6 +576,39 @@ public class SearchControllerHierarchyTests {
    */
   private Set<String> children(final String terminology, final String code) throws Exception {
     return conceptCodes("/api/v1/concept/" + terminology + "/" + code + "/children");
+  }
+
+  /**
+   * Returns the parent codes, from the concept with include=parents.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the parents
+   * @throws Exception the exception
+   */
+  private Set<String> parents(final String terminology, final String code) throws Exception {
+    return concept(terminology, code, "parents").getParents().stream()
+        .map(Concept::getCode)
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Returns a concept from the concept endpoint.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include parameter
+   * @return the concept
+   * @throws Exception the exception
+   */
+  private Concept concept(final String terminology, final String code, final String include)
+      throws Exception {
+    final MvcResult result =
+        mvc.perform(get("/api/v1/concept/" + terminology + "/" + code).param("include", include))
+            .andExpect(status().isOk())
+            .andReturn();
+    return ThreadLocalMapper.get()
+        .readValue(result.getResponse().getContentAsString(), Concept.class);
   }
 
   /**
