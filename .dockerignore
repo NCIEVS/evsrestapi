@@ -8,7 +8,6 @@ BOOT-INF
 WEB-INF
 bin
 config
-docker
 gradle
 node_modules
 build

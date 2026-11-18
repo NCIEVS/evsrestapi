@@ -13,7 +13,7 @@ code starts at `src/main/java/gov/nih/nci/evs/api/Application.java`.
 Read these project docs before changing setup, infrastructure, graph, or OpenSearch behavior:
 
 - `README.md`
-- `JENA.md`
+- evsrestapi-operations `docs/jena-fuseki.md` (local Jena/Fuseki image and setup)
 - `OPENSEARCH.md`
 - `src/main/resources/application-local.yml`
 

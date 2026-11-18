@@ -40,8 +40,9 @@ loader compiles core from this checkout, so rebuild the loader after changing co
 ## Steps for Loading NCI Thesaurus Data and Indexes Locally
 
 Use [evsrestapi-operations](https://github.com/NCIEVS/evsrestapi-operations#loading-test-data-locally)
-to obtain and load test data. Graph and OpenSearch setup is described in
-[JENA.md](JENA.md) and [OPENSEARCH.md](OPENSEARCH.md).
+to obtain and load test data. The local Jena/Fuseki image and its setup are in evsrestapi-operations
+([docs/jena-fuseki.md](https://github.com/NCIEVS/evsrestapi-operations/blob/develop/docs/jena-fuseki.md));
+OpenSearch setup is in [OPENSEARCH.md](OPENSEARCH.md).
 
 ## Running tests
 

@@ -36,8 +36,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
  * <pre>
  * Uses the following env vars (if not set, tests do not run):
  *
- * MAIL_USERNAME
+ * MAIL_USER
  * MAIL_PASSWORD
+ * MAIL_RECIPIENT (every test email goes here, never to the NCI address in the form)
  *
  * as well as the following yml properties:
  *
@@ -53,6 +54,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @ActiveProfiles("test")
 @EnabledIfEnvironmentVariable(named = "MAIL_USER", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "MAIL_PASSWORD", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "MAIL_RECIPIENT", matches = ".+")
 @Tag("integration")
 public class TermSuggestionFormControllerEmailTests {
 
