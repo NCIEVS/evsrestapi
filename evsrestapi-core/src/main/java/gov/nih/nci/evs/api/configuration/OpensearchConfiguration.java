@@ -7,7 +7,6 @@ import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.util.Timeout;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestHighLevelClient;
-import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +90,6 @@ public class OpensearchConfiguration {
   @SuppressWarnings("resource")
   @Bean
   public OpenSearchOperations openSearchOperations() {
-    //    return new EvsOpenSearchRestTemplate(client());
-    return new OpenSearchRestTemplate(client());
+    return new EvsOpenSearchRestTemplate(client());
   }
 }

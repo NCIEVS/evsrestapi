@@ -25,9 +25,11 @@ OpenSearch clients, response highlighting, scheduling, and property binding.
 
 ## Core Files
 
+`OpensearchConfiguration`, `EvsOpenSearchRestTemplate` and
+`EvsOpenSearchRequestLoggingInterceptor` share this package but live in `evsrestapi-core`, so the
+operations loader gets the same client, retries and request logging.
+
 - `PropertiesConfiguration.java`
-- `OpensearchConfiguration.java`
-- `EvsOpenSearchRestTemplate.java`
 - `FHIRConfig.java`
 - `CacheConfiguration.java`
 - `JacksonConfiguration.java`
