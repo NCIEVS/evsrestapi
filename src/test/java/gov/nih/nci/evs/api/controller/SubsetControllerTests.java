@@ -50,12 +50,42 @@ public class SubsetControllerTests {
     baseUrl = "/api/v1/";
   }
 
-  @Test
   /**
-   * test get trailing slash 404
+   * Test get subsets.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
+  @Test
+  public void testGetSubsets() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    url = baseUrl + "subset/ncit";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list =
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list).isNotNull();
+    assertThat(list.size() > 0).isTrue();
+    // Verify that it's the latest monthly version from the test data set
+    assertThat(list.get(0).getVersion()).isEqualTo("25.12e");
+  }
+
+  /**
+   * test get trailing slash 404.
+   *
+   * @throws Exception the exception
+   */
+  @Test
   public void testGetTrailingSlashSubset() throws Exception {
     String url = baseUrl + "/subset/ncit/C116978/?include=minimal";
     log.info("Testing url - " + url);
