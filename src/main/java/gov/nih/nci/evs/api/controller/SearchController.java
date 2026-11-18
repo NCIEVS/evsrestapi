@@ -18,6 +18,7 @@ import gov.nih.nci.evs.api.service.OpenSearchService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.service.QueryBuilderService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.service.SparqlServicePolicy;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -889,6 +890,9 @@ public class SearchController extends BaseController {
     try {
 
       final String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
+      if (SparqlServicePolicy.containsService(sparqlQuery)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SPARQL SERVICE is not allowed");
+      }
       // The following messages up "total" - so we need to either find it another way from
       // the sparql response OR we need to not limit this but do so with paging.
       //      sparqlQuery += " LIMIT 1000";
@@ -1083,6 +1087,9 @@ public class SearchController extends BaseController {
 
       final ObjectMapper mapper = ThreadLocalMapper.get();
       String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
+      if (SparqlServicePolicy.containsService(sparqlQuery)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SPARQL SERVICE is not allowed");
+      }
 
       // The following messages up "total" - so we need to either find it another way from
       // the sparql response OR we need to not limit this but do so with paging.
