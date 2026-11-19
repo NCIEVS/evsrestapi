@@ -121,7 +121,7 @@ if [[ $force -eq 1 ]]; then
 fi
 
 # Setup java environment
-export PATH="/usr/local/corretto-jdk17/bin:$PATH"
+export PATH="/usr/local/corretto-jdk25/bin:$PATH"
 # Handle the local setup
 local=""
 jar="../lib/evsrestapi.jar"

@@ -1,4 +1,6 @@
 #!/bin/bash -f
+# Use Java 25 for local data reset and reindexing.
+export PATH="/usr/local/corretto-jdk25/bin:$PATH"
 #
 # PREREQUISITE: This script requires a download of the "UnitTestData"
 # (https://drive.google.com/drive/u/0/folders/1kXIr9J3jgO-8fN01LJwhNkOuZbAfaQBh)
