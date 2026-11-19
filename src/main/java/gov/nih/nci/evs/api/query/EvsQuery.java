@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.query;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -50,6 +51,18 @@ import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 public abstract class EvsQuery {
 
   /**
+   * The most levels a query tree can nest, counting a leaf as 1, e.g. {@code Not(And(HasRole))} is
+   * 3. Our own limit: OpenSearch 2.19 has none ({@code index.query.max_nested_depth} is unlimited
+   * and its JSON parser has no depth cap), but parses a query by recursing once per level, so a
+   * deep enough query overflows its stack. Each level here adds up to three levels to the
+   * OpenSearch query. 10 is deeper than any query we've needed.
+   */
+  public static final int MAX_QUERY_DEPTH = 10;
+
+  /** A leaf's depth: it holds no other query. */
+  private static final int LEAF_DEPTH = 1;
+
+  /**
    * Returns the OpenSearch query for this node. A hierarchy node may look up its target concepts'
    * codes first (see {@link HasHierarchyRelative#fetchTargetCodes}), which is why this may go to
    * OpenSearch.
@@ -88,6 +101,32 @@ public abstract class EvsQuery {
       OpenSearchOperations operations, List<Terminology> terminologies);
 
   /**
+   * Returns how many levels this query nests, counting a leaf as 1. Nodes that hold other queries
+   * override this.
+   *
+   * @return the depth
+   */
+  @JsonIgnore
+  public int getDepth() {
+    return LEAF_DEPTH;
+  }
+
+  /**
+   * Fails if this query nests deeper than {@link #MAX_QUERY_DEPTH}. Checked before every search,
+   * since OpenSearch doesn't check it.
+   *
+   * @throws QueryTooBroadException if the query is too deep
+   */
+  public void checkDepth() {
+    final int depth = getDepth();
+    final boolean isTooDeep = depth > MAX_QUERY_DEPTH;
+    if (isTooDeep) {
+      throw new QueryTooBroadException(
+          "Query nests " + depth + " levels deep; at most " + MAX_QUERY_DEPTH + " are allowed");
+    }
+  }
+
+  /**
    * Runs this query and returns one page of the concepts it matches, in OpenSearch's default order,
    * highest score first. When the include asks for highlights, each hit carries OpenSearch's
    * highlights of every top-level field the query matched, as the main concept search does.
@@ -105,6 +144,7 @@ public abstract class EvsQuery {
       final Pageable page,
       final IncludeParam include) {
     TerminologyUtils.checkTerminologiesAreSearchable(terminologies);
+    checkDepth();
 
     final NativeSearchQueryBuilder search =
         new NativeSearchQueryBuilder()
@@ -133,6 +173,7 @@ public abstract class EvsQuery {
   public final long fetchConceptCount(
       final OpenSearchOperations operations, final List<Terminology> terminologies) {
     TerminologyUtils.checkTerminologiesAreSearchable(terminologies);
+    checkDepth();
 
     final NativeSearchQueryBuilder count =
         new NativeSearchQueryBuilder().withQuery(fetchOpenSearchQuery(operations, terminologies));

@@ -3,16 +3,24 @@ package gov.nih.nci.evs.api.controller;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.method.MethodValidationResult;
+import org.springframework.validation.method.ParameterErrors;
+import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -31,6 +39,12 @@ public class ErrorHandlerController implements ErrorController {
 
   /** The error attributes. */
   private ErrorAttributes errorAttributes;
+
+  /** Separates the failures in a validation message. */
+  private static final String VALIDATION_FAILURE_SEPARATOR = "; ";
+
+  /** Separates a field's name from what's wrong with it in a validation message. */
+  private static final String FIELD_SEPARATOR = ": ";
 
   /** The error attribute options to include stack trace. */
   private ErrorAttributeOptions options =
@@ -128,8 +142,14 @@ public class ErrorHandlerController implements ErrorController {
     final Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, options);
 
     final Throwable error = errorAttributes.getError(webRequest);
-    // To pass an error through, use ResponseStatusException
-    if (error instanceof ResponseStatusException) {
+    // Validation failures name each field and what's wrong with it, since the exception's own
+    // message only says validation failed. To pass any other error through, use
+    // ResponseStatusException
+    final String validationMessage = getValidationMessage(error);
+    final boolean isValidationFailure = validationMessage != null;
+    if (isValidationFailure) {
+      body.put("message", validationMessage);
+    } else if (error instanceof ResponseStatusException) {
       body.put("message", ((ResponseStatusException) error).getReason());
     } else {
       body.put("message", error == null ? "No message" : error.getMessage());
@@ -170,6 +190,75 @@ public class ErrorHandlerController implements ErrorController {
    *
    * @return the error path
    */
+  /**
+   * Returns a message naming each field that failed validation and why, e.g. "pageSize: must be
+   * less than or equal to 1000; role: must not be null", or null if the error isn't a validation
+   * failure.
+   *
+   * @param error the error, or null
+   * @return the message, or null
+   */
+  private static String getValidationMessage(final Throwable error) {
+    if (error instanceof MethodValidationResult) {
+      return getMethodValidationMessage((MethodValidationResult) error);
+    }
+    if (error instanceof BindingResult) {
+      return getFieldErrorsMessage(((BindingResult) error).getFieldErrors());
+    }
+    return null;
+  }
+
+  /**
+   * Returns a message naming each request parameter or body field that failed validation. A
+   * parameter is named by its parameter name; a field of the request body by its path in the body,
+   * e.g. "children[0].role".
+   *
+   * @param result the method validation result
+   * @return the message
+   */
+  private static String getMethodValidationMessage(final MethodValidationResult result) {
+    final List<String> failures = new ArrayList<>();
+    for (final ParameterValidationResult parameterResult : result.getParameterValidationResults()) {
+      failures.add(getParameterValidationMessage(parameterResult));
+    }
+    return String.join(VALIDATION_FAILURE_SEPARATOR, failures);
+  }
+
+  /**
+   * Returns a message naming what failed validation in one parameter: the fields of a body or other
+   * object, or the parameter itself.
+   *
+   * @param parameterResult the parameter's validation result
+   * @return the message
+   */
+  private static String getParameterValidationMessage(
+      final ParameterValidationResult parameterResult) {
+    if (parameterResult instanceof ParameterErrors) {
+      return getFieldErrorsMessage(((ParameterErrors) parameterResult).getFieldErrors());
+    }
+
+    final String parameterName = parameterResult.getMethodParameter().getParameterName();
+    final List<String> failures = new ArrayList<>();
+    for (final MessageSourceResolvable failure : parameterResult.getResolvableErrors()) {
+      failures.add(parameterName + FIELD_SEPARATOR + failure.getDefaultMessage());
+    }
+    return String.join(VALIDATION_FAILURE_SEPARATOR, failures);
+  }
+
+  /**
+   * Returns a message naming each field that failed validation and why.
+   *
+   * @param fieldErrors the field errors
+   * @return the message
+   */
+  private static String getFieldErrorsMessage(final List<FieldError> fieldErrors) {
+    final List<String> failures = new ArrayList<>();
+    for (final FieldError fieldError : fieldErrors) {
+      failures.add(fieldError.getField() + FIELD_SEPARATOR + fieldError.getDefaultMessage());
+    }
+    return String.join(VALIDATION_FAILURE_SEPARATOR, failures);
+  }
+
   /* see superclass */
   public String getErrorPath() {
     return "/error";

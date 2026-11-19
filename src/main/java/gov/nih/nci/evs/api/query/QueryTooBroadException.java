@@ -1,8 +1,9 @@
 package gov.nih.nci.evs.api.query;
 
 /**
- * Thrown when a query matches too much to run, e.g. more codes than one {@code terms} query
- * accepts. The client can narrow the query, so the query endpoint reports it as a bad request.
+ * Thrown when a query is too big to run: it matches more codes than one {@code terms} query
+ * accepts, holds more clauses than OpenSearch allows, or nests too deeply. The client can narrow
+ * the query, so the query endpoint reports it as a bad request.
  */
 public class QueryTooBroadException extends IllegalArgumentException {
 
@@ -16,5 +17,15 @@ public class QueryTooBroadException extends IllegalArgumentException {
    */
   public QueryTooBroadException(final String message) {
     super(message);
+  }
+
+  /**
+   * Instantiates a {@link QueryTooBroadException} for a limit OpenSearch reported.
+   *
+   * @param message what was too broad
+   * @param cause the error OpenSearch reported
+   */
+  public QueryTooBroadException(final String message, final Throwable cause) {
+    super(message, cause);
   }
 }

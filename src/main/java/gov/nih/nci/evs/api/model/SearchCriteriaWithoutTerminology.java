@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.model;
 
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.support.es.OpenSearchLimits;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
@@ -852,6 +853,18 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
               + MAX_PAGE_SIZE
               + " = "
               + pageSize);
+    }
+
+    // Long, so a huge fromRecord can't overflow past the check
+    final long pageEnd = (long) fromRecord + pageSize;
+    final boolean isPastResultWindow = pageEnd > OpenSearchLimits.MAX_RESULT_WINDOW;
+    if (isPastResultWindow) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Parameters 'fromRecord' + 'pageSize' must be at most "
+              + OpenSearchLimits.MAX_RESULT_WINDOW
+              + ", the furthest a search can page = "
+              + pageEnd);
     }
 
     // Restrict paging for license-restricted terminologies (unless term is set)

@@ -15,7 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -89,6 +94,9 @@ public abstract class AbstractSearchControllerQueryTests {
 
   /** Autowired mock MVC. */
   @Autowired protected MockMvc mvc;
+
+  /** The client for real HTTP requests to the running server. */
+  @Autowired private TestRestTemplate restTemplate;
 
   /**
    * Posts a query tree and returns the codes of the concepts it matches, in the order returned.
@@ -222,5 +230,47 @@ public abstract class AbstractSearchControllerQueryTests {
    */
   protected static List<String> getWithBreast(final List<String> codes) {
     return Stream.concat(codes.stream(), Stream.of(BREAST)).toList();
+  }
+
+  /**
+   * Posts a query to search NCIt over real HTTP, asking for a JSON response, including on error.
+   * Use this rather than MockMvc to check an error's message: the error controller adds it, and
+   * MockMvc skips the error controller.
+   *
+   * @param queryJson the query tree as JSON
+   * @param fromRecord the index of the first concept to return
+   * @param pageSize the maximum number of concepts to return
+   * @return the response
+   */
+  protected ResponseEntity<String> exchangeQuery(
+      final String queryJson, final int fromRecord, final int pageSize) {
+    final HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+
+    return restTemplate.exchange(
+        QUERY_URL + "?fromRecord={fromRecord}&pageSize={pageSize}",
+        HttpMethod.POST,
+        new HttpEntity<>(queryJson, headers),
+        String.class,
+        TERMINOLOGY,
+        fromRecord,
+        pageSize);
+  }
+
+  /**
+   * Reads the message from an error response.
+   *
+   * @param response the error response
+   * @return the message
+   */
+  protected static String getErrorMessage(final ResponseEntity<String> response) {
+    try {
+      return ThreadLocalMapper.get()
+          .readValue(response.getBody(), RestException.class)
+          .getMessage();
+    } catch (final Exception e) {
+      throw new IllegalStateException("Not an error response: " + response.getBody(), e);
+    }
   }
 }

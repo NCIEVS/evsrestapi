@@ -56,6 +56,16 @@ public class Or extends EvsQuery {
 
   /* see superclass */
   @Override
+  public int getDepth() {
+    int deepestChildDepth = 0;
+    for (final EvsQuery child : getChildren()) {
+      deepestChildDepth = Math.max(deepestChildDepth, child.getDepth());
+    }
+    return deepestChildDepth + 1;
+  }
+
+  /* see superclass */
+  @Override
   public QueryBuilder fetchOpenSearchQuery(
       final OpenSearchOperations operations, final List<Terminology> terminologies) {
     final boolean hasAlternatives = !children.isEmpty();

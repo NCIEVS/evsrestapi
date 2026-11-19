@@ -56,6 +56,12 @@ public class Not extends EvsQuery {
 
   /* see superclass */
   @Override
+  public int getDepth() {
+    return child.getDepth() + 1;
+  }
+
+  /* see superclass */
+  @Override
   public QueryBuilder fetchOpenSearchQuery(
       final OpenSearchOperations operations, final List<Terminology> terminologies) {
     // A bool query with only must_not would score every match 1; a match_all filter scores 0
