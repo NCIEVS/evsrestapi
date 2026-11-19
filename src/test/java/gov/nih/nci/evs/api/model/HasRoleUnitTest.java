@@ -15,6 +15,12 @@ public class HasRoleUnitTest {
       {"type": "HasRole", "role": "R101", "target": "C12971"}
       """;
 
+  /** The query for the concepts with any primary anatomic site: no target. */
+  private static final String ANY_PRIMARY_ANATOMIC_SITE_QUERY =
+      """
+      {"type": "HasRole", "role": "R101"}
+      """;
+
   /** Breast, the target of most hierarchy tests. */
   private static final String BREAST = "C12971";
 
@@ -41,5 +47,28 @@ public class HasRoleUnitTest {
     final HasRole primaryAnatomicSiteBreast = new HasRole(PRIMARY_ANATOMIC_SITE_ROLE, BREAST);
 
     assertSerializesTo(primaryAnatomicSiteBreast, PRIMARY_ANATOMIC_SITE_BREAST_QUERY);
+  }
+
+  /**
+   * Test a HasRole query without a target reads from and writes back to the same JSON, with no
+   * target written.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasRoleWithoutTargetRoundTripsUnchanged() throws Exception {
+    assertRoundTripsUnchanged(ANY_PRIMARY_ANATOMIC_SITE_QUERY);
+  }
+
+  /**
+   * Test a HasRole query built in Java without a target is written without a target.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHasRoleWithoutTargetSerializesWithoutTarget() throws Exception {
+    final HasRole anyPrimaryAnatomicSite = new HasRole(PRIMARY_ANATOMIC_SITE_ROLE);
+
+    assertSerializesTo(anyPrimaryAnatomicSite, ANY_PRIMARY_ANATOMIC_SITE_QUERY);
   }
 }

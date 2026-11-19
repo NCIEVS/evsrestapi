@@ -50,8 +50,14 @@ public abstract class AbstractSearchControllerQueryTests {
   /** The query endpoint url, with the terminology as a path variable. */
   protected static final String QUERY_URL = "/api/v1/concept/{terminology}/search";
 
-  /** The terminology every test searches. */
+  /** The terminology the tests search unless they name another. */
   protected static final String TERMINOLOGY = "ncit";
+
+  /**
+   * The fake terminology in {@code src/test/resources/evstest}, whose data the tests control, so
+   * they can expect exact results. See its README for loading it.
+   */
+  protected static final String EVSTEST = "evstest";
 
   /** A page large enough to hold every match in these tests. */
   protected static final String PAGE_SIZE = "1000";
@@ -92,7 +98,21 @@ public abstract class AbstractSearchControllerQueryTests {
    * @throws Exception the exception
    */
   protected List<String> fetchCodes(final String queryJson) throws Exception {
-    return fetchQueryResults(queryJson, MINIMAL_INCLUDE).getConcepts().stream()
+    return fetchCodes(TERMINOLOGY, queryJson);
+  }
+
+  /**
+   * Posts a query tree to search the terminology and returns the codes of the concepts it matches,
+   * in the order returned.
+   *
+   * @param terminology the terminology to search
+   * @param queryJson the query tree as JSON
+   * @return the codes
+   * @throws Exception the exception
+   */
+  protected List<String> fetchCodes(final String terminology, final String queryJson)
+      throws Exception {
+    return fetchQueryResults(terminology, queryJson, MINIMAL_INCLUDE).getConcepts().stream()
         .map(Concept::getCode)
         .toList();
   }
@@ -107,8 +127,25 @@ public abstract class AbstractSearchControllerQueryTests {
    */
   protected ConceptResultList fetchQueryResults(final String queryJson, final String include)
       throws Exception {
+    return fetchQueryResults(TERMINOLOGY, queryJson, include);
+  }
+
+  /**
+   * Posts a query tree to search the terminology, asserts the response is OK, and reads the
+   * concepts it returns.
+   *
+   * @param terminology the terminology to search
+   * @param queryJson the query tree as JSON
+   * @param include the fields to return for each concept
+   * @return the result list
+   * @throws Exception the exception
+   */
+  protected ConceptResultList fetchQueryResults(
+      final String terminology, final String queryJson, final String include) throws Exception {
     final MvcResult result =
-        postQuery(queryJson, PAGE_SIZE, include).andExpect(status().isOk()).andReturn();
+        postQuery(terminology, queryJson, PAGE_SIZE, include)
+            .andExpect(status().isOk())
+            .andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     return ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
@@ -137,10 +174,26 @@ public abstract class AbstractSearchControllerQueryTests {
    */
   protected ResultActions postQuery(
       final String queryJson, final String pageSize, final String include) throws Exception {
+    return postQuery(TERMINOLOGY, queryJson, pageSize, include);
+  }
+
+  /**
+   * Posts a query tree to the query endpoint, searching the terminology.
+   *
+   * @param terminology the terminology to search
+   * @param queryJson the query tree as JSON
+   * @param pageSize the maximum number of concepts to return
+   * @param include the fields to return for each concept
+   * @return the result actions
+   * @throws Exception the exception
+   */
+  protected ResultActions postQuery(
+      final String terminology, final String queryJson, final String pageSize, final String include)
+      throws Exception {
     log.info(
-        "Testing url - " + QUERY_URL + " (terminology=" + TERMINOLOGY + "), body = " + queryJson);
+        "Testing url - " + QUERY_URL + " (terminology=" + terminology + "), body = " + queryJson);
     return mvc.perform(
-        post(QUERY_URL, TERMINOLOGY)
+        post(QUERY_URL, terminology)
             .param("pageSize", pageSize)
             .param("include", include)
             .contentType(MediaType.APPLICATION_JSON)
