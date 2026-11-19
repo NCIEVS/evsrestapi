@@ -12,7 +12,9 @@ public class SearchControllerNotTests extends AbstractSearchControllerQueryTests
   private static final String BREAST_WITHOUT_CHILDREN_QUERY =
       """
       {"type": "And", "children": [
-        {"type": "HasAncestorOrIs", "target": "C12971", "maxLevel": 1},
+        {"type": "Or", "children": [
+          {"type": "Exact", "term": "C12971"},
+          {"type": "HasAncestor", "target": "C12971", "maxLevel": 1}]},
         {"type": "Not", "child":
           {"type": "HasAncestor", "target": "C12971", "maxLevel": 1}}]}
       """;

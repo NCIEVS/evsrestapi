@@ -5,9 +5,10 @@ import static gov.nih.nci.evs.api.EvsQuerySerializationTester.assertSerializesTo
 
 import gov.nih.nci.evs.api.query.And;
 import gov.nih.nci.evs.api.query.EvsQuery;
+import gov.nih.nci.evs.api.query.Exact;
 import gov.nih.nci.evs.api.query.HasAncestor;
-import gov.nih.nci.evs.api.query.HasAncestorOrIs;
 import gov.nih.nci.evs.api.query.Not;
+import gov.nih.nci.evs.api.query.Or;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,9 @@ public class NotUnitTest {
   private static final String BREAST_WITHOUT_CHILDREN_QUERY =
       """
       {"type": "And", "children": [
-        {"type": "HasAncestorOrIs", "target": "C12971", "maxLevel": 1},
+        {"type": "Or", "children": [
+          {"type": "Exact", "term": "C12971"},
+          {"type": "HasAncestor", "target": "C12971", "maxLevel": 1}]},
         {"type": "Not", "child":
           {"type": "HasAncestor", "target": "C12971", "maxLevel": 1}}]}
       """;
@@ -50,7 +53,9 @@ public class NotUnitTest {
     final EvsQuery breastWithoutChildren =
         new And(
             List.of(
-                new HasAncestorOrIs(BREAST, DIRECT_RELATIVES_MAX_LEVEL),
+                new Or(
+                    List.of(
+                        new Exact(BREAST), new HasAncestor(BREAST, DIRECT_RELATIVES_MAX_LEVEL))),
                 new Not(new HasAncestor(BREAST, DIRECT_RELATIVES_MAX_LEVEL))));
 
     assertSerializesTo(breastWithoutChildren, BREAST_WITHOUT_CHILDREN_QUERY);

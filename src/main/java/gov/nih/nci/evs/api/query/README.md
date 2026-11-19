@@ -11,7 +11,7 @@ Every node is an `EvsQuery` and says which concepts match. There are three kinds
   that `type`, and rank by relevance.
 - **Field nodes** (`HasProperty`, `HasSynonym`, `HasRole`, `InSubset`, `HasAncestor`, ...) match
   names, codes, and values stored on the concept. Each value is a plain `String`, compared exactly.
-- **Logical queries** (`And`, `Or`, `Not`, and the `Boost` wrapper) combine other queries.
+- **Logical queries** (`And`, `Or`, `Not`) combine other queries.
 
 `MatchAnyOf` (one field equal to any of a set of values) and `NameOrCodeMatch` (a name field or a
 code field equal to any of a set of names or codes) are the leaves nodes are built from. They're
@@ -29,7 +29,7 @@ Because every query has the same interface, any query can be nested inside any c
 ## Logical operators: exploratory on this branch
 
 The plan is to build queries almost entirely from logical operator nodes (`And`, `Or`, `Not`,
-`Boost`, and similar), with raw OpenSearch `QueryBuilder`s only inside the leaf nodes. On the
+and similar), with raw OpenSearch `QueryBuilder`s only inside the leaf nodes. On the
 exploratory branch `eas/explore-filters` they're merged in from `eas/logical-operators` and can be
 used to combine nodes (see [Logical queries](#logical-queries)). They're still only tested by
 `LogicalQueryTest` and the lessons that use them, so on other branches don't build on them yet.
@@ -118,10 +118,6 @@ classDiagram
     class Not {
         -EvsQuery child
     }
-    class Boost {
-        -EvsQuery child
-        -float score
-    }
 
     class MatchAnyOf {
         -String field
@@ -142,13 +138,7 @@ classDiagram
         #fetchRelativesQuery(OpenSearchOperations, Terminology, Set~String~)* QueryBuilder
     }
     class HasAncestor
-    class HasAncestorOrIs {
-        +fetchOpenSearchQuery(OpenSearchOperations, List~Terminology~) QueryBuilder
-    }
     class HasDescendant
-    class HasDescendantOrIs {
-        +fetchOpenSearchQuery(OpenSearchOperations, List~Terminology~) QueryBuilder
-    }
 
     EvsQuery <|-- TermSearch
     TermSearch <|-- Exact
@@ -160,7 +150,6 @@ classDiagram
     EvsQuery <|-- And
     EvsQuery <|-- Or
     EvsQuery <|-- Not
-    EvsQuery <|-- Boost
     EvsQuery <|-- HasSynonym
     HasRelationship <|-- HasRole
     HasRelationship <|-- HasAssociation
@@ -172,7 +161,6 @@ classDiagram
     And o-- EvsQuery : children
     Or o-- EvsQuery : children
     Not o-- EvsQuery : child
-    Boost o-- EvsQuery : child
     HasProperty o-- QualifierCondition : qualifiers
     QualifierCondition <|.. PropertyQualifier
     QualifierCondition <|.. AllQualifiers
@@ -187,8 +175,6 @@ classDiagram
     EvsQuery <|-- HasHierarchyRelative
     HasHierarchyRelative <|-- HasAncestor
     HasHierarchyRelative <|-- HasDescendant
-    HasAncestor <|-- HasAncestorOrIs
-    HasDescendant <|-- HasDescendantOrIs
 ```
 
 | Class | Role |
@@ -206,11 +192,9 @@ classDiagram
 | `NameOrCodeMatch` | Package-private. A name field or a code field equal to any of a set of names or codes: two `MatchAnyOf`s, either one enough. Used for a relationship's type and target, a property's or qualifier's type, and the hierarchy targets. |
 | `HasHierarchyRelative` | Base type for hierarchy nodes. The targets are the concepts whose name or code is `target`. When the concept's own fields can't answer the query yet, it looks up the target codes first (`fetchTargetCodes`), then, for each terminology version, matches the targets' relatives only in that terminology's index (see [Hierarchy queries](#hierarchy-queries)). Handles `maxLevel` (shortest distance, at least 1). Subclasses implement `fetchRelativesQuery`. |
 | `HasAncestor` | Matches concepts strictly below the targets, optionally within `maxLevel` levels. `ancestors` holds codes only, so it always looks up the target codes first. Terminologies with `ancestors`/`ancestorDepths` then match with one query on those fields; older indexes fall back to the stored hierarchy (`StoredHierarchyFallback`, to be removed after reindexing). Convenience constructors take a code. |
-| `HasAncestorOrIs` | `HasAncestor` that also matches the targets themselves (distance 0): it ORs `HasAncestor`'s query with a match on the concept's own name or code. |
 | `HasDescendant` | The upward counterpart: matches concepts strictly above the targets, optionally within `maxLevel` levels. Without `maxLevel` it's one query on the concept's stored `descendants` names and codes. With `maxLevel` it looks up the target codes and reads their stored paths to root (`StoredPaths`). |
-| `HasDescendantOrIs` | `HasDescendant` that also matches the targets themselves, the same way as `HasAncestorOrIs`. |
 | `RawBoolQueries` | The raw `bool` combining helpers (`getAllOfQuery`, `getAnyOfQuery`, `getMatchNothingQuery`) used until the logical operator nodes land; each maps onto `And`, `Or`, or `Not`. |
-| `And`, `Or`, `Not`, `Boost` | Logical queries. They hold child `EvsQuery` nodes instead of names, codes, and values. See [Logical queries](#logical-queries). Exploratory on this branch: merged from `eas/logical-operators`, tested only by `LogicalQueryTest` and the subset lessons. |
+| `And`, `Or`, `Not` | Logical queries. They hold child `EvsQuery` nodes instead of names, codes, and values. See [Logical queries](#logical-queries). Exploratory on this branch: merged from `eas/logical-operators`, tested only by `LogicalQueryTest` and the subset lessons. |
 
 ## Term searches
 
@@ -264,7 +248,6 @@ wrapped in a `nestedQuery`, which is a natural job for a future `In` composite. 
 | `And` | every child matches. No children matches everything. | `bool` with each child in `must` |
 | `Or` | at least one child matches. No children matches **nothing**, so an empty list of alternatives (e.g. a dependency that found no concepts) doesn't widen a search to everything. | `bool` with each child in `should`, `minimum_should_match: 1`; `must_not: match_all` when empty |
 | `Not` | the child doesn't match, including when the child's field is missing. Adds nothing to the score. | `bool` with `filter: match_all` and the child in `must_not` |
-| `Boost` | the child matches. Every match gets the same fixed score, however well it matched, so boosted alternatives inside an `Or` rank in tiers. | `constant_score` with `boost` |
 
 `LogicalQueryTest` runs each against a test index.
 
@@ -354,7 +337,7 @@ name and its code, so the caller doesn't name the entry's fields:
 name is analyzed text, so a name compares against its lowercased words, not the whole name. Both
 are stored on the entry itself, so no other search runs.
 
-**Targets aren't queries.** Only the logical queries (`And`, `Or`, `Not`, `Boost`) hold other
+**Targets aren't queries.** Only the logical queries (`And`, `Or`, `Not`) hold other
 queries. "Primary site is Skin or anything below Skin" would need the codes below Skin first,
 because a role entry only stores its target's code and name; that's left to the caller, who can run
 one query and pass its codes back as an `Or` of one node per code.
@@ -362,6 +345,9 @@ one query and pass its codes back as an `Or` of one node per code.
 ## Hierarchy queries
 
 The hierarchy nodes take the target concept's name or code, not an inner query.
+They match strictly above or below the targets. To include the targets themselves, combine with
+`Or`: `new Or(List.of(new Exact("C12971"), new HasAncestor("C12971")))` is Breast and everything
+below it.
 Some cases can't be answered from the concept's own fields yet, so `HasHierarchyRelative.fetchTargetCodes`
 looks the target codes up first, one terminology at a time:
 
@@ -447,7 +433,7 @@ public class StartsWith extends TermSearch {
 
 ### Adding a composite query
 
-> `And`, `Or`, `Not`, and `Boost` already exist on this branch (see
+> `And`, `Or`, and `Not` already exist on this branch (see
 > [Logical operators](#logical-operators-exploratory-on-this-branch)). This section describes how
 > composites work.
 

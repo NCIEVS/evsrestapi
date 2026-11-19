@@ -21,8 +21,6 @@ import org.opensearch.index.query.QueryBuilder;
  * codes, and aren't the shortest distance), so the target codes are looked up first (see {@link
  * HasHierarchyRelative#fetchTargetCodes}) and the ancestors come from the targets' stored paths to
  * root.
- *
- * @see HasDescendantOrIs
  */
 public class HasDescendant extends HasHierarchyRelative {
 

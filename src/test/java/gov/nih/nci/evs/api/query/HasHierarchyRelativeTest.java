@@ -40,7 +40,7 @@ import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * Tutorial for the hierarchy nodes {@link HasAncestor} and {@link HasAncestorOrIs}, run against two
+ * Tutorial for the hierarchy nodes {@link HasAncestor} and {@link HasDescendant}, run against two
  * throwaway indexes holding the same small hierarchy:
  *
  * <pre>
@@ -173,23 +173,7 @@ public class HasHierarchyRelativeTest {
   }
 
   // ---------------------------------------------------------------------------------------------
-  // Lesson 2: HasAncestorOrIs also matches the target.
-  // ---------------------------------------------------------------------------------------------
-
-  /** A and everything below A. */
-  @Test
-  public void testHasAncestorOrIsIncludesTargetAndEverythingBelow() {
-    assertBoth(() -> new HasAncestorOrIs("A"), "A", "C", "D", "E", "F", "G");
-  }
-
-  /** A leaf matches only itself. */
-  @Test
-  public void testHasAncestorOrIsLeafMatchesItself() {
-    assertBoth(() -> new HasAncestorOrIs("G"), "G");
-  }
-
-  // ---------------------------------------------------------------------------------------------
-  // Lesson 3: maxLevel limits depth by shortest distance.
+  // Lesson 2: maxLevel limits depth by shortest distance.
   // ---------------------------------------------------------------------------------------------
 
   /** maxLevel 1 is the direct children. */
@@ -207,12 +191,6 @@ public class HasHierarchyRelativeTest {
     assertBoth(() -> new HasAncestor("R", 2), "A", "B", "C", "D", "F");
   }
 
-  /** With the target included, the target is depth 0 and always matches. */
-  @Test
-  public void testHasAncestorOrIsMaxLevelOneIncludesTargetAndChildren() {
-    assertBoth(() -> new HasAncestorOrIs("A", 1), "A", "C", "D");
-  }
-
   /** maxLevel must be at least 1. */
   @Test
   public void testHasAncestorMaxLevelZeroThrowsErrors() {
@@ -222,7 +200,7 @@ public class HasHierarchyRelativeTest {
   }
 
   // ---------------------------------------------------------------------------------------------
-  // Lesson 4: hierarchy nodes compose.
+  // Lesson 3: hierarchy nodes compose.
   // ---------------------------------------------------------------------------------------------
 
   /** Composes inside a raw bool, as other nodes will: below A but not below C. */
@@ -239,7 +217,7 @@ public class HasHierarchyRelativeTest {
   }
 
   // ---------------------------------------------------------------------------------------------
-  // Lesson 5: several terminologies at once, indexed and legacy mixed.
+  // Lesson 4: several terminologies at once, indexed and legacy mixed.
   // ---------------------------------------------------------------------------------------------
 
   /** Each terminology's targets match only in its own index, through its own path. */
@@ -256,7 +234,7 @@ public class HasHierarchyRelativeTest {
   }
 
   // ---------------------------------------------------------------------------------------------
-  // Lesson 6: HasDescendant matches everything strictly above the target (the upward counterpart).
+  // Lesson 5: HasDescendant matches everything strictly above the target (the upward counterpart).
   // ---------------------------------------------------------------------------------------------
 
   /** Everything above G, and not G itself. */
@@ -277,28 +255,10 @@ public class HasHierarchyRelativeTest {
     assertBoth(() -> new HasDescendant("R"));
   }
 
-  /** HasDescendantOrIs also matches the target. */
-  @Test
-  public void testHasDescendantOrIsIncludesTargetAndEverythingAbove() {
-    assertBoth(() -> new HasDescendantOrIs("G"), "G", "E", "C", "A", "R");
-  }
-
-  /** The root matches only itself. */
-  @Test
-  public void testHasDescendantOrIsRootMatchesItself() {
-    assertBoth(() -> new HasDescendantOrIs("R"), "R");
-  }
-
   /** maxLevel 1 is the direct parents. */
   @Test
   public void testHasDescendantMaxLevelOneMatchesDirectParents() {
     assertBoth(() -> new HasDescendant("F", 1), "D", "B");
-  }
-
-  /** maxLevel 1 with the target included is the target and its direct parents. */
-  @Test
-  public void testHasDescendantOrIsMaxLevelOneIncludesTargetAndParents() {
-    assertBoth(() -> new HasDescendantOrIs("F", 1), "F", "D", "B");
   }
 
   /**
@@ -325,7 +285,7 @@ public class HasHierarchyRelativeTest {
   }
 
   // ---------------------------------------------------------------------------------------------
-  // Lesson 7: upward nodes compose too.
+  // Lesson 6: upward nodes compose too.
   // ---------------------------------------------------------------------------------------------
 
   /** Common ancestors of G and F, composed in a raw bool. */

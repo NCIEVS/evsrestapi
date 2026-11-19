@@ -20,8 +20,8 @@ import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 /**
  * A node in an EVS search query tree. The term searches ({@link Exact}, {@link StartsWith}, {@link
  * Contains}, {@link Fuzzy}) search names, codes, and synonyms like the legacy concept search; the
- * logical queries ({@link And}, {@link Or}, {@link Not}, {@link Boost}) combine other {@link
- * EvsQuery} nodes. Every other node holds only names, codes, and values, never another query.
+ * logical queries ({@link And}, {@link Or}, {@link Not}) combine other {@link EvsQuery} nodes.
+ * Every other node holds only names, codes, and values, never another query.
  *
  * <p>Run a tree with {@link #fetchConcepts}. Nodes only match: none adds sorts, so matches come
  * back in OpenSearch's default order, highest score first. To order them another way, add sorts to
@@ -32,7 +32,6 @@ import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
   @JsonSubTypes.Type(value = And.class, name = "And"),
   @JsonSubTypes.Type(value = Or.class, name = "Or"),
   @JsonSubTypes.Type(value = Not.class, name = "Not"),
-  @JsonSubTypes.Type(value = Boost.class, name = "Boost"),
   @JsonSubTypes.Type(value = HasProperty.class, name = "HasProperty"),
   @JsonSubTypes.Type(value = HasSynonym.class, name = "HasSynonym"),
   @JsonSubTypes.Type(value = InSubset.class, name = "InSubset"),
@@ -41,9 +40,7 @@ import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
   @JsonSubTypes.Type(value = Contains.class, name = "Contains"),
   @JsonSubTypes.Type(value = Fuzzy.class, name = "Fuzzy"),
   @JsonSubTypes.Type(value = HasAncestor.class, name = "HasAncestor"),
-  @JsonSubTypes.Type(value = HasAncestorOrIs.class, name = "HasAncestorOrIs"),
   @JsonSubTypes.Type(value = HasDescendant.class, name = "HasDescendant"),
-  @JsonSubTypes.Type(value = HasDescendantOrIs.class, name = "HasDescendantOrIs"),
   @JsonSubTypes.Type(value = HasRole.class, name = "HasRole"),
   @JsonSubTypes.Type(value = HasInverseRole.class, name = "HasInverseRole"),
   @JsonSubTypes.Type(value = HasAssociation.class, name = "HasAssociation"),

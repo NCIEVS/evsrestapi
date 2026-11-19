@@ -10,7 +10,7 @@ queries, and how to add a new node.
 
 ## Flat Nodes
 
-- Only the logical nodes (`And`, `Or`, `Not`, `Boost`) hold other `EvsQuery` nodes. Every other node
+- Only the logical nodes (`And`, `Or`, `Not`) hold other `EvsQuery` nodes. Every other node
   holds only plain `String` names, codes, and values, compared exactly against fields stored on the
   concept, e.g. a relationship's `target`. Don't add nodes that nest queries.
 - Partial, fuzzy, or case-insensitive matching is only done by the term searches (`Exact`,
@@ -29,8 +29,8 @@ queries, and how to add a new node.
 
 ## Combining Conditions: Raw OpenSearch For Now
 
-- Queries will eventually be built almost entirely from logical operator nodes (`And`, `Or`, `Not`,
-  `Boost`). On the exploratory branch `eas/explore-filters` they're merged in and may be used to
+- Queries will eventually be built almost entirely from logical operator nodes (`And`, `Or`,
+  `Not`). On the exploratory branch `eas/explore-filters` they're merged in and may be used to
   combine nodes, e.g. in tests. They're still only lightly tested: on other branches, don't add them
   and don't depend on `eas/logical-operators`.
 - Until they land, combine conditions inside `fetchOpenSearchQuery` with raw OpenSearch

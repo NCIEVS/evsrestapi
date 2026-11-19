@@ -28,7 +28,6 @@ import org.opensearch.index.query.QueryBuilder;
  * match with one query on {@code ancestors} (or {@code ancestorDepths} for a depth limit). Older
  * indexes fall back to reading the stored hierarchy (see {@link StoredHierarchyFallback}).
  *
- * @see HasAncestorOrIs
  * @see HasDescendant
  */
 public class HasAncestor extends HasHierarchyRelative {

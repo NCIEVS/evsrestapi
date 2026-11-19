@@ -229,31 +229,11 @@ public class HasHierarchyRelativeLimitsTest {
     assertEquals(TARGET_ARGUMENT, e.getMessage());
   }
 
-  /** A null target on HasDescendantOrIs throws an error naming target. */
-  @Test
-  public void testHasDescendantOrIsWithNullTargetThrowsErrorNamingTarget() {
-    final NullPointerException e =
-        assertThrows(
-            NullPointerException.class, () -> new HasDescendantOrIs((String) null, ONE_LEVEL));
-
-    assertEquals(TARGET_ARGUMENT, e.getMessage());
-  }
-
   /** A null target on HasDescendant throws an error naming target. */
   @Test
   public void testHasDescendantWithNullTargetThrowsErrorNamingTarget() {
     final NullPointerException e =
         assertThrows(NullPointerException.class, () -> new HasDescendant((String) null));
-
-    assertEquals(TARGET_ARGUMENT, e.getMessage());
-  }
-
-  /** A null target on HasAncestorOrIs throws an error naming target. */
-  @Test
-  public void testHasAncestorOrIsWithNullTargetThrowsErrorNamingTarget() {
-    final NullPointerException e =
-        assertThrows(
-            NullPointerException.class, () -> new HasAncestorOrIs((String) null, ONE_LEVEL));
 
     assertEquals(TARGET_ARGUMENT, e.getMessage());
   }

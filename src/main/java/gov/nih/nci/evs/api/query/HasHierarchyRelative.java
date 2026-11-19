@@ -183,14 +183,13 @@ public abstract class HasHierarchyRelative extends EvsQuery {
   }
 
   /**
-   * Returns the condition matching the targets themselves, for the "or is" subclasses: concepts
-   * whose own name or code matches.
+   * Returns the condition matching the targets themselves: concepts whose own name or code matches.
    *
    * @param operations the OpenSearch operations
    * @param terminologies the terminologies being searched
    * @return the condition
    */
-  protected final QueryBuilder getTargetsQuery(
+  private QueryBuilder getTargetsQuery(
       final OpenSearchOperations operations, final List<Terminology> terminologies) {
     return new NameOrCodeMatch(NAME_FIELD, CODE_FIELD, Set.of(target))
         .fetchOpenSearchQuery(operations, terminologies);
