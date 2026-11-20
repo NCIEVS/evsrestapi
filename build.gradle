@@ -8,7 +8,6 @@
   repositories {
     maven { url "https://repo.spring.io/release" }
     maven { url "https://repo.spring.io/milestone" }
-    maven { url "https://repo.spring.io/snapshot" }
     mavenCentral()
   }
 
@@ -30,32 +29,22 @@ plugins {
 }
 
 repositories {
-  exclusiveContent {
-    forRepository {
-      maven {
-        name = 'hapiTestingSnapshots'
-        url = 'https://central.sonatype.com/repository/maven-snapshots/'
-      }
-    }
-    filter {
-      includeVersionByRegex 'ca.uhn.hapi.fhir', 'hapi-.*', '8\\.13\\.16-.*'
-    }
-  }
   mavenLocal()
   mavenCentral()
   maven { url "https://repo.spring.io/release" }
   maven { url "https://repo.spring.io/milestone" }
-  maven { url "https://repo.spring.io/snapshot" }
 }
 
 // Override Boot BOM httpcore5 version to fix CVE-2026-54399 / CVE-2026-54428 (HIGH)
 ext['httpcore5.version'] = '5.4.3'
+// Match HAPI FHIR 9.0.0's Spring/Jackson patch baseline until Boot manages these or newer versions.
+ext['spring-framework.version'] = '7.0.10'
+ext['jackson-bom.version'] = '3.1.8'
+ext['jackson-2-bom.version'] = '2.21.8'
 
 // Extra Properties
 ext {
-  // RELEASE BLOCKER: testing only. Replace with a full HAPI release BEFORE merging or deploying.
-  // PR #8189 included; source revision fe490d72cf99d402df7421503572cd6550cb1a8e.
-  hapiFhirVersion = '8.13.16-20261014.162006-5'
+  hapiFhirVersion = '9.0.0'
   // Parameters
   if (!project.hasProperty("inputPath")) {
     inputPath = "na"
@@ -70,18 +59,6 @@ ext {
     copyMode = "codesab"
   }
 }
-
-// Keep transitive HAPI modules on the same timestamped snapshot as the direct dependencies.
-configurations.configureEach {
-  resolutionStrategy.eachDependency { details ->
-    if (details.requested.group == 'ca.uhn.hapi.fhir' && details.requested.name.startsWith('hapi-')) {
-      details.useVersion hapiFhirVersion
-      details.because 'Use one HAPI snapshot build for upgrade testing only'
-    }
-  }
-}
-
-logger.warn('RELEASE BLOCKER: HAPI FHIR snapshot is for TESTING ONLY. Upgrade to a full released version BEFORE merging this branch or deploying. See README.md.')
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
