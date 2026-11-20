@@ -11,7 +11,6 @@ import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryException;
 import org.apache.jena.query.QueryFactory;
-import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.update.UpdateFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,8 +162,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   }
 
   /**
-   * Validate that a SPARQL query is a SELECT query without SERVICE clauses. Queries that do not
-   * parse (and are not updates) are passed through so the graph db can report the syntax error.
+   * Validate that a SPARQL query is a SELECT query. Queries that do not parse (and are not updates)
+   * are passed through so the graph db can report the syntax error.
    *
    * @param query the query
    */
@@ -185,14 +184,6 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     if (!parsed.isSelectType()) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Only SPARQL SELECT queries are allowed");
-    }
-
-    // Check the algebra (which includes subqueries and EXISTS) for SERVICE, ignoring literals
-    final String algebra =
-        Algebra.compile(parsed).toString().replaceAll("\"(?:[^\"\\\\]|\\\\.)*\"", "\"\"");
-    if (algebra.matches("(?s).*\\(service\\s.*")) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "SPARQL SERVICE clauses are not allowed");
     }
   }
 

@@ -4154,7 +4154,7 @@ public class SearchControllerTests {
     String content = null;
 
     final String selectOnly = "Only SPARQL SELECT queries are allowed";
-    final String noService = "SPARQL SERVICE clauses are not allowed";
+    final String noService = "SPARQL SERVICE is not allowed";
 
     // query -> expected error message
     final Map<String, String> queries = new LinkedHashMap<>();
@@ -4220,6 +4220,13 @@ public class SearchControllerTests {
             + serviceUrl
             + "> { ?x :P108 \"Melanoma\" } } } }",
         noService);
+    queries.put(
+        "SELECT ?code { SERVICE SILENT <" + serviceUrl + "> { ?x :NHC0 ?code } }", noService);
+    queries.put(
+        "SELECT ?code { VALUES ?endpoint { <"
+            + serviceUrl
+            + "> } SERVICE ?endpoint { ?x :NHC0 ?code } }",
+        noService);
 
     for (final String url : new String[] {"/api/v1/concept/ncit/search", "/api/v1/sparql/ncit"}) {
       for (final Map.Entry<String, String> entry : queries.entrySet()) {
@@ -4239,6 +4246,20 @@ public class SearchControllerTests {
         assertThat(content).contains(entry.getValue());
       }
     }
+  }
+
+  @Test
+  public void testContainsServiceIgnoresCommentsAndLiterals() {
+    assertThat(SearchController.containsService("SELECT * WHERE { ?s ?p ?o } LIMIT 1")).isFalse();
+    assertThat(
+            SearchController.containsService(
+                "SELECT * WHERE { ?s ?p \"SERVICE\" . # SERVICE <http://example.org>\n }"))
+        .isFalse();
+    assertThat(
+            SearchController.containsService(
+                "SELECT * WHERE { { SELECT * WHERE { SERVICE <http://example.org>"
+                    + " { ?s ?p ?o } } } }"))
+        .isTrue();
   }
 
   /**

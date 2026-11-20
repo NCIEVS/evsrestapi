@@ -38,6 +38,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.apache.jena.query.QueryException;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.syntax.ElementService;
+import org.apache.jena.sparql.syntax.ElementSubQuery;
+import org.apache.jena.sparql.syntax.ElementVisitorBase;
+import org.apache.jena.sparql.syntax.ElementWalker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -889,6 +894,9 @@ public class SearchController extends BaseController {
     try {
 
       final String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
+      if (containsService(sparqlQuery)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SPARQL SERVICE is not allowed");
+      }
       // The following messages up "total" - so we need to either find it another way from
       // the sparql response OR we need to not limit this but do so with paging.
       //      sparqlQuery += " LIMIT 1000";
@@ -1086,6 +1094,9 @@ public class SearchController extends BaseController {
 
       final ObjectMapper mapper = ThreadLocalMapper.get();
       String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
+      if (containsService(sparqlQuery)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SPARQL SERVICE is not allowed");
+      }
 
       // The following messages up "total" - so we need to either find it another way from
       // the sparql response OR we need to not limit this but do so with paging.
@@ -1123,6 +1134,25 @@ public class SearchController extends BaseController {
 
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
     }
+  }
+
+  /** Returns true when the parsed query contains a SERVICE clause at any depth. */
+  static boolean containsService(final String query) {
+    final boolean[] found = {false};
+    ElementWalker.walk(
+        QueryFactory.create(query).getQueryPattern(),
+        new ElementVisitorBase() {
+          @Override
+          public void visit(final ElementService service) {
+            found[0] = true;
+          }
+
+          @Override
+          public void visit(final ElementSubQuery subQuery) {
+            ElementWalker.walk(subQuery.getQuery().getQueryPattern(), this);
+          }
+        });
+    return found[0];
   }
 
   @Operation(summary = "Get default prefixes used by SPARQL queries")
