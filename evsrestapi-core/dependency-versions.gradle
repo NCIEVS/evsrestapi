@@ -1,8 +1,10 @@
 // Keep the Java 25 dependency baseline and security fixes aligned across consumers.
 // Applied by core, the server and the operations composite; no Maven publication is required.
+// Match HAPI FHIR 9.0.0's Spring/Jackson patch baseline until Boot manages these or newer versions.
+ext['spring-framework.version'] = '7.0.10'
 // Boot 4 reserves jackson-bom.version for Jackson 3; keep Jackson 2 on its own BOM.
-ext['jackson-2-bom.version'] = '2.21.7'
-ext['jackson-bom.version'] = '3.1.7'
+ext['jackson-2-bom.version'] = '2.21.8'
+ext['jackson-bom.version'] = '3.1.8'
 ext['tomcat.version'] = '11.0.25'
 
 ext.evsCoreVersions = [
