@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -418,6 +418,7 @@ public class ConceptSampleTester {
       for (final String err : errors) {
         log.error(err);
       }
+      fail("Metadata sampling errors found");
     } else {
       log.info("No metadata errors found for terminology " + terminology.getName());
     }
@@ -699,7 +700,7 @@ public class ConceptSampleTester {
       for (final String err : errors) {
         log.error(err);
       }
-      // fail("Sampling errors found");
+      fail("Sampling errors found");
     } else {
       log.info("No sampling errors found for terminology " + terminology.getName());
     }
@@ -2254,10 +2255,11 @@ public class ConceptSampleTester {
     assertThat(fullFirstAssociationByCode.getTotal())
         .isEqualTo(fullFirstAssociationByName.getTotal());
     assertThat(
-        firstFromRecord
-            .getAssociationEntries()
-            .get(1)
-            .equals(secondFromRecord.getAssociationEntries().get(0)));
+            firstFromRecord
+                .getAssociationEntries()
+                .get(1)
+                .equals(secondFromRecord.getAssociationEntries().get(0)))
+        .isTrue();
   }
 
   public String standardizeText(String toStandardize) {

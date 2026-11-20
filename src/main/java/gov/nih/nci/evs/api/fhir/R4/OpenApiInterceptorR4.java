@@ -60,6 +60,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -1210,7 +1211,8 @@ public class OpenApiInterceptorR4 {
             {
               final IPrimitiveType<?> type =
                   (IPrimitiveType<?>)
-                      FHIR_CONTEXT_CANONICAL.getElementDefinition(paramType).newInstance();
+                      Objects.requireNonNull(FHIR_CONTEXT_CANONICAL.getElementDefinition(paramType))
+                          .newInstance();
               type.setValueAsString("example");
               param.setValue((Type) type);
               break;
@@ -1219,7 +1221,8 @@ public class OpenApiInterceptorR4 {
             {
               final IPrimitiveType<?> type =
                   (IPrimitiveType<?>)
-                      FHIR_CONTEXT_CANONICAL.getElementDefinition(paramType).newInstance();
+                      Objects.requireNonNull(FHIR_CONTEXT_CANONICAL.getElementDefinition(paramType))
+                          .newInstance();
               type.setValueAsString("0");
               param.setValue((Type) type);
               break;
@@ -1228,7 +1231,8 @@ public class OpenApiInterceptorR4 {
             {
               final IPrimitiveType<?> type =
                   (IPrimitiveType<?>)
-                      FHIR_CONTEXT_CANONICAL.getElementDefinition(paramType).newInstance();
+                      Objects.requireNonNull(FHIR_CONTEXT_CANONICAL.getElementDefinition(paramType))
+                          .newInstance();
               type.setValueAsString("false");
               param.setValue((Type) type);
               break;

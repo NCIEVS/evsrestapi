@@ -1,0 +1,31 @@
+// Keep the Java 25 dependency baseline and security fixes aligned across consumers.
+// Applied by core, the server and the operations composite; no Maven publication is required.
+// Match HAPI FHIR 9.0.0's Spring/Jackson patch baseline until Boot manages these or newer versions.
+ext['spring-framework.version'] = '7.0.10'
+// Boot 4 reserves jackson-bom.version for Jackson 3; keep Jackson 2 on its own BOM.
+ext['jackson-2-bom.version'] = '2.21.8'
+ext['jackson-bom.version'] = '3.1.8'
+ext['tomcat.version'] = '11.0.25'
+
+ext.evsCoreVersions = [
+  'com.google.guava:guava': '33.7.2-jre',
+  'com.h2database:h2': '2.4.240',
+  'com.sun.xml.bind:jaxb-impl': '2.3.3',
+  'io.swagger.core.v3:swagger-annotations-jakarta': '2.2.47',
+  'javax.xml.bind:jaxb-api': '2.3.1',
+  'org.apache.commons:commons-lang3': '3.18.0',
+  'org.apache.commons:commons-text': '1.10.0',
+  'org.apache.httpcomponents.core5:httpcore5': '5.4.3',
+  'org.apache.httpcomponents.core5:httpcore5-h2': '5.4.3',
+  'org.apache.httpcomponents:httpclient': '4.5.14',
+  'org.apache.poi:poi': '5.4.0',
+  'org.apache.poi:poi-ooxml': '5.4.0',
+  'org.ehcache:ehcache': '3.10.9',
+  'org.opensearch.client:spring-data-opensearch': '3.1.4',
+  'org.opensearch:opensearch-common': '3.3.2'
+]
+dependencyManagement {
+  dependencies {
+    evsCoreVersions.each { module, selected -> dependency "${module}:${selected}" }
+  }
+}

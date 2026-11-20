@@ -3,15 +3,18 @@ package gov.nih.nci.evs.api.fhir;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,6 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@AutoConfigureTestRestTemplate
 @ActiveProfiles("test")
 class FhirSwaggerUiTests {
 
@@ -30,6 +34,23 @@ class FhirSwaggerUiTests {
 
   /** The rest template. */
   @Autowired private TestRestTemplate restTemplate;
+
+  /**
+   * REST OpenAPI returns a JSON object for Swagger UI.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  void restOpenApiDocumentIsJsonObject() throws Exception {
+    final ResponseEntity<String> response =
+        restTemplate.getForEntity(baseUrl() + "/v3/api-docs", String.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    final JsonNode document = ThreadLocalMapper.get().readTree(response.getBody());
+    assertThat(document.isObject()).isTrue();
+    assertThat(document.path("openapi").asText()).startsWith("3.");
+    assertThat(document.path("paths").isObject()).isTrue();
+  }
 
   /** Fhir open api documents are available. */
   @Test

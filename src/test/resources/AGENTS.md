@@ -22,7 +22,7 @@ model, and utility tests.
 
 - `extensions-test-*.txt` files support extension and hierarchy-related tests.
 - `value_set_report_config.txt` supports value set report/load-related test behavior.
-- `ncit.json` is a JSON terminology fixture.
+- The loader's `ncit.json` metadata fixture moved with its test to operations `web/src/test/resources`.
 
 ## Fixture Guidelines
 

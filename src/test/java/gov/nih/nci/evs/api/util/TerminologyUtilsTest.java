@@ -5,21 +5,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.service.GraphOpensearchLoadServiceImpl;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import java.util.List;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
 /** Unit test for TerminologyUtils. */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@Tag("integration")
 public class TerminologyUtilsTest {
 
   /** The term utils. */
@@ -27,9 +27,6 @@ public class TerminologyUtilsTest {
 
   /** The opensearch query service *. */
   @Autowired private OpensearchQueryService osQueryService;
-
-  /** The graph loader service. */
-  @Autowired private GraphOpensearchLoadServiceImpl graphOpensearchLoadServiceImpl;
 
   /** The logger. */
   @SuppressWarnings("unused")
@@ -73,21 +70,5 @@ public class TerminologyUtilsTest {
     // Verify more than one default page of data comes back
     final List<Terminology> list = termUtils.getIndexedTerminologies(osQueryService);
     assertThat(list.size()).isGreaterThan(10);
-  }
-
-  /**
-   * Test terminology metadata reading.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testMetadataReading() throws Exception {
-    final String terminology = "ncit";
-    final TerminologyMetadata metadata =
-        ThreadLocalMapper.get()
-            .treeToValue(
-                graphOpensearchLoadServiceImpl.getMetadataAsNodeLocal(terminology),
-                TerminologyMetadata.class);
-    assertThat(metadata.getExtraSubsets()).isNotEmpty();
   }
 }

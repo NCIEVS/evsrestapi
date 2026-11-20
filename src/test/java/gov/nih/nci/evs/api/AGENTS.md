@@ -5,6 +5,15 @@
 This is the test Java package root. Tests use JUnit 5, Spring Boot test support, MockMvc,
 `TestRestTemplate`, and shared helpers for model/proxy/serialization checks.
 
+## Test Selection
+
+- `make test-unit` runs PR-safe tests without prepared graph/OpenSearch data.
+- Tag tests requiring loaded backends or real external services with `@Tag("integration")`.
+  The tag is inherited by subclasses; terminology sample tests inherit it from `SampleTest`.
+- Mock side effects such as audit writes in otherwise isolated controller tests.
+- `make test` retains the full non-performance suite and requires configured backends and data.
+- `make test-integration` runs only tagged integration tests; `perfTest` remains separate.
+
 ## Shared Test Helpers
 
 - `ProxyTester.java` creates populated objects through reflection and proxies.

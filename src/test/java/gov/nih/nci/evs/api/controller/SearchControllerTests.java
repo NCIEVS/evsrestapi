@@ -30,14 +30,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -48,6 +49,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 // @ActiveProfiles("test")
+@Tag("integration")
 public class SearchControllerTests {
 
   /** The logger. */
@@ -4493,6 +4495,7 @@ public class SearchControllerTests {
     assertThat(content).isNotNull();
     log.info("  ncit prefixes = " + content);
     assertThat(content).startsWith("\"PREFIX ");
+    assertThat(ThreadLocalMapper.get().readTree(content).asText()).startsWith("PREFIX ");
     assertThat(content).contains(" :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>");
     assertThat(content).doesNotContain("HGNC.owl");
 
@@ -4505,6 +4508,7 @@ public class SearchControllerTests {
     assertThat(content).isNotNull();
     log.info("  hgnc prefixes = " + content);
     assertThat(content).startsWith("\"PREFIX ");
+    assertThat(ThreadLocalMapper.get().readTree(content).asText()).startsWith("PREFIX ");
     assertThat(content).doesNotContain("Thesaurus.owl");
     assertThat(content).doesNotContain("\r");
     assertThat(content).contains(":<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#>");

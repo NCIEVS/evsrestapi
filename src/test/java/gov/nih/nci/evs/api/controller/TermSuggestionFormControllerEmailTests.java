@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.InputStream;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,9 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -35,8 +36,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
  * <pre>
  * Uses the following env vars (if not set, tests do not run):
  *
- * MAIL_USERNAME
+ * MAIL_USER
  * MAIL_PASSWORD
+ * MAIL_RECIPIENT (every test email goes here, never to the NCI address in the form)
  *
  * as well as the following yml properties:
  *
@@ -52,6 +54,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @ActiveProfiles("test")
 @EnabledIfEnvironmentVariable(named = "MAIL_USER", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "MAIL_PASSWORD", matches = ".+")
+@EnabledIfEnvironmentVariable(named = "MAIL_RECIPIENT", matches = ".+")
+@Tag("integration")
 public class TermSuggestionFormControllerEmailTests {
 
   /** The Constant log. */

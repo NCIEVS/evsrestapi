@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.service.CaptchaService;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import gov.nih.nci.evs.api.service.TermSuggestionFormService;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.FileNotFoundException;
@@ -31,9 +32,9 @@ import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -69,6 +70,9 @@ public class TermSuggestionFormControllerTests {
 
   /** The captcha service. */
   @MockitoBean private CaptchaService captchaService;
+
+  /** Audit and metric writes are isolated from the controller tests. */
+  @MockitoBean private OpensearchOperationsService opensearchOperationsService;
 
   /** The recaptcha token. */
   final String recaptchaToken = "testTokenString";

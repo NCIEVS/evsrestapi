@@ -1,0 +1,69 @@
+plugins {
+  id 'java-library'
+  id 'eclipse'
+  id 'io.spring.dependency-management'
+  id 'com.diffplug.spotless'
+  id 'com.github.spotbugs'
+}
+group = rootProject.group
+version = rootProject.version
+repositories { mavenCentral() }
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
+// Spring cache expressions and parameter binding refer to Java parameter names.
+tasks.withType(JavaCompile).configureEach { options.compilerArgs.add('-parameters') }
+dependencyManagement {
+  imports { mavenBom "org.springframework.boot:spring-boot-dependencies:${rootProject.springBootVersion}" }
+}
+apply from: 'dependency-versions.gradle'
+
+dependencies {
+  // Versions of the modules listed in evsrestapi-core/dependency-versions.gradle come only from
+  // there, so a security bump reaches core, the server and the operations loader together.
+  api 'org.springframework.boot:spring-boot-starter-cache'
+  api 'org.springframework.boot:spring-boot-restclient'
+  api 'org.springframework.boot:spring-boot-jackson2'
+  api 'org.opensearch.client:spring-data-opensearch'
+  api 'org.opensearch:opensearch-common'
+  api 'io.swagger.core.v3:swagger-annotations-jakarta'
+  api 'org.apache.commons:commons-lang3'
+  api 'org.apache.commons:commons-text'
+  api 'com.google.guava:guava'
+  api 'org.apache.httpcomponents:httpclient'
+  api 'org.apache.httpcomponents.core5:httpcore5'
+  api 'org.apache.httpcomponents.core5:httpcore5-h2'
+  api 'org.ehcache:ehcache'
+  api 'javax.xml.bind:jaxb-api'
+  runtimeOnly 'com.sun.xml.bind:jaxb-impl'
+  api 'com.h2database:h2'
+  api 'org.apache.poi:poi'
+  api 'org.apache.poi:poi-ooxml'
+  compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.6'
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+tasks.withType(Test).configureEach { useJUnitPlatform() }
+spotless {
+  java {
+    target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+    googleJavaFormat('1.28.0').reflowLongStrings().formatJavadoc(true).reorderImports(true)
+    removeUnusedImports()
+  }
+}
+spotbugs { excludeFilter = rootProject.file('config/spotbugs/excludeFilter.xml') }
+
+tasks.register('verifyLibrary') {
+  dependsOn jar
+  doLast {
+    def forbidden = configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts.findAll {
+      it.moduleVersion.id.group.startsWith('ca.uhn') || it.moduleVersion.id.group.startsWith('org.hl7')
+    }
+    if (!forbidden.empty) throw new GradleException("HAPI dependencies in shared library: ${forbidden}")
+    def archive = new java.util.jar.JarFile(tasks.jar.archiveFile.get().asFile)
+    try {
+      if (archive.manifest.mainAttributes.getValue('Main-Class') || archive.entries().toList().any { it.name.startsWith('BOOT-INF/') }) {
+        throw new GradleException('Shared library must be a plain non-executable JAR')
+      }
+    } finally { archive.close() }
+  }
+}
+tasks.named('check') { dependsOn 'verifyLibrary' }

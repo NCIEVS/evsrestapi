@@ -2,6 +2,17 @@
 
 Information on the build and deployment process for the EVSRESTAPI project
 
+## Data loading has moved to evsrestapi-operations
+
+Indexing and other data-management scripts now live in
+[evsrestapi-operations](https://github.com/NCIEVS/evsrestapi-operations).
+Run reindexing, data loading, resets, and sampling there; see its
+[migration guide](https://github.com/NCIEVS/evsrestapi-operations/blob/develop/docs/switching-from-evsrestapi.md).
+
+Shared model and data-access code is in the `evsrestapi-core` subproject.
+`make library` builds it as a plain JAR in `evsrestapi-core/build/libs`. The operations
+loader compiles core from this checkout, so rebuild the loader after changing core.
+
 ## Prerequisites
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
@@ -15,39 +26,29 @@ Information on the build and deployment process for the EVSRESTAPI project
 - Set a new variable `$ES_DIR` to the new directory just created. This `$ES_DIR` will be referenced in upcoming steps.
   * Bash: `export ES_DIR="$dir/opensearch/data"`
   * Windows CMD: `set ES_DIR=%dir%\\opensearch\\data`
-* Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your `$dir` folder (so that `$dir/UnitTestData` exists)
-  * run `prep.sh`
 
 ## Steps for Loading NCI Thesaurus Data and Indexes Locally
 
-* Launch Graph DB and load NCI Thesaurus data - (see [Jena/Fuseki Resources](JENA.md))
-* Launch Opensearch docker container - (see [Opensearch Resources](OPENSEARCH.md))
+Use [evsrestapi-operations](https://github.com/NCIEVS/evsrestapi-operations#loading-test-data-locally)
+to obtain and load test data. The local Jena/Fuseki image and its setup are in evsrestapi-operations
+([docs/jena-fuseki.md](https://github.com/NCIEVS/evsrestapi-operations/blob/develop/docs/jena-fuseki.md));
+OpenSearch setup is in [OPENSEARCH.md](OPENSEARCH.md).
 
-* Make sure to set at least the following environment variables
-  * ES_SCHEME=http
-  * ES_HOST=localhost
-  * ES_PORT=9201
-  * GRAPH_DB_HOST=localhost
-  * GRAPH_DB_PORT=5820
-  * GRAPH_DB=NCIT2
-  * GRAPH_DB_USERNAME=admin
-  * GRAPH_DB_PASSWORD=admin
-  * CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata
-  * MAIL_USERNAME=<YOUR_WORK_EMAIL>
-  * MAIL_PASSWORD=<YOUR_GMAIL_APP_PASSWORD>
-  * MAIL_AUTH=true
-  * MAIL_TLS=true
-  * RECAPTCHA_KEY=<SITE_KEY_FROM_RECAPTCHA>
-  * RECAPTCHA_SECRET=<SECRET_KEY_FROM_RECAPTCHA>
+## Running tests
 
-* Load the UnitTestData set by running `prep.sh`
-  * Make sure that you can run all programs in `bash`, especially if on Mac which defaults to `zsh`
+`make test-unit` runs the PR checks without graph/OpenSearch services or loaded
+terminology data. The CI job also runs `:evsrestapi-core:check` separately.
 
-      ```
-      cd evsrestapi
-      make devreset
-      tail -f log
-    ```
+`make test` retains the full non-performance suite and requires loaded local
+graph/OpenSearch services. `make test-integration` runs only tests tagged
+`integration`. For selected terminology checks, use:
+
+```bash
+./gradlew integrationTest --tests '*SampleTest'
+```
+
+Tests that send real email remain subject to their existing environment-variable
+conditions. Run integration tests only against the intended test services and data.
 
 ## Steps for Building and Running EVSRESTAPI locally
 
@@ -67,7 +68,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Set the "Main Class" to `gov.nih.nci.evs.api.Application`
 * In the "Arguments" tab, add to "VM Arguments" the value `-Dspring.profiles.active=local`
 * In the Environment variables add the email credentials and settings for testing:
-  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com>;TLS=true;MAIL_PASSWORD=#########;RECAPTCHA_KEY=########;RECAPTCHA_SECRET=########`
+  * e.g. `MAIL_AUTH=true;MAIL_USER=<testUserEmail@domain.com>;MAIL_TLS=true;MAIL_PASSWORD=#########;RECAPTCHA_KEY=########;RECAPTCHA_SECRET=########`
 * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
 
 ### Run application in IntelliJ
@@ -78,28 +79,51 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Click on "Modify options" and select "Add VM options" & "Environment Variables"
 * In the "VM options" text box, add the value `-Dspring.profiles.active=local`
 * In the Environment variables add the email credentials and settings for testing:
-  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com>;TLS=true;MAIL_PASSWORD=<#########>;RECAPTCHA_KEY:########;RECAPTCHA_SECRET=########`
+  * e.g. `MAIL_AUTH=true;MAIL_USER=<testUserEmail@domain.com>;MAIL_TLS=true;MAIL_PASSWORD=<#########>;RECAPTCHA_KEY=########;RECAPTCHA_SECRET=########`
 * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
 
 ### Run application from command line
-* Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*.jar`
-* Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
-
+* Run with `java -Xmx4096m -Dspring.profiles.active=local -jar build/libs/evsrestapi*.war`
 
 ### Build, scan, and run the docker image
 
-* `make docker` builds the WAR inside a Linux/AMD64 Docker build stage and creates `evsrestapi:<version>` without using a local Gradle installation.
-* The image starts the executable WAR, which runs the REST API entry point; the executable JAR is reserved for loader and reindex operations.
-* `make scandocker` and `make scan` print HIGH/CRITICAL vulnerability tables and write full HTML reports. GitHub Actions enforces HIGH/CRITICAL findings in CI.
-* `make dockerpush DOCKER_IMAGE=<registry>/<image>:<tag>` builds and pushes a Linux/AMD64 image with Docker Buildx.
-* `make rundocker` runs the image on port 8082 using the `local` Spring profile. It assumes Jena/Fuseki and OpenSearch are already running on the host, uses `host.docker.internal` on Docker Desktop, and adds the host-gateway mapping automatically on Linux.
-* `make rundocker` is the supported way to start the image locally. A direct `docker run` must supply equivalent Spring profile, port, service-host, and secret configuration; otherwise the image uses the default application settings rather than the local setup.
-* Before running it, create the ignored `.docker-secrets` directory. Each file is mounted read-only at `/run/secrets` and is imported by Spring Boot using its filename as the property name. Put credentials and secrets in `NCI_EVS_ADMIN_KEY`, `MAIL_USER`, `MAIL_PASSWORD`, and `RECAPTCHA_SECRET`; write each value without a trailing newline. Non-sensitive settings such as `MAIL_HOST`, `MAIL_PORT`, and `RECAPTCHA_KEY` continue to be forwarded from the host environment.
-* The secret values are not passed as container environment variables, so they do not appear in `docker inspect`. Docker daemon administrators can still access a running container and must remain trusted.
-* Override the service hosts or published port when necessary, for example:
+- `make docker` builds the WAR inside a Linux/AMD64 Gradle build stage and creates
+  `evsrestapi:<version>` without a local Gradle installation. The image runs the
+  executable server WAR as the unprivileged `evsapi` user.
+- `make scan` and `make scandocker` print HIGH/CRITICAL findings and write complete
+  reports to `report.html` and `report-docker.html`, respectively.
+- `make dockerpush DOCKER_IMAGE=registry/image:tag` pushes the already-built image.
+- `make rundocker` runs on port 8082 with the `local` Spring profile. It connects to
+  OpenSearch on host port 9201 and Fuseki on host port 3030 through
+  `host.docker.internal`, with the host-gateway mapping needed on Linux.
 
-  ```bash
-  make rundocker DOCKER_ES_HOST=host.docker.internal DOCKER_GRAPH_DB_HOST=host.docker.internal DOCKER_PORT=8082
-  ```
+For different ports, backend settings, or credentials, use a direct `docker run`
+with the equivalent profile and service configuration. Non-sensitive values can
+be supplied with `-e`.
 
-  The existing `ES_PORT`, `ES_SCHEME`, `GRAPH_DB_PORT`, and `GRAPH_DB` settings are passed through to the container. Email, reCAPTCHA, and other applicable local configuration environment variables are also forwarded.
+#### Container credentials
+
+Create the ignored `.docker-secrets` directory and store each secret in a file
+named for its setting, such as `NCI_EVS_ADMIN_KEY`, `MAIL_USER`, `MAIL_PASSWORD`, or
+`RECAPTCHA_SECRET`. Write values without a trailing newline and grant read access
+to the container's `evsapi` user. Mount the directory read-only and import it as a
+[Spring configuration tree](https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.files.configtree).
+For example, after creating the secret files and building image `evsrestapi:2.6.0`:
+
+```bash
+docker run --rm --name evsrestapi -p 8082:8082 \
+  --add-host host.docker.internal:host-gateway \
+  -e SPRING_PROFILES_ACTIVE=local \
+  -e ES_HOST=host.docker.internal -e "ES_PORT=${ES_PORT:-9201}" \
+  -e "ES_SCHEME=${ES_SCHEME:-http}" \
+  -e GRAPH_DB_HOST=host.docker.internal \
+  -e "GRAPH_DB_PORT=${GRAPH_DB_PORT:-3030}" -e "GRAPH_DB=${GRAPH_DB:-NCIT2}" \
+  --mount "type=bind,src=$(pwd)/.docker-secrets,dst=/run/secrets,readonly" \
+  -e 'SPRING_CONFIG_IMPORT=optional:configtree:/run/secrets/' \
+  evsrestapi:2.6.0
+```
+
+Pass other applicable settings, such as `MAIL_HOST`, `MAIL_PORT`, and
+`RECAPTCHA_KEY`, with additional `-e` options. Secret values supplied through files
+are not included in the container environment shown by `docker inspect`;
+Docker daemon administrators can still access the running container.

@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '3.5.16'
+    springBootVersion = '4.1.1'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
@@ -8,7 +8,6 @@
   repositories {
     maven { url "https://repo.spring.io/release" }
     maven { url "https://repo.spring.io/milestone" }
-    maven { url "https://repo.spring.io/snapshot" }
     mavenCentral()
   }
 
@@ -26,61 +25,44 @@ plugins {
   id 'maven-publish'
   // google java format gradle plugin
   id "com.diffplug.spotless" version "6.25.0"
-  id "com.github.spotbugs" version "6.0.26"
+  id "com.github.spotbugs" version "6.5.12"
 }
 
 repositories {
   mavenLocal()
+  mavenCentral()
   maven { url "https://repo.spring.io/release" }
   maven { url "https://repo.spring.io/milestone" }
-  maven { url "https://repo.spring.io/snapshot" }
-  mavenCentral()
 }
+
+apply from: 'evsrestapi-core/dependency-versions.gradle'
 
 // Avoid specifying version unless needed
 // Override vulnerable versions managed by the Spring Boot BOM without changing Spring Boot.
 ext['commons-lang3.version'] = '3.18.0'
 ext['httpclient5.version'] = '5.6.3'
 ext['httpcore5.version'] = '5.4.3'
-ext['jackson-bom.version'] = '2.21.7'
 ext['log4j2.version'] = '2.25.5'
 ext['opentelemetry.version'] = '1.62.0'
-ext['tomcat.version'] = '10.1.60'
 
 // Extra Properties
 ext {
-  // Parameters
-  if (!project.hasProperty("inputPath")) {
-    inputPath = "na"
-  }
-  if (!project.hasProperty("listFile")) {
-    listFile = "na"
-  }
-  if (!project.hasProperty("terminology")) {
-    terminology = "na"
-  }
-  if (!project.hasProperty("copyMode")) {
-    copyMode = "codesab"
-  }
+  hapiFhirVersion = '9.0.0'
 }
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
 version = "2.6.0.RELEASE"
 
-sourceCompatibility = 17
-targetCompatibility = 17
-
 springBoot {
   // generate file META-INF/build-info.properties during the build
   buildInfo()
 }
 
-// Java Toolchain to detect which version of Java to use, if not present
-// it will automatically download and install the required version of Java
+// Use an installed Java 25 toolchain for compilation and tests.
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(25)
   }
 
 }
@@ -100,11 +82,19 @@ tasks.named('eclipseWtp') {
 
 dependencies {
 
-  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation project(':evsrestapi-core')
+  // Versions of the modules listed in evsrestapi-core/dependency-versions.gradle come only from
+  // there, so a security bump reaches core, the server and the operations loader together.
 
-  // Use version 2 with spring boot 3
+  implementation "org.springframework.boot:spring-boot-starter-webmvc"
+  implementation "org.springframework.boot:spring-boot-restclient"
+
+  // EVS models and indexed documents use Jackson 2.
+  implementation "org.springframework.boot:spring-boot-jackson2"
+
+  // SpringDoc 3 is required for Spring Boot 4.
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
-  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17"
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1"
 
   implementation "org.springframework.boot:spring-boot-devtools"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -112,75 +102,54 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-properties-migrator"
   implementation "org.springframework:spring-aop"
 
-  // These override org.hl7.fhir.*:6.4.0 requested by hapi-fhir-validation:7.6.1 and hapi-fhir-converter:7.6.1.
-  // 6.4.0 contains a vulnerability; 6.9.12 fixes the current FHIR findings.
-  // These overrides can only be removed by upgrading to HAPI FHIR 8.x (a major breaking-change migration).
-  implementation "org.fhir:ucum:1.0.9"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.12"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.12"
+  // Converter APIs used by the OpenAPI interceptors; aligned with HAPI FHIR 9.0.0's core.
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.10.3"
 
-  //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
-  implementation "org.opensearch.client:spring-data-opensearch-starter:1.7.1"
+  // Spring Data 2026.0: OpenSearch 3.1.x with Spring Boot 4.1.x.
+  implementation "org.opensearch.client:spring-data-opensearch"
 
-  // Explicit override for vulnerability still present in spring-data-opensearch-starter:1.7.1
-  // and spring-data-opensearch-starter:1.8.2, but both use 2.19.x as a basis
-  implementation "org.opensearch:opensearch-common:2.19.4"
+  // Explicit OpenSearch common dependency; aligned by Gradle with the client dependencies.
+  implementation "org.opensearch:opensearch-common"
 
   // other explicit vulnerability overrides
-  implementation "org.apache.commons:commons-lang3:3.18.0"
-  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.60"
+  implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.thrift:libthrift:0.24.0"
   implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
-  implementation "org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE"
-  // Security override: CVE-2026-102554 (guava 33.2.1-jre via hapi-fhir-base:7.6.1)
-  implementation "com.google.guava:guava:33.7.2-jre"
 
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
 
-  // Security override: CVE-2026-41695
-  implementation "org.springframework.data:spring-data-commons:3.5.12"
-
-  // Security override: CVE-2026-41006 and CVE-2026-41007.
-  implementation "org.springframework.hateoas:spring-hateoas:2.5.3"
-
-  // aspectjweaver is now managed by Spring Boot BOM (1.9.25.1 in 3.5.x)
+  // AspectJ version is managed by Spring Boot.
   implementation "org.aspectj:aspectjweaver"
-  implementation "org.apache.commons:commons-text:1.10.0"
+  implementation "org.apache.commons:commons-text"
   //implementation "org.apache.opennlp:opennlp-tools:2.2.0"
 
   // Upgrade ecache to use jakarta - https://groups.google.com/g/ehcache-users/c/sKfxWuTpY-U
   // See also: https://stackoverflow.com/questions/75813659/gradle-could-not-find-org-ehcacheehcache-after-upgrading-to-spring-boot-3-0-x
   // Note: ehcache 3.10.8 uses Jakarta by default, no classifier needed
-  implementation "org.ehcache:ehcache:3.10.9"
+  implementation "org.ehcache:ehcache"
 
   // JAXB dependencies required for ehcache with Java 9+
   // ehcache 3.10.8 still uses javax.xml.bind internally for XML parsing
-  implementation 'javax.xml.bind:jaxb-api:2.3.1'
-  implementation 'com.sun.xml.bind:jaxb-impl:2.3.3'
+  implementation 'javax.xml.bind:jaxb-api'
+  implementation 'com.sun.xml.bind:jaxb-impl'
 
   // Apache POI for reading .xls and .xlsx files
-  implementation 'org.apache.poi:poi:5.4.0'
-  implementation 'org.apache.poi:poi-ooxml:5.4.0'
+  implementation 'org.apache.poi:poi'
+  implementation 'org.apache.poi:poi-ooxml'
 
   //implementation 'commons-io:commons-io:2.14.0'
-  //implementation 'commons-cli:commons-cli:1.4'
+  // Used directly by the loaders; no longer supplied transitively by HAPI/Jena.
+  implementation 'commons-cli:commons-cli:1.11.0'
   implementation 'cglib:cglib:3.3.0'
   implementation 'com.google.protobuf:protobuf-java:3.25.5'
 
   // fhir dependencies
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-base:7.6.1";
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.6.1"
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.6.1"
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-server:7.6.1"
-  implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:7.6.1") {
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-base:${hapiFhirVersion}"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:${hapiFhirVersion}"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:${hapiFhirVersion}"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server:${hapiFhirVersion}"
+  implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:${hapiFhirVersion}") {
     exclude group: "net.minidev", module: "json-smart"
     exclude group: "ca.uhn.hapi.fhir", module: "hapi-fhir-sql-migrate"
     exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-high-level-client"
@@ -192,10 +161,10 @@ dependencies {
     exclude group: "org.glassfish", module: "javax.el"
     exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
   }
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.6.1"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:${hapiFhirVersion}"
 
   // disk-backed map implementation for hierarchy path builds
-  implementation "com.h2database:h2:2.4.240"
+  implementation "com.h2database:h2"
 
   // Lombok dependencies (avoid using lombok for now)
   //implementation "org.projectlombok:lombok:1.18.32"
@@ -203,13 +172,14 @@ dependencies {
   //compileOnly "org.projectlombok:lombok:1.18.32"
 
   // SpotBugs annotations
-  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.2"
+  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
 
   /*
    * Test Dependencies
   */
-  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation "org.springframework.boot:spring-boot-restclient-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   // Use spring-boot-starter-test defaults
   // testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
@@ -224,11 +194,7 @@ dependencies {
 
 }
 
-test {
-  useJUnitPlatform{
-    // Perf tests are excluded from the normal run; invoke explicitly via `./gradlew perfTest`
-    excludeTags 'perf'
-  }
+tasks.withType(Test).configureEach {
   // Args to pass when running the tests to ensure the cglib can be accessed and avoid InaccessibleObjectException
   jvmArgs("-Xmx8G", "--add-opens", "java.base/java.lang=ALL-UNNAMED")
   // Set the active profile to use our application-test.yml file from test resources
@@ -240,15 +206,38 @@ test {
   testLogging.showStandardStreams = true
 }
 
+test {
+  useJUnitPlatform{
+    // Preserve the full local suite; it requires prepared graph/OpenSearch data.
+    excludeTags 'perf'
+  }
+}
+
+tasks.register('unitTest', Test) {
+  group = 'verification'
+  description = 'Runs tests that do not require prepared graph/OpenSearch data.'
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  useJUnitPlatform { excludeTags 'integration', 'perf' }
+}
+
+tasks.register('integrationTest', Test) {
+  group = 'verification'
+  description = 'Runs integration tests against configured services and loaded test data.'
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  useJUnitPlatform {
+    includeTags 'integration'
+    excludeTags 'perf'
+  }
+}
+
 // Perf-tagged tests against a live local graphdb/opensearch stack.
 // Excluded from the default `test` task; run explicitly with `./gradlew perfTest`.
 task perfTest(type: Test) {
   useJUnitPlatform{
     includeTags 'perf'
   }
-  jvmArgs("-Xmx8G", "--add-opens", "java.base/java.lang=ALL-UNNAMED")
-  systemProperty("spring.profiles.active", "test")
-  testLogging.showStandardStreams = true
   outputs.upToDateWhen { false }
 }
 
@@ -268,7 +257,7 @@ spotless {
   java {
     target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
     // apply a specific flavor of google-java-format
-    googleJavaFormat('1.22.0').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')
+    googleJavaFormat('1.28.0').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')
     removeUnusedImports()
     // fix formatting of type annotations
 //        formatAnnotations()
@@ -302,27 +291,20 @@ spotbugsTest {
     }
 }
 
-// # for this, the cuis with listed sources will have hierarchies computed
-// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META [-PcopyMode=codesab|cui]
-tasks.register('rrfSample', JavaExec) {
-  classpath = sourceSets.main.runtimeClasspath
-  main = "gov.nih.nci.evs.api.service.SamplingApplication"
-  systemProperties System.getProperties()
-  // arguments to pass to the application
-  args("rrfSample", inputPath, listFile, terminology, copyMode)
-  jvmArgs "-Xmx8G"
-}
-
-
 tasks.register('zipFile', Zip) {
   def zipFileRootDirectory = "${project.name}-${project.version}"
 
   from('src/main/bin') {
-    fileMode = 0755
+    include 'evsrestapi', 'evsrestapi.service', 'postman.sh', 'setenv-*.sh_orig', '*.postman_collection.json'
+    filePermissions {
+      unix('rwxr-xr-x')
+    }
     into "$zipFileRootDirectory/bin"
   }
   from("$buildDir/main/bin") {
-    fileMode = 0755
+    filePermissions {
+      unix('rwxr-xr-x')
+    }
     include '**/createDirectoriesForWorkspace.pl'
     into "$zipFileRootDirectory/bin"
   }
@@ -343,19 +325,11 @@ tasks.register('zipFile', Zip) {
   }
 }
 
-// NOTE: this causes LoaderServiceImpl to launch when run via -jar
-bootJar {
-  manifest {
-    attributes 'Start-Class': 'gov.nih.nci.evs.api.service.LoaderServiceImpl'
-  }
-  // Handle duplicate copying more than one file to the same destination
-  // https://docs.gradle.org/8.2.1/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:duplicatesStrategy
-  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-}
-
-zipFile.dependsOn = [bootWar, bootJar]
-build.dependsOn = [spotlessCheck, spotbugsMain, spotbugsTest, test, bootWar, bootJar, zipFile]
-publishToMavenLocal.dependsOn = [bootWar, bootJar, zipFile]
+// The executable application is the server; data management lives in operations.
+bootJar { enabled = false }
+zipFile.dependsOn = [bootWar]
+build.dependsOn = [spotlessCheck, spotbugsMain, spotbugsTest, test, bootWar, zipFile]
+publishToMavenLocal.dependsOn = [bootWar, zipFile]
 
 dependencyLocking {
   lockAllConfigurations()
