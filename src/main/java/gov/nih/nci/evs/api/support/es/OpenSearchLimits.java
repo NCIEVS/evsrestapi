@@ -3,8 +3,7 @@ package gov.nih.nci.evs.api.support.es;
 /**
  * The OpenSearch server limits the searches depend on. A limit of OpenSearch limits every search
  * built on it, so the code that builds a search checks these up front and reports a breach as a bad
- * request, instead of letting OpenSearch fail the search. {@code OpenSearchLimitsTest} checks that
- * the running server matches.
+ * request, instead of letting OpenSearch fail the search.
  */
 public final class OpenSearchLimits {
 
