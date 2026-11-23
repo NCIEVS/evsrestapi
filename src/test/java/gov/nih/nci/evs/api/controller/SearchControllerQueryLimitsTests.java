@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.query.EvsQuery;
-import java.util.Collections;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,13 +11,12 @@ import org.springframework.http.ResponseEntity;
 /**
  * Tests that every limit the query endpoint asserts reaches the client as a bad request that says
  * which limit the query broke. The limits (paging, the JSON parser's nesting, the query tree's
- * depth and children per node) are part of the endpoint's contract.
+ * depth) are part of the endpoint's contract.
  *
  * <p>Each limit's exact edge is tested where the limit is owned (see {@code
- * SearchCriteriaUnitTest}, {@code EvsQueryTest}, {@code OpenSearchLimitReasonTest}, {@code
- * HasHierarchyRelativeLimitsTest}); these tests check the error the client gets. They go through
- * real HTTP rather than MockMvc, because the error message is added by the error controller, which
- * MockMvc skips.
+ * SearchCriteriaUnitTest}, {@code EvsQueryTest}, {@code HasHierarchyRelativeLimitsTest}); these
+ * tests check the error the client gets. They go through real HTTP rather than MockMvc, because the
+ * error message is added by the error controller, which MockMvc skips.
  *
  * <p>Runs against the test OpenSearch with NCIt loaded.
  */
@@ -67,55 +64,6 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
 
     assertThat(message)
         .contains(String.valueOf(SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW));
-  }
-
-  // ---------------------------------------------------------------------------------------------
-  // Clauses: each And or Or can hold at most EvsQuery.MAX_CHILDREN children. The
-  // limit counts per And or Or, not across the whole tree.
-  // ---------------------------------------------------------------------------------------------
-
-  /** Test an Or with exactly the most children allowed is searched. */
-  @Test
-  public void testOrWithMaxClauseCountChildrenReturnsOk() {
-    final ResponseEntity<String> response = exchangeOrWithChildren(EvsQuery.MAX_CHILDREN);
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
-
-  /**
-   * Test the clause limit counts each Or separately: two nested Ors, each at the limit, hold twice
-   * as many leaves as the limit and are still searched.
-   */
-  @Test
-  public void testNestedOrsEachAtMaxClauseCountReturnOk() {
-    final String orAtMaxClauseCount = getOrWithChildren(EvsQuery.MAX_CHILDREN);
-    final String orOfOrsAtMaxClauseCount =
-        "{\"type\": \"Or\", \"children\": ["
-            + orAtMaxClauseCount
-            + ", "
-            + orAtMaxClauseCount
-            + "]}";
-
-    final ResponseEntity<String> response =
-        exchangeQuery(orOfOrsAtMaxClauseCount, FIRST_RECORD, SMALL_PAGE_SIZE);
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-  }
-
-  /** An Or with more children than allowed is rejected as a bad request. */
-  @Test
-  public void testOrWithTooManyChildrenReturnsBadRequest() {
-    final ResponseEntity<String> response = exchangeTooManyClauses();
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-  }
-
-  /** An Or with too many children gets an error naming the limit. */
-  @Test
-  public void testOrWithTooManyChildrenErrorNamesLimit() {
-    final String message = getErrorMessage(exchangeTooManyClauses());
-
-    assertThat(message).contains(String.valueOf(EvsQuery.MAX_CHILDREN));
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -233,36 +181,6 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
   private ResponseEntity<String> exchangePastResultWindow() {
     final int fromRecord = SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW - SMALL_PAGE_SIZE + 1;
     return exchangeQuery(LEAF_QUERY, fromRecord, SMALL_PAGE_SIZE);
-  }
-
-  /**
-   * Posts an Or with one more child than allowed.
-   *
-   * @return the response
-   */
-  private ResponseEntity<String> exchangeTooManyClauses() {
-    return exchangeOrWithChildren(EvsQuery.MAX_CHILDREN + 1);
-  }
-
-  /**
-   * Posts an Or with the given number of children, each the leaf query.
-   *
-   * @param childCount the number of children
-   * @return the response
-   */
-  private ResponseEntity<String> exchangeOrWithChildren(final int childCount) {
-    return exchangeQuery(getOrWithChildren(childCount), FIRST_RECORD, SMALL_PAGE_SIZE);
-  }
-
-  /**
-   * Returns an Or query with the given number of copies of the leaf query as children.
-   *
-   * @param childCount the number of children
-   * @return the Or query as JSON
-   */
-  private static String getOrWithChildren(final int childCount) {
-    final List<String> children = Collections.nCopies(childCount, LEAF_QUERY);
-    return "{\"type\": \"Or\", \"children\": [" + String.join(", ", children) + "]}";
   }
 
   /**

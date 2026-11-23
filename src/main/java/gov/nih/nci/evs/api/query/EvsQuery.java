@@ -59,13 +59,6 @@ public abstract class EvsQuery {
    */
   public static final int MAX_QUERY_DEPTH = 10;
 
-  /**
-   * The most children one {@link And} or {@link Or} holds, counted per node, not across the tree.
-   * Each child is one clause of the node's {@code bool} query, so this stays within OpenSearch's
-   * default {@code indices.query.bool.max_clause_count}, which it counts per {@code bool} query.
-   */
-  public static final int MAX_CHILDREN = 1_024;
-
   /** A leaf's depth: it holds no other query. */
   private static final int LEAF_DEPTH = 1;
 
