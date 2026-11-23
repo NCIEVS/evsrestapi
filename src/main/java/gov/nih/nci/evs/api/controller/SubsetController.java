@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.controller;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Include;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.MetadataService;
@@ -12,6 +13,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,15 +86,9 @@ public class SubsetController extends BaseController {
         example = "ncit"),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, inverseAssociations, inverseRoles, maps, parents, properties,"
-                + " roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "list",
@@ -106,11 +103,11 @@ public class SubsetController extends BaseController {
   @GetMapping(value = "/subset/{terminology}", produces = "application/json")
   public @ResponseBody List<Concept> getSubsets(
       @PathVariable(value = "terminology") final String terminology,
-      @RequestParam(required = false, name = "include") final Optional<String> include,
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include,
       @RequestParam(required = false, name = "list") final Optional<String> list)
       throws Exception {
     try {
-      return metadataService.getSubsets(terminology, include, list);
+      return metadataService.getSubsets(terminology, include.map(Include::getParameter), list);
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -155,15 +152,9 @@ public class SubsetController extends BaseController {
         schema = @Schema(implementation = String.class)),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data tc return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, inverseAssociations, inverseRoles, maps, parents, properties,"
-                + " roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "summary")
   })
   @RecordMetric
@@ -171,7 +162,7 @@ public class SubsetController extends BaseController {
   public @ResponseBody Concept getSubset(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
-      @RequestParam(required = false, name = "include") final Optional<String> include)
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include)
       throws Exception {
     try {
       // If the code contains a comma, just bail
@@ -179,7 +170,8 @@ public class SubsetController extends BaseController {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
       }
-      Optional<Concept> concept = metadataService.getSubset(terminology, code, include);
+      Optional<Concept> concept =
+          metadataService.getSubset(terminology, code, include.map(Include::getParameter));
       if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
@@ -241,15 +233,9 @@ public class SubsetController extends BaseController {
         schema = @Schema(implementation = String.class)),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "fromRecord",
@@ -271,12 +257,13 @@ public class SubsetController extends BaseController {
       @RequestParam("fromRecord") final Optional<Integer> fromRecord,
       @RequestParam(required = false, value = "pageSize") final Optional<Integer> pageSize,
       @PathVariable(required = false, value = "code") final String code,
-      @RequestParam("include") final Optional<String> include)
+      @RequestParam("include") final Optional<Set<Include>> include)
       throws Exception {
     try {
       final Terminology term =
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
-      final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
+      final IncludeParam ip =
+          new IncludeParam(include.map(Include::getParameter).orElse("minimal"));
 
       final Optional<Concept> concept =
           opensearchQueryService.getConcept(

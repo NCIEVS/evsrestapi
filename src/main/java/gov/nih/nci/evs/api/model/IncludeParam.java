@@ -3,13 +3,19 @@ package gov.nih.nci.evs.api.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Represents choices about how much data to include when reading content. */
 @Schema(hidden = true)
 public class IncludeParam extends BaseModel {
+
+  /** Separates the values in an include parameter. */
+  private static final String VALUE_SEPARATOR = ",";
 
   /** The synonyms. */
   private boolean synonyms;
@@ -74,68 +80,95 @@ public class IncludeParam extends BaseModel {
   }
 
   /**
-   * Instantiates a {@link IncludeParam} from the specified parameters.
+   * Instantiates an {@link IncludeParam} from an include parameter as a client wrote it: values
+   * separated by commas, e.g. "summary,roles", or null for minimal. Spaces around a value and empty
+   * values are ignored.
    *
-   * @param include the include
+   * @param include the include parameter, or null
+   * @throws ResponseStatusException BAD_REQUEST naming the first unknown value
    */
   public IncludeParam(final String include) {
-    if (include == null) {
-      populateMinimal();
-    } else {
-      for (final String partPreTrim : include.split(",")) {
-        final String part = partPreTrim.trim();
-        if (part.equals("minimal")) {
-          populateMinimal();
-        } else if (part.equals("summary")) {
-          populateSummary();
-        } else if (part.equals("full")) {
-          populateFull();
-        } else if (part.equals("*")) {
-          populateEverything();
-        } else if (part.equals("synonyms")) {
-          synonyms = true;
-        } else if (part.equals("definitions")) {
-          definitions = true;
-        } else if (part.equals("properties")) {
-          properties = true;
-        } else if (part.equals("children")) {
-          children = true;
-        } else if (part.equals("descendants")) {
-          descendants = true;
-        } else if (part.equals("ancestors")) {
-          ancestors = true;
-        } else if (part.equals("parents")) {
-          parents = true;
-        } else if (part.equals("associations")) {
-          associations = true;
-        } else if (part.equals("inverseAssociations")) {
-          inverseAssociations = true;
-        } else if (part.equals("roles")) {
-          roles = true;
-        } else if (part.equals("inverseRoles")) {
-          inverseRoles = true;
-        } else if (part.equals("maps")) {
-          maps = true;
-        } else if (part.equals("highlights")) {
-          highlights = true;
-        } else if (part.equals("disjointWith")) {
-          disjointWith = true;
-        } else if (part.equals("paths")) {
-          paths = true;
-        } else if (part.equals("extensions")) {
-          extensions = true;
-        } else if (part.equals("history")) {
-          history = true;
-        } else if (part.equals("subsetLink")) {
-          subsetLink = true;
-        } else if (part.equals("mapsetLink")) {
-          mapsetLink = true;
-        } else {
-          throw new ResponseStatusException(
-              HttpStatus.BAD_REQUEST,
-              "Invalid includes value = " + part + (part.equals(include) ? "" : "; " + include));
-        }
+    this(getIncludes(include));
+  }
+
+  /**
+   * Instantiates an {@link IncludeParam} turning on every field any of the values turns on.
+   *
+   * @param includes the include values
+   */
+  public IncludeParam(final Collection<Include> includes) {
+    final Set<Include> fields = EnumSet.noneOf(Include.class);
+    for (final Include include : includes) {
+      fields.addAll(include.getFields());
+    }
+
+    synonyms = fields.contains(Include.SYNONYMS);
+    definitions = fields.contains(Include.DEFINITIONS);
+    properties = fields.contains(Include.PROPERTIES);
+    children = fields.contains(Include.CHILDREN);
+    descendants = fields.contains(Include.DESCENDANTS);
+    ancestors = fields.contains(Include.ANCESTORS);
+    parents = fields.contains(Include.PARENTS);
+    associations = fields.contains(Include.ASSOCIATIONS);
+    inverseAssociations = fields.contains(Include.INVERSE_ASSOCIATIONS);
+    roles = fields.contains(Include.ROLES);
+    inverseRoles = fields.contains(Include.INVERSE_ROLES);
+    maps = fields.contains(Include.MAPS);
+    highlights = fields.contains(Include.HIGHLIGHTS);
+    disjointWith = fields.contains(Include.DISJOINT_WITH);
+    paths = fields.contains(Include.PATHS);
+    extensions = fields.contains(Include.EXTENSIONS);
+    history = fields.contains(Include.HISTORY);
+    subsetLink = fields.contains(Include.SUBSET_LINK);
+    mapsetLink = fields.contains(Include.MAPSET_LINK);
+  }
+
+  /**
+   * Returns the include values in an include parameter as a client wrote it.
+   *
+   * @param include the include parameter, or null for minimal
+   * @return the include values
+   * @throws ResponseStatusException BAD_REQUEST naming the first unknown value
+   */
+  private static List<Include> getIncludes(final String include) {
+    final boolean hasInclude = include != null;
+    if (!hasInclude) {
+      return List.of(Include.MINIMAL);
+    }
+
+    final List<Include> includes = new ArrayList<>();
+    for (final String untrimmedValue : include.split(VALUE_SEPARATOR)) {
+      final String value = untrimmedValue.trim();
+      final boolean isEmptyValue = value.isEmpty();
+      if (isEmptyValue) {
+        continue;
       }
+      includes.add(getInclude(value, include));
+    }
+    return includes;
+  }
+
+  /**
+   * Returns the include value a client wrote.
+   *
+   * @param value one value, trimmed
+   * @param include the whole include parameter, to show in the error
+   * @return the include value
+   * @throws ResponseStatusException BAD_REQUEST naming the value and the allowed values
+   */
+  private static Include getInclude(final String value, final String include) {
+    try {
+      return Include.getByParameterValue(value);
+    } catch (final IllegalArgumentException e) {
+      final boolean isWholeParameter = value.equals(include);
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Invalid includes value = "
+              + value
+              + (isWholeParameter ? "" : "; " + include)
+              + "; allowed: "
+              + String.join(", ", Include.getParameterValues()),
+          e);
     }
   }
 
@@ -172,54 +205,7 @@ public class IncludeParam extends BaseModel {
     extensions = other.isExtensions();
     history = other.isHistory();
     subsetLink = other.isSubsetLink();
-  }
-
-  /** Populate minimal. */
-  public void populateMinimal() {
-    // n/a - this involves setting actually nothing right now because code/name
-    // are required.
-  }
-
-  /** Populate summary. */
-  public void populateSummary() {
-    synonyms = true;
-    definitions = true;
-    properties = true;
-  }
-
-  /** Populate full. */
-  public void populateFull() {
-    synonyms = true;
-    definitions = true;
-    history = true;
-    properties = true;
-    children = true;
-    parents = true;
-    associations = true;
-    inverseAssociations = true;
-    roles = true;
-    inverseRoles = true;
-    maps = true;
-    highlights = true;
-    disjointWith = true;
-    subsetLink = true;
-    mapsetLink = true;
-
-    // Full doesn't include descendants, ancestors and paths
-    // descendants = false;
-    // ancestors = false;
-    // paths = false;
-    // extensions = false;
-
-  }
-
-  /** Populate everything. */
-  public void populateEverything() {
-    populateFull();
-    descendants = true;
-    ancestors = true;
-    paths = true;
-    extensions = true;
+    mapsetLink = other.isMapsetLink();
   }
 
   /**

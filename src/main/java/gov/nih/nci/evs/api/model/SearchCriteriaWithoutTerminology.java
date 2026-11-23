@@ -855,6 +855,10 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
               + pageSize);
     }
 
+    // Parse include now, so an unknown value fails with the other parameter checks rather than
+    // in the search
+    computeIncludeParam();
+
     // Long, so a huge fromRecord can't overflow past the check
     final long pageEnd = (long) fromRecord + pageSize;
     final boolean isPastResultWindow = pageEnd > OpenSearchLimits.MAX_RESULT_WINDOW;

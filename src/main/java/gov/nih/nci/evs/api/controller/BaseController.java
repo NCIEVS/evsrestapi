@@ -15,6 +15,19 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("${nci.evs.application.contextPath}")
 public class BaseController {
 
+  /**
+   * How the include parameter works, for every endpoint that takes it. The API documentation lists
+   * the values themselves, from {@link gov.nih.nci.evs.api.model.Include}.
+   */
+  protected static final String INCLUDE_DESCRIPTION =
+      "Which fields to return for each concept, beyond its code, name, terminology, and status."
+          + " Comma-separated; the response gets every field any value turns on. Shortcuts:"
+          + " 'minimal' (no extra fields), 'summary' (synonyms, definitions, properties), 'full'"
+          + " (every field except the large lists descendants, ancestors, paths, and extensions),"
+          + " '*' (every field). <a"
+          + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
+          + " target='_blank'>See here for detailed information</a>.";
+
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(BaseController.class);
 

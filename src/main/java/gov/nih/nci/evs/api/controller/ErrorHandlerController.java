@@ -12,6 +12,7 @@ import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.context.MessageSourceResolvable;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Handler for errors when accessing API thru browser. */
@@ -191,14 +193,22 @@ public class ErrorHandlerController implements ErrorController {
    * @return the error path
    */
   /**
-   * Returns a message naming each field that failed validation and why, e.g. "pageSize: must be
-   * less than or equal to 1000; role: must not be null", or null if the error isn't a validation
-   * failure.
+   * Returns a message naming each parameter or field that failed validation and why, e.g.
+   * "pageSize: must be less than or equal to 1000; role: must not be null", or null if the error
+   * isn't a validation failure. A parameter Spring couldn't convert, e.g. an unknown include value,
+   * counts as failing validation.
    *
    * @param error the error, or null
    * @return the message, or null
    */
   private static String getValidationMessage(final Throwable error) {
+    if (error instanceof MethodArgumentTypeMismatchException) {
+      final MethodArgumentTypeMismatchException mismatch =
+          (MethodArgumentTypeMismatchException) error;
+      return mismatch.getName()
+          + FIELD_SEPARATOR
+          + NestedExceptionUtils.getMostSpecificCause(mismatch).getMessage();
+    }
     if (error instanceof MethodValidationResult) {
       return getMethodValidationMessage((MethodValidationResult) error);
     }

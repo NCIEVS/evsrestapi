@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.Include;
 import gov.nih.nci.evs.api.model.MapResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
@@ -28,6 +29,8 @@ import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -44,6 +47,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.jena.query.QueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +81,9 @@ public class SearchController extends BaseController {
 
   /** The default typeahead fields: enough to show each suggestion, without highlights. */
   private static final String DEFAULT_TYPEAHEAD_INCLUDE = "minimal";
+
+  /** The fields the query endpoint returns for each concept unless the client asks for more. */
+  private static final String DEFAULT_QUERY_INCLUDE = "minimal";
 
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
@@ -197,15 +204,10 @@ public class SearchController extends BaseController {
         schema = @Schema(implementation = Boolean.class)),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        array = @ArraySchema(schema = @Schema(implementation = Include.class)),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "fromRecord",
@@ -473,16 +475,11 @@ public class SearchController extends BaseController {
     @Parameter(
         name = "include",
         description =
-            "Indicator of how much data to return, as for concept search. Comma-separated list of"
-                + " any of the following values: minimal, summary, full, associations, children,"
-                + " definitions, disjointWith, highlights, history, inverseAssociations,"
-                + " inverseRoles, maps, parents, properties, roles, synonyms. Add 'highlights' to"
-                + " mark the matched part of each suggestion. Typeahead runs on every keystroke, so"
-                + " keep it small. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+            INCLUDE_DESCRIPTION
+                + " Add 'highlights' to mark the matched part of each suggestion. Typeahead runs on"
+                + " every keystroke, so keep it small.",
         required = false,
-        schema = @Schema(implementation = String.class, defaultValue = DEFAULT_TYPEAHEAD_INCLUDE),
+        explode = Explode.FALSE,
         example = "minimal,highlights"),
     @Parameter(
         name = "X-EVSRESTAPI-License-Key",
@@ -501,11 +498,12 @@ public class SearchController extends BaseController {
       @RequestParam(name = "pageSize", defaultValue = DEFAULT_TYPEAHEAD_PAGE_SIZE)
           final Integer pageSize,
       @RequestParam(name = "include", defaultValue = DEFAULT_TYPEAHEAD_INCLUDE)
-          final String include,
+          final Set<Include> include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
 
-    return typeaheadService(incompleteTerm, terminologies, license, pageSize, include);
+    return typeaheadService(
+        incompleteTerm, terminologies, license, pageSize, Include.getParameter(include));
   }
 
   /**
@@ -656,16 +654,10 @@ public class SearchController extends BaseController {
         schema = @Schema(implementation = Integer.class, defaultValue = "10")),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, highlights, history, inverseAssociations, inverseRoles, maps,"
-                + " parents, properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class, defaultValue = "minimal"),
-        example = "minimal"),
+        explode = Explode.FALSE,
+        example = "summary,roles"),
     @Parameter(
         name = "X-EVSRESTAPI-License-Key",
         description =
@@ -702,13 +694,14 @@ public class SearchController extends BaseController {
           @Min(SearchCriteriaWithoutTerminology.MIN_PAGE_SIZE)
           @Max(SearchCriteriaWithoutTerminology.MAX_PAGE_SIZE)
           final Integer pageSize,
-      @RequestParam(name = "include", required = false) final String include,
+      @RequestParam(name = "include", defaultValue = DEFAULT_QUERY_INCLUDE)
+          final Set<Include> include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     // SearchCriteria carries the request parameters, as for typeahead, so this reuses the
     // existing validation methods
     final SearchCriteria searchCriteria =
-        getQuerySearchCriteria(terminology, fromRecord, pageSize, include);
+        getQuerySearchCriteria(terminology, fromRecord, pageSize, Include.getParameter(include));
 
     final long timerStartDate = System.currentTimeMillis();
 
@@ -843,15 +836,10 @@ public class SearchController extends BaseController {
         schema = @Schema(implementation = Boolean.class)),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        array = @ArraySchema(schema = @Schema(implementation = Include.class)),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "fromRecord",
@@ -1269,15 +1257,10 @@ public class SearchController extends BaseController {
         schema = @Schema(implementation = Boolean.class)),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        array = @ArraySchema(schema = @Schema(implementation = Include.class)),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "prefixes",

@@ -4,6 +4,7 @@ import static gov.nih.nci.evs.api.service.OpenSearchServiceImpl.escape;
 
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Include;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
@@ -15,6 +16,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,6 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,24 +78,19 @@ public class MapsetController extends BaseController {
   @Parameters({
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, inverseAssociations, inverseRoles, maps, parents, properties,"
-                + " roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal")
   })
   @RecordMetric
   @GetMapping(value = "/mapset", produces = "application/json")
   public @ResponseBody List<Concept> getMapsets(
-      @RequestParam(required = false, name = "include") final Optional<String> include)
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include)
       throws Exception {
     try {
-      final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
+      final IncludeParam ip =
+          new IncludeParam(include.map(Include::getParameter).orElse("minimal"));
       return osQueryService.getMapsets(ip);
     } catch (Exception e) {
       handleException(e, "ncit");
@@ -139,25 +137,20 @@ public class MapsetController extends BaseController {
         schema = @Schema(implementation = String.class)),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, inverseAssociations, inverseRoles, maps, parents, properties,"
-                + " roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal")
   })
   @RecordMetric
   @GetMapping(value = "/mapset/{code}", produces = "application/json")
   public @ResponseBody Concept getMapsetByCode(
       @PathVariable(value = "code") final String code,
-      @RequestParam(required = false, name = "include") final Optional<String> include)
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include)
       throws Exception {
     try {
-      final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
+      final IncludeParam ip =
+          new IncludeParam(include.map(Include::getParameter).orElse("minimal"));
       List<Concept> results = osQueryService.getMapset(code, ip);
       if (results.size() > 0) {
         return results.get(0);

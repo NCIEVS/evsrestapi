@@ -244,18 +244,34 @@ public abstract class AbstractSearchControllerQueryTests {
    */
   protected ResponseEntity<String> exchangeQuery(
       final String queryJson, final int fromRecord, final int pageSize) {
+    return exchangeQuery(queryJson, fromRecord, pageSize, MINIMAL_INCLUDE);
+  }
+
+  /**
+   * Posts a query to search NCIt over real HTTP, returning the given fields, and asking for a JSON
+   * response, including on error.
+   *
+   * @param queryJson the query tree as JSON
+   * @param fromRecord the index of the first concept to return
+   * @param pageSize the maximum number of concepts to return
+   * @param include the include parameter, as a client would write it
+   * @return the response
+   */
+  protected ResponseEntity<String> exchangeQuery(
+      final String queryJson, final int fromRecord, final int pageSize, final String include) {
     final HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
     return restTemplate.exchange(
-        QUERY_URL + "?fromRecord={fromRecord}&pageSize={pageSize}",
+        QUERY_URL + "?fromRecord={fromRecord}&pageSize={pageSize}&include={include}",
         HttpMethod.POST,
         new HttpEntity<>(queryJson, headers),
         String.class,
         TERMINOLOGY,
         fromRecord,
-        pageSize);
+        pageSize,
+        include);
   }
 
   /**

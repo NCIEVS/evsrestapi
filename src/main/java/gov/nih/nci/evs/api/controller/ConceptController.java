@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
+import gov.nih.nci.evs.api.model.Include;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
@@ -24,6 +25,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -133,15 +135,9 @@ public class ConceptController extends BaseController {
         example = "ncit"),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "list",
@@ -164,7 +160,7 @@ public class ConceptController extends BaseController {
   @RecordMetric
   public @ResponseBody List<Concept> getConcepts(
       @PathVariable(value = "terminology") final String terminology,
-      @RequestParam(required = false, name = "include") final Optional<String> include,
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include,
       @RequestParam(name = "list", required = true) final String list,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
@@ -172,7 +168,8 @@ public class ConceptController extends BaseController {
       final Terminology term =
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
-      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      final IncludeParam ip =
+          new IncludeParam(include.map(Include::getParameter).orElse("summary"));
 
       final String[] codes = list.split(",");
       // Impose a maximum number at a time
@@ -300,15 +297,9 @@ public class ConceptController extends BaseController {
         example = "100"),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "summary"),
     @Parameter(
         name = "X-EVSRESTAPI-License-Key",
@@ -325,7 +316,7 @@ public class ConceptController extends BaseController {
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
       @RequestParam(required = false, name = "limit") final Optional<Integer> limit,
-      @RequestParam(required = false, name = "include") final Optional<String> include,
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
 
@@ -333,7 +324,8 @@ public class ConceptController extends BaseController {
       final Terminology term =
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
-      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      final IncludeParam ip =
+          new IncludeParam(include.map(Include::getParameter).orElse("summary"));
 
       final Optional<Concept> concept = opensearchQueryService.getConcept(code, term, ip);
 
@@ -703,15 +695,9 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class)),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "fromRecord",
@@ -741,14 +727,15 @@ public class ConceptController extends BaseController {
       @RequestParam("fromRecord") final Optional<Integer> fromRecord,
       @RequestParam(required = false, value = "pageSize") final Optional<Integer> pageSize,
       @PathVariable(required = false, value = "code") final String code,
-      @RequestParam("include") final Optional<String> include,
+      @RequestParam("include") final Optional<Set<Include>> include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
       final Terminology term =
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
-      final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
+      final IncludeParam ip =
+          new IncludeParam(include.map(Include::getParameter).orElse("minimal"));
 
       final Optional<Concept> concept =
           opensearchQueryService.getConcept(
@@ -1467,15 +1454,9 @@ public class ConceptController extends BaseController {
         example = "ncit"),
     @Parameter(
         name = "include",
-        description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
+        description = INCLUDE_DESCRIPTION,
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "X-EVSRESTAPI-License-Key",
@@ -1490,7 +1471,7 @@ public class ConceptController extends BaseController {
   @GetMapping(value = "/concept/{terminology}/roots", produces = "application/json")
   public @ResponseBody List<Concept> getRoots(
       @PathVariable(value = "terminology") final String terminology,
-      @RequestParam(required = false, name = "include") final Optional<String> include,
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
 
@@ -1498,7 +1479,7 @@ public class ConceptController extends BaseController {
       final Terminology term =
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
-      final IncludeParam ip = new IncludeParam(include.orElse(null));
+      final IncludeParam ip = new IncludeParam(include.map(Include::getParameter).orElse(null));
 
       final List<Concept> list = opensearchQueryService.getRootNodes(term, ip);
       if (list == null || list.isEmpty()) {
@@ -1565,16 +1546,12 @@ public class ConceptController extends BaseController {
     @Parameter(
         name = "include",
         description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>. For this call, it is"
-                + " recommended to avoid using this parameter unless you need it for a specific use"
-                + " case.  Any value other than 'minimal' may produce very large payload results. ",
+            INCLUDE_DESCRIPTION
+                + " For this call, it is recommended to avoid using this parameter unless you need"
+                + " it for a specific use case. Any value other than 'minimal' may produce very"
+                + " large payload results.",
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "fromRecord",
@@ -1602,7 +1579,7 @@ public class ConceptController extends BaseController {
   public @ResponseBody List<List<Concept>> getPathsFromRoot(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
-      @RequestParam(required = false, name = "include") final Optional<String> include,
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include,
       @RequestParam(required = false, name = "fromRecord") final Optional<Integer> fromRecord,
       @RequestParam(required = false, name = "pageSize") final Optional<Integer> pageSize,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
@@ -1612,7 +1589,7 @@ public class ConceptController extends BaseController {
       final Terminology term =
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
-      final IncludeParam ip = new IncludeParam(include.orElse(null));
+      final IncludeParam ip = new IncludeParam(include.map(Include::getParameter).orElse(null));
 
       if (!opensearchQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
@@ -1974,16 +1951,12 @@ public class ConceptController extends BaseController {
     @Parameter(
         name = "include",
         description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>. For this call, it is"
-                + " recommended to avoid using this parameter unless you need it for a specific use"
-                + " case.  Any value other than 'minimal' may produce very large payload results. ",
+            INCLUDE_DESCRIPTION
+                + " For this call, it is recommended to avoid using this parameter unless you need"
+                + " it for a specific use case. Any value other than 'minimal' may produce very"
+                + " large payload results.",
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "fromRecord",
@@ -2011,7 +1984,7 @@ public class ConceptController extends BaseController {
   public @ResponseBody List<List<Concept>> getPathsToRoot(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
-      @RequestParam(required = false, name = "include") final Optional<String> include,
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include,
       @RequestParam(required = false, name = "fromRecord") final Optional<Integer> fromRecord,
       @RequestParam(required = false, name = "pageSize") final Optional<Integer> pageSize,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
@@ -2020,7 +1993,7 @@ public class ConceptController extends BaseController {
       final Terminology term =
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
-      final IncludeParam ip = new IncludeParam(include.orElse(null));
+      final IncludeParam ip = new IncludeParam(include.map(Include::getParameter).orElse(null));
 
       if (!opensearchQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
@@ -2101,16 +2074,12 @@ public class ConceptController extends BaseController {
     @Parameter(
         name = "include",
         description =
-            "Indicator of how much data to return. Comma-separated list of any of the following"
-                + " values: minimal, summary, full, associations, children, definitions,"
-                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
-                + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
-                + " target='_blank'>See here for detailed information</a>. For this call, it is"
-                + " recommended to avoid using this parameter unless you need it for a specific use"
-                + " case.  Any value other than 'minimal' may produce very large payload results. ",
+            INCLUDE_DESCRIPTION
+                + " For this call, it is recommended to avoid using this parameter unless you need"
+                + " it for a specific use case. Any value other than 'minimal' may produce very"
+                + " large payload results.",
         required = false,
-        schema = @Schema(implementation = String.class),
+        explode = Explode.FALSE,
         example = "minimal"),
     @Parameter(
         name = "fromRecord",
@@ -2141,7 +2110,7 @@ public class ConceptController extends BaseController {
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
       @PathVariable(value = "ancestorCode") final String ancestorCode,
-      @RequestParam(required = false, name = "include") final Optional<String> include,
+      @RequestParam(required = false, name = "include") final Optional<Set<Include>> include,
       @RequestParam(required = false, name = "fromRecord") final Optional<Integer> fromRecord,
       @RequestParam(required = false, name = "pageSize") final Optional<Integer> pageSize,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
@@ -2150,7 +2119,7 @@ public class ConceptController extends BaseController {
       final Terminology term =
           termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
-      final IncludeParam ip = new IncludeParam(include.orElse(null));
+      final IncludeParam ip = new IncludeParam(include.map(Include::getParameter).orElse(null));
 
       if (!opensearchQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);

@@ -19,7 +19,11 @@ criteria objects, metadata objects, relationship objects, and SPARQL JSON bindin
 ## Serialization and Indexing Notes
 
 - `Concept.java` is both a public API model and the primary OpenSearch concept document.
-- `IncludeParam.java` controls field inclusion/exclusion used by query and controller layers.
+- `Include.java` is the single list of values the `include` parameter accepts: one constant per
+  concept field, plus the shortcuts `minimal`, `summary`, `full`, and `*`. To add a field, add a
+  constant here and its flag in `IncludeParam`; `IncludeParamUnitTest` fails if the flag is missing.
+- `IncludeParam.java` controls field inclusion/exclusion used by query and controller layers. It's
+  built from `Include` values, or from an include string parsed through `Include`.
 - Relationship-like models include `Relationship`, `Association`, `Role`, `AssociationEntry`,
   `DisjointWith`, and related result lists.
 - Hierarchy/path models include `HierarchyNode`, `Path`, and `Paths`.
@@ -38,6 +42,7 @@ The `model/sparql` subpackage contains JSON binding objects used when parsing gr
 - `SearchCriteriaWithoutTerminology.java`
 - `Terminology.java`
 - `TerminologyMetadata.java`
+- `Include.java`
 - `IncludeParam.java`
 - `ResultList.java`
 - `ConceptResultList.java`
