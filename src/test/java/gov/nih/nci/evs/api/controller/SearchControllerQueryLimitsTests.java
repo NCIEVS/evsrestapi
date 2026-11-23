@@ -69,8 +69,43 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
   }
 
   // ---------------------------------------------------------------------------------------------
-  // Clauses: a query can hold at most OpenSearchLimits.MAX_CLAUSE_COUNT, translated from OpenSearch
+  // Clauses: each And or Or can hold at most OpenSearchLimits.MAX_CLAUSE_COUNT children, translated
+  // from OpenSearch. The limit counts per And or Or, not across the whole tree.
   // ---------------------------------------------------------------------------------------------
+
+  /**
+   * Test an Or with exactly as many children as OpenSearch allows clauses in one bool query is
+   * searched.
+   */
+  @Test
+  public void testOrWithMaxClauseCountChildrenReturnsOk() {
+    final ResponseEntity<String> response =
+        exchangeOrWithChildren(OpenSearchLimits.MAX_CLAUSE_COUNT);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  /**
+   * Test the clause limit counts each Or separately: two nested Ors, each at the limit, hold twice
+   * as many leaves as the limit and are still searched. OpenSearch 1.x (Lucene 8) counts clauses
+   * per boolean query; Lucene 9 counts them across the whole query, so this fails if an OpenSearch
+   * upgrade changes the limit to a total.
+   */
+  @Test
+  public void testNestedOrsEachAtMaxClauseCountReturnOk() {
+    final String orAtMaxClauseCount = getOrWithChildren(OpenSearchLimits.MAX_CLAUSE_COUNT);
+    final String orOfOrsAtMaxClauseCount =
+        "{\"type\": \"Or\", \"children\": ["
+            + orAtMaxClauseCount
+            + ", "
+            + orAtMaxClauseCount
+            + "]}";
+
+    final ResponseEntity<String> response =
+        exchangeQuery(orOfOrsAtMaxClauseCount, FIRST_RECORD, SMALL_PAGE_SIZE);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
 
   /** An Or with more children than OpenSearch allows clauses is rejected as a bad request. */
   @Test
@@ -122,6 +157,20 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
   // ---------------------------------------------------------------------------------------------
   // JSON nesting: the parser stops before the query depth check can run
   // ---------------------------------------------------------------------------------------------
+
+  /**
+   * Test a body nested exactly to the JSON parser's limit gets past the parser: it's rejected for
+   * the query depth limit, which is stricter, not for JSON nesting.
+   */
+  @Test
+  public void testBodyAtJsonNestingLimitPassesParser() {
+    final String atJsonNestingLimitQuery = getNotsAroundLeaf(JSON_MAX_NESTING_DEPTH);
+
+    final String message =
+        getErrorMessage(exchangeQuery(atJsonNestingLimitQuery, FIRST_RECORD, SMALL_PAGE_SIZE));
+
+    assertThat(message).contains("at most " + EvsQuery.MAX_QUERY_DEPTH).doesNotContain("nesting");
+  }
 
   /** A body nested past the JSON parser's limit is rejected as a bad request. */
   @Test
@@ -198,11 +247,28 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
    * @return the response
    */
   private ResponseEntity<String> exchangeTooManyClauses() {
-    final List<String> children =
-        Collections.nCopies(OpenSearchLimits.MAX_CLAUSE_COUNT + 1, LEAF_QUERY);
-    final String tooManyClausesQuery =
-        "{\"type\": \"Or\", \"children\": [" + String.join(", ", children) + "]}";
-    return exchangeQuery(tooManyClausesQuery, FIRST_RECORD, SMALL_PAGE_SIZE);
+    return exchangeOrWithChildren(OpenSearchLimits.MAX_CLAUSE_COUNT + 1);
+  }
+
+  /**
+   * Posts an Or with the given number of children, each the leaf query.
+   *
+   * @param childCount the number of children
+   * @return the response
+   */
+  private ResponseEntity<String> exchangeOrWithChildren(final int childCount) {
+    return exchangeQuery(getOrWithChildren(childCount), FIRST_RECORD, SMALL_PAGE_SIZE);
+  }
+
+  /**
+   * Returns an Or query with the given number of copies of the leaf query as children.
+   *
+   * @param childCount the number of children
+   * @return the Or query as JSON
+   */
+  private static String getOrWithChildren(final int childCount) {
+    final List<String> children = Collections.nCopies(childCount, LEAF_QUERY);
+    return "{\"type\": \"Or\", \"children\": [" + String.join(", ", children) + "]}";
   }
 
   /**

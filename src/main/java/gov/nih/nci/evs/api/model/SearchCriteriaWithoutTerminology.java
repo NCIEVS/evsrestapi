@@ -35,6 +35,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The largest page size allowed. */
   public static final int MAX_PAGE_SIZE = 1000;
 
+  /**
+   * The largest page size allowed on a license-restricted terminology when there's no search term,
+   * so a client can't page through the whole terminology in bulk.
+   */
+  public static final int MAX_LICENSED_PAGE_SIZE = 10;
+
   /** The term. */
   private String term;
 
@@ -870,11 +876,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     // Restrict paging for license-restricted terminologies (unless term is set)
     if (terminology.getMetadata().getLicenseText() != null
         && (term == null || term.isEmpty())
-        && pageSize > 10) {
+        && pageSize > MAX_LICENSED_PAGE_SIZE) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
           terminology.getMetadata().getUiLabel().replaceFirst(":.*", "")
-              + " has license restrictions and so bulk operations are limited to working on 10"
+              + " has license restrictions and so bulk operations are limited to working on "
+              + MAX_LICENSED_PAGE_SIZE
               + " things at a time (page size = "
               + pageSize
               + ")");
