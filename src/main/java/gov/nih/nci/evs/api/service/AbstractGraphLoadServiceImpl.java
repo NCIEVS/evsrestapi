@@ -129,6 +129,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
           .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(terminology.getIndexName()))
           .putMapping(Concept.class);
+      // New index with current mapping, so ancestor fields are available for hierarchy search
+      if (Boolean.TRUE.equals(terminology.getMetadata().getHierarchy())) {
+        terminology.getMetadata().setHierarchyFields(true);
+      }
     }
 
     // Get complex roles and inverse roles

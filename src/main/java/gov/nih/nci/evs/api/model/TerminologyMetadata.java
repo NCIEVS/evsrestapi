@@ -176,6 +176,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The history version. */
   private String historyVersion;
 
+  /** The hierarchy fields flag, true when concepts were indexed with ancestor fields. */
+  private Boolean hierarchyFields;
+
   /** The duplicate codes flag. */
   private Boolean duplicateCodes;
 
@@ -251,6 +254,7 @@ public class TerminologyMetadata extends BaseModel {
     fhirPublisher = other.getFhirPublisher();
     indexRuntime = other.getIndexRuntime();
     historyVersion = other.getHistoryVersion();
+    hierarchyFields = other.getHierarchyFields();
     extraSubsets = new HashMap<>(other.getExtraSubsets());
     duplicateCodes = other.getDuplicateCodes();
   }
@@ -1404,6 +1408,25 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setHistoryVersion(String historyVersion) {
     this.historyVersion = historyVersion;
+  }
+
+  /**
+   * Returns the hierarchy fields flag. True when concepts were indexed with the ancestors and
+   * ancestorDepths fields used by hierarchy search filters.
+   *
+   * @return the hierarchy fields flag
+   */
+  public Boolean getHierarchyFields() {
+    return hierarchyFields;
+  }
+
+  /**
+   * Sets the hierarchy fields flag.
+   *
+   * @param hierarchyFields the hierarchy fields flag
+   */
+  public void setHierarchyFields(final Boolean hierarchyFields) {
+    this.hierarchyFields = hierarchyFields;
   }
 
   /**

@@ -22,6 +22,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   private static final Logger logger =
       LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
 
+  /** The maximum number of codes allowed in a hierarchy code list parameter. */
+  public static final int MAX_HIERARCHY_CODES = 100;
+
   /** The term. */
   private String term;
 
@@ -73,6 +76,27 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The code list. */
   private List<String> codeList;
 
+  /** The codes whose descendants results are restricted to. */
+  private List<String> descendantOf;
+
+  /** The codes whose descendants are excluded from results. */
+  private List<String> notDescendantOf;
+
+  /** The code whose ancestors results are restricted to. */
+  private String ancestorOf;
+
+  /** The code whose subtree (the code and its descendants) results must be in. */
+  private String ancestor;
+
+  /** The code whose ancestors, or the code itself, results must be. */
+  private String descendant;
+
+  /** The maximum depth below descendantOf codes. */
+  private Integer maxLevel;
+
+  /** Whether hierarchy anchor codes match themselves (default true). */
+  private Boolean includeSelf;
+
   /** The inverse. */
   // private Boolean inverse = null;
 
@@ -123,6 +147,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     type = other.getType();
     subset = new ArrayList<>(other.getSubset());
     codeList = new ArrayList<>(other.getCodeList());
+    descendantOf = new ArrayList<>(other.getDescendantOf());
+    notDescendantOf = new ArrayList<>(other.getNotDescendantOf());
+    ancestorOf = other.getAncestorOf();
+    ancestor = other.getAncestor();
+    descendant = other.getDescendant();
+    maxLevel = other.getMaxLevel();
+    includeSelf = other.getIncludeSelf();
   }
 
   /**
@@ -543,6 +574,176 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
+   * Returns the codes whose descendants results are restricted to.
+   *
+   * @return the descendant-of codes
+   */
+  @Schema(
+      description =
+          "Comma-separated list of concept codes; results are restricted to descendants of any of"
+              + " them, e.g. 'C3262'")
+  public List<String> getDescendantOf() {
+    if (descendantOf == null) {
+      descendantOf = new ArrayList<>();
+    }
+    return descendantOf;
+  }
+
+  /**
+   * Sets the codes whose descendants results are restricted to.
+   *
+   * @param descendantOf the descendant-of codes
+   */
+  public void setDescendantOf(final List<String> descendantOf) {
+    this.descendantOf = descendantOf;
+  }
+
+  /**
+   * Returns the codes whose descendants are excluded from results.
+   *
+   * @return the not-descendant-of codes
+   */
+  @Schema(
+      description =
+          "Comma-separated list of concept codes; descendants of any of them are excluded from"
+              + " results, e.g. 'C4872'")
+  public List<String> getNotDescendantOf() {
+    if (notDescendantOf == null) {
+      notDescendantOf = new ArrayList<>();
+    }
+    return notDescendantOf;
+  }
+
+  /**
+   * Sets the codes whose descendants are excluded from results.
+   *
+   * @param notDescendantOf the not-descendant-of codes
+   */
+  public void setNotDescendantOf(final List<String> notDescendantOf) {
+    this.notDescendantOf = notDescendantOf;
+  }
+
+  /**
+   * Returns the code whose ancestors results are restricted to.
+   *
+   * @return the ancestor-of code
+   */
+  @Schema(description = "Concept code; results are restricted to ancestors of it, e.g. 'C4872'")
+  public String getAncestorOf() {
+    return ancestorOf;
+  }
+
+  /**
+   * Sets the code whose ancestors results are restricted to.
+   *
+   * @param ancestorOf the ancestor-of code
+   */
+  public void setAncestorOf(final String ancestorOf) {
+    this.ancestorOf = ancestorOf;
+  }
+
+  /**
+   * Returns the code whose subtree results must be in (the code itself is included).
+   *
+   * @return the ancestor code
+   */
+  @Schema(
+      description =
+          "Concept code; results are restricted to its subtree: the code itself and the concepts"
+              + " that have it as an ancestor, e.g. 'C4872'")
+  public String getAncestor() {
+    return ancestor;
+  }
+
+  /**
+   * Sets the code results must have as an ancestor.
+   *
+   * @param ancestor the ancestor code
+   */
+  public void setAncestor(final String ancestor) {
+    this.ancestor = ancestor;
+  }
+
+  /**
+   * Returns the code whose ancestors results must be (the code itself is included).
+   *
+   * @return the descendant code
+   */
+  @Schema(
+      description =
+          "Concept code; results are restricted to the code itself and the concepts that have it"
+              + " as a descendant, e.g. 'C4872'")
+  public String getDescendant() {
+    return descendant;
+  }
+
+  /**
+   * Sets the code results must have as a descendant.
+   *
+   * @param descendant the descendant code
+   */
+  public void setDescendant(final String descendant) {
+    this.descendant = descendant;
+  }
+
+  /**
+   * Returns the maximum depth below descendantOf codes.
+   *
+   * @return the max level
+   */
+  @Schema(
+      description =
+          "Maximum depth below the descendantOf codes, using the shortest path; 1 means direct"
+              + " children")
+  public Integer getMaxLevel() {
+    return maxLevel;
+  }
+
+  /**
+   * Sets the maximum depth below descendantOf codes.
+   *
+   * @param maxLevel the max level
+   */
+  public void setMaxLevel(final Integer maxLevel) {
+    this.maxLevel = maxLevel;
+  }
+
+  /**
+   * Returns whether hierarchy anchor codes match themselves. Null means true.
+   *
+   * @return the include self flag
+   */
+  @Schema(
+      description =
+          "Whether the descendantOf, notDescendantOf, and ancestorOf codes themselves count as"
+              + " members of their branch (default true)")
+  public Boolean getIncludeSelf() {
+    return includeSelf;
+  }
+
+  /**
+   * Sets whether hierarchy anchor codes match themselves.
+   *
+   * @param includeSelf the include self flag
+   */
+  public void setIncludeSelf(final Boolean includeSelf) {
+    this.includeSelf = includeSelf;
+  }
+
+  /**
+   * Indicates whether any hierarchy constraint is set.
+   *
+   * @return true, if descendantOf, notDescendantOf, ancestorOf, ancestor, or descendant is set
+   */
+  public boolean hasHierarchyConstraints() {
+    return !getDescendantOf().isEmpty()
+        || !getNotDescendantOf().isEmpty()
+        || (ancestorOf != null && !ancestorOf.isBlank())
+        || (ancestor != null && !ancestor.isBlank())
+        || (descendant != null && !descendant.isBlank());
+  }
+
+  /**
    * Compute include param.
    *
    * @return the include param
@@ -684,6 +885,74 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         }
       }
     }
+
+    validateHierarchyConstraints(terminology);
+  }
+
+  /**
+   * Validate hierarchy constraints that do not require concept lookups. Anchor code existence is
+   * checked where the search is executed.
+   *
+   * @param terminology the terminology
+   */
+  private void validateHierarchyConstraints(final Terminology terminology) {
+    if (maxLevel != null) {
+      if (maxLevel < 1) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Parameter 'maxLevel' must be >= 1 = " + maxLevel);
+      }
+      if (getDescendantOf().isEmpty()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Parameter 'maxLevel' requires 'descendantOf'");
+      }
+    }
+
+    if (!hasHierarchyConstraints()) {
+      return;
+    }
+
+    if (!Boolean.TRUE.equals(terminology.getMetadata().getHierarchy())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Terminology '"
+              + terminology.getTerminology()
+              + "' does not support hierarchy parameters");
+    }
+
+    checkHierarchyCodes("descendantOf", getDescendantOf());
+    checkHierarchyCodes("notDescendantOf", getNotDescendantOf());
+    if (ancestorOf != null && ancestorOf.isBlank()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Parameter 'ancestorOf' has an invalid value = " + ancestorOf);
+    }
+    if (ancestor != null && ancestor.isBlank()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Parameter 'ancestor' has an invalid value = " + ancestor);
+    }
+    if (descendant != null && descendant.isBlank()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Parameter 'descendant' has an invalid value = " + descendant);
+    }
+  }
+
+  /**
+   * Check a hierarchy code list for blank values and size.
+   *
+   * @param name the parameter name
+   * @param codes the codes
+   */
+  private void checkHierarchyCodes(final String name, final List<String> codes) {
+    if (codes.size() > MAX_HIERARCHY_CODES) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Parameter '" + name + "' allows at most " + MAX_HIERARCHY_CODES + " codes");
+    }
+    for (final String code : codes) {
+      if (code == null || code.isBlank()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Parameter '" + name + "' has an invalid value = " + code);
+      }
+    }
   }
 
   /**
@@ -716,6 +985,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
     result = prime * result + ((codeList == null) ? 0 : codeList.hashCode());
+    result = prime * result + ((descendantOf == null) ? 0 : descendantOf.hashCode());
+    result = prime * result + ((notDescendantOf == null) ? 0 : notDescendantOf.hashCode());
+    result = prime * result + ((ancestorOf == null) ? 0 : ancestorOf.hashCode());
+    result = prime * result + ((ancestor == null) ? 0 : ancestor.hashCode());
+    result = prime * result + ((descendant == null) ? 0 : descendant.hashCode());
+    result = prime * result + ((maxLevel == null) ? 0 : maxLevel.hashCode());
+    result = prime * result + ((includeSelf == null) ? 0 : includeSelf.hashCode());
     return result;
   }
 
@@ -845,6 +1121,55 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         return false;
       }
     } else if (!codeList.equals(other.codeList)) {
+      return false;
+    }
+    if (descendantOf == null) {
+      if (other.descendantOf != null) {
+        return false;
+      }
+    } else if (!descendantOf.equals(other.descendantOf)) {
+      return false;
+    }
+    if (notDescendantOf == null) {
+      if (other.notDescendantOf != null) {
+        return false;
+      }
+    } else if (!notDescendantOf.equals(other.notDescendantOf)) {
+      return false;
+    }
+    if (ancestorOf == null) {
+      if (other.ancestorOf != null) {
+        return false;
+      }
+    } else if (!ancestorOf.equals(other.ancestorOf)) {
+      return false;
+    }
+    if (ancestor == null) {
+      if (other.ancestor != null) {
+        return false;
+      }
+    } else if (!ancestor.equals(other.ancestor)) {
+      return false;
+    }
+    if (descendant == null) {
+      if (other.descendant != null) {
+        return false;
+      }
+    } else if (!descendant.equals(other.descendant)) {
+      return false;
+    }
+    if (maxLevel == null) {
+      if (other.maxLevel != null) {
+        return false;
+      }
+    } else if (!maxLevel.equals(other.maxLevel)) {
+      return false;
+    }
+    if (includeSelf == null) {
+      if (other.includeSelf != null) {
+        return false;
+      }
+    } else if (!includeSelf.equals(other.includeSelf)) {
       return false;
     }
     if (term == null) {

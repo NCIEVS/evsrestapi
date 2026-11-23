@@ -214,6 +214,9 @@ public final class ConceptUtils {
       if (ip.isDescendants()) {
         newConcept.setDescendants(concept.getDescendants());
       }
+      if (ip.isAncestors()) {
+        newConcept.setAncestors(concept.getAncestors());
+      }
       if (ip.isSubsetLink()) {
         newConcept.setSubsetLink(concept.getSubsetLink());
       }
@@ -242,6 +245,7 @@ public final class ConceptUtils {
     concept.setDefinitions(sublist(concept.getDefinitions(), 0, limit));
     concept.setHistory(sublist(concept.getHistory(), 0, limit));
     concept.setDescendants(sublist(concept.getDescendants(), 0, limit));
+    concept.setAncestors(sublist(concept.getAncestors(), 0, limit));
     concept.setDisjointWith(sublist(concept.getDisjointWith(), 0, limit));
     concept.setInverseAssociations(sublist(concept.getInverseAssociations(), 0, limit));
     concept.setInverseRoles(sublist(concept.getInverseRoles(), 0, limit));
@@ -347,6 +351,9 @@ public final class ConceptUtils {
     }
     if (!ip.isDescendants()) {
       concept.setDescendants(null);
+    }
+    if (!ip.isAncestors()) {
+      concept.setAncestors(null);
     }
   }
 

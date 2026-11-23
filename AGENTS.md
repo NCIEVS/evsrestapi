@@ -48,6 +48,7 @@ graph service and OpenSearch to be running.
   - `service/AGENTS.md` - search, SPARQL, metadata, form, and loader services.
   - `fhir/AGENTS.md` - HAPI FHIR R4/R5 servlet and provider layer.
   - `model/AGENTS.md` - API DTOs, OpenSearch documents, and SPARQL binding models.
+  - `query/AGENTS.md` - composable search query nodes; combine with raw OpenSearch until logical nodes land.
   - `support/AGENTS.md` - support classes and OpenSearch wrapper objects.
   - `util/AGENTS.md` - shared utility classes.
   - `aop/AGENTS.md` - metrics aspect support.

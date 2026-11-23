@@ -42,6 +42,9 @@ public class ApplicationProperties {
   @Value("${google.recaptcha.site.key}")
   private String recaptchaSiteKey;
 
+  /** The max codes expanded by the hierarchy search fallback. */
+  private Integer hierarchyFallbackMaxCodes;
+
   /**
    * Returns the admin key.
    *
@@ -256,5 +259,24 @@ public class ApplicationProperties {
    */
   public void setRecaptchaSiteKey(String recaptchaSiteKey) {
     this.recaptchaSiteKey = recaptchaSiteKey;
+  }
+
+  /**
+   * Returns the maximum number of codes the hierarchy search fallback will expand for indexes
+   * without ancestor fields.
+   *
+   * @return the hierarchy fallback max codes
+   */
+  public Integer getHierarchyFallbackMaxCodes() {
+    return hierarchyFallbackMaxCodes;
+  }
+
+  /**
+   * Sets the maximum number of codes the hierarchy search fallback will expand.
+   *
+   * @param hierarchyFallbackMaxCodes the hierarchy fallback max codes
+   */
+  public void setHierarchyFallbackMaxCodes(final Integer hierarchyFallbackMaxCodes) {
+    this.hierarchyFallbackMaxCodes = hierarchyFallbackMaxCodes;
   }
 }

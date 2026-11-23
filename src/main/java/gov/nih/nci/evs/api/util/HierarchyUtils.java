@@ -240,6 +240,61 @@ public class HierarchyUtils {
   }
 
   /**
+   * Returns the ancestor nodes, each once at its shortest distance (1 = a parent), sorted by level
+   * then name.
+   *
+   * @param code the code
+   * @return the ancestor nodes
+   */
+  public List<Concept> getAncestors(String code) {
+    Map<String, Concept> ancestorMap = new LinkedHashMap<>();
+
+    // Breadth first, so each ancestor is first reached at its shortest distance
+    List<String> level = List.of(code);
+    for (int depth = 1; !level.isEmpty(); depth++) {
+      List<String> nextLevel = new ArrayList<>();
+      for (String child : level) {
+        List<String> parents = child2parent.get(child);
+        if (parents == null) {
+          continue;
+        }
+        for (String parent : parents) {
+          // Skip parents matching child
+          if (child.equals(parent)) {
+            logger.error("  unexpected self-as-parent = " + child);
+            continue;
+          }
+          if (parent.equals(code) || ancestorMap.containsKey(parent)) {
+            continue;
+          }
+          Concept conc = new Concept(parent);
+          conc.setLeaf(!parent2child.containsKey(parent));
+          conc.setLevel(depth);
+          conc.setName(code2label.get(parent));
+          ancestorMap.put(parent, conc);
+          nextLevel.add(parent);
+        }
+      }
+      level = nextLevel;
+    }
+
+    List<Concept> ancestors = new ArrayList<>(ancestorMap.values());
+    Collections.sort(
+        ancestors,
+        new Comparator<Concept>() {
+          @Override
+          public int compare(Concept c1, Concept c2) {
+            if (c1.getLevel().equals(c2.getLevel())) {
+              return c1.getName().compareTo(c2.getName());
+            } else {
+              return Integer.compare(c1.getLevel(), c2.getLevel());
+            }
+          }
+        });
+    return ancestors;
+  }
+
+  /**
    * Descendant nodes helper.
    *
    * @param code the code
@@ -774,6 +829,39 @@ public class HierarchyUtils {
       map.put(code, getPaths(terminology, code));
     }
     return map;
+  }
+
+  /**
+   * Sets the ancestor depths of a concept from its paths to root. Each ancestor is kept once with
+   * its shortest distance across all paths, so polyhierarchy is handled. The concept itself is not
+   * included. Concepts without paths are left unchanged. The ancestors themselves come from {@link
+   * #getAncestors(String)}.
+   *
+   * @param concept the concept, with paths already set
+   */
+  public static void applyAncestors(final Concept concept) {
+    if (concept.getPaths() == null || concept.getPaths().getPaths() == null) {
+      return;
+    }
+
+    final Map<String, Integer> minDepth = new HashMap<>();
+    for (final Path path : concept.getPaths().getPaths()) {
+      final List<ConceptMinimal> pathConcepts = path.getConcepts();
+      for (int i = 0; i < pathConcepts.size(); i++) {
+        final ConceptMinimal ancestor = pathConcepts.get(i);
+        final int depth = ancestor.getLevel() != null ? ancestor.getLevel() : i;
+        if (depth == 0 || ancestor.getCode().equals(concept.getCode())) {
+          continue;
+        }
+        minDepth.merge(ancestor.getCode(), depth, Math::min);
+      }
+    }
+
+    concept.setAncestorDepths(
+        minDepth.entrySet().stream()
+            .map(e -> e.getKey() + "|" + e.getValue())
+            .sorted()
+            .collect(Collectors.toList()));
   }
 
   /**

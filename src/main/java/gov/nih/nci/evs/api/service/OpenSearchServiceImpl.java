@@ -1,19 +1,28 @@
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.MappingResultList;
+import gov.nih.nci.evs.api.model.Path;
+import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.query.EvsQuery;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -39,8 +48,10 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Reference implementation of {@link OpenSearchService}. Includes hibernate tags for MEME database.
@@ -66,9 +77,68 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   /** The Opensearch query service *. */
   @Autowired OpensearchQueryService osQueryService;
 
+  /** The application properties. */
+  @Autowired ApplicationProperties applicationProperties;
+
+  /** Default max codes expanded by the hierarchy search fallback. */
+  private static final int DEFAULT_HIERARCHY_FALLBACK_MAX_CODES = 65536;
+
+  /** Number of ids per ids query clause in the hierarchy search fallback. */
+  private static final int IDS_CHUNK_SIZE = 10000;
+
+  /** Number of concepts per children lookup in the hierarchy search fallback. */
+  private static final int CHILDREN_BATCH_SIZE = 1000;
+
+  /** OpenSearch's default limit on the hits a search counts, at which its total stops. */
+  private static final long COUNTED_HIT_LIMIT = 10_000L;
+
+  /** Terminology versions for which hierarchy fallback use was already logged. */
+  private final Set<String> hierarchyFallbackNoted = ConcurrentHashMap.newKeySet();
+
   /** The term utils. */
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
+
+  /* see superclass */
+  @Override
+  public ConceptResultList findQueryConcepts(
+      final EvsQuery query,
+      final List<Terminology> terminologies,
+      final SearchCriteria searchCriteria) {
+    final SearchHits<Concept> hits =
+        query.fetchConcepts(
+            operations,
+            terminologies,
+            EVSPageable.fromRecord(searchCriteria.getFromRecord(), searchCriteria.getPageSize()),
+            new IncludeParam(searchCriteria.getInclude()));
+
+    final ConceptResultList results = new ConceptResultList();
+    results.setParameters(searchCriteria);
+    // Capped at 10,000: findQueryConceptsWithExactTotal runs a second query for the exact count
+    results.setTotal(hits.getTotalHits());
+    results.setConcepts(
+        hits.stream()
+            .peek(OpenSearchServiceImpl::addHighlightsToConcept)
+            .map(SearchHit::getContent)
+            .collect(Collectors.toList()));
+    return results;
+  }
+
+  /* see superclass */
+  @Override
+  public ConceptResultList findQueryConceptsWithExactTotal(
+      final EvsQuery query,
+      final List<Terminology> terminologies,
+      final SearchCriteria searchCriteria) {
+    final ConceptResultList results = findQueryConcepts(query, terminologies, searchCriteria);
+
+    final boolean hasTotalAtCountedHitLimit = results.getTotal() >= COUNTED_HIT_LIMIT;
+    if (hasTotalAtCountedHitLimit) {
+      results.setTotal(query.fetchConceptCount(operations, terminologies));
+    }
+
+    return results;
+  }
 
   /**
    * search for the given search criteria.
@@ -81,18 +151,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   @Override
   public ConceptResultList findConcepts(
       List<Terminology> terminologies, SearchCriteria searchCriteria) throws Exception {
-    int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
-    // PageRequest.of(page, searchCriteria.getPageSize());
-
-    // handle fromRecord offset from pageSize (e.g. fromRecord=6, pageSize=10)
-    final int fromOffset = searchCriteria.getFromRecord() % searchCriteria.getPageSize();
-    final int esFromRecord = searchCriteria.getFromRecord() - fromOffset;
-    final int esPageSize =
-        fromOffset == 0 ? searchCriteria.getPageSize() : (searchCriteria.getPageSize() * 2);
-    final int fromIndex = searchCriteria.getFromRecord() % searchCriteria.getPageSize();
-    final int toIndex = fromIndex + searchCriteria.getPageSize();
-
-    final Pageable pageable = new EVSPageable(page, esPageSize, esFromRecord);
+    final Pageable pageable =
+        EVSPageable.fromRecord(searchCriteria.getFromRecord(), searchCriteria.getPageSize());
 
     // Escape the term in case it has special characters
     final String term = escape(searchCriteria.getTerm());
@@ -100,17 +160,19 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     final BoolQueryBuilder boolQuery = new BoolQueryBuilder();
 
-    if ("".equals(term) && searchCriteria.getCodeList().isEmpty()) {
-      // don't create anything
-    } else {
+    final boolean userHasSearchArgument =
+        !("".equals(term)) || !searchCriteria.getCodeList().isEmpty();
+    final boolean shouldAddUserSearch = userHasSearchArgument;
+    if (shouldAddUserSearch) {
       boolQuery.must(getTermQuery(searchCriteria, term));
     }
 
     // Append concept status clause. Boosts active to the top of the list, and maintains inactive at
     // the bottom
     BoolQueryBuilder activeQuery = new BoolQueryBuilder();
-    activeQuery.should(QueryBuilders.matchQuery("active", true).boost(100000f));
-    activeQuery.should(QueryBuilders.matchQuery("active", false).boost(0.0001f));
+
+    boostActiveTerms(activeQuery);
+    suppressInactiveTerms(activeQuery);
     boolQuery.must(activeQuery);
 
     // append terminology query
@@ -125,6 +187,11 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       for (final QueryBuilder criteriaQuery : criteriaQueries) {
         boolQuery.must(criteriaQuery);
       }
+    }
+
+    // append hierarchy filters (validation limits these to a single terminology)
+    if (searchCriteria.hasHierarchyConstraints()) {
+      applyHierarchyFilters(boolQuery, terminologies.get(0), searchCriteria);
     }
 
     // Get include param
@@ -186,39 +253,41 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     result.setParameters(searchCriteria);
 
-    if (fromOffset == 0) {
-      result.setConcepts(
-          hits.stream()
-              .peek(
-                  h -> {
-                    if (Concept.class.isAssignableFrom(h.getContent().getClass())) {
-                      Map<String, List<String>> highlightMap = h.getHighlightFields();
-                      // searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));
-                      for (String field : highlightMap.keySet()) {
-                        // Avoid highlights from "terminology" match
-                        if (field.equals("terminology")) {
-                          continue;
-                        }
-                        for (String text : highlightMap.get(field)) {
-                          h.getContent()
-                              .getHighlights()
-                              .put(text.replaceAll("<em>", "").replaceAll("</em>", ""), text);
-                        }
-                      }
-                    }
-                  })
-              .map(SearchHit::getContent)
-              .collect(Collectors.toList()));
-    } else {
-      final List<Concept> results =
-          hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
-      if (fromIndex >= results.size()) {
-        result.setConcepts(new ArrayList<>());
-      } else {
-        result.setConcepts(results.subList(fromIndex, Math.min(toIndex, results.size())));
+    result.setConcepts(
+        hits.stream()
+            .peek(OpenSearchServiceImpl::addHighlightsToConcept)
+            .map(SearchHit::getContent)
+            .collect(Collectors.toList()));
+    return result;
+  }
+
+  /**
+   * Copies a hit's OpenSearch highlights onto its concept, keyed by the unmarked text, for {@link
+   * ConceptUtils#applyHighlights}.
+   *
+   * @param hit the hit
+   */
+  private static void addHighlightsToConcept(final SearchHit<Concept> hit) {
+    final Map<String, List<String>> highlightMap = hit.getHighlightFields();
+    for (String field : highlightMap.keySet()) {
+      // Avoid highlights from "terminology" match
+      if (field.equals("terminology")) {
+        continue;
+      }
+      for (String text : highlightMap.get(field)) {
+        hit.getContent()
+            .getHighlights()
+            .put(text.replaceAll("<em>", "").replaceAll("</em>", ""), text);
       }
     }
-    return result;
+  }
+
+  private void suppressInactiveTerms(BoolQueryBuilder activeQuery) {
+    activeQuery.should(QueryBuilders.matchQuery("active", false).boost(0.0001f));
+  }
+
+  private void boostActiveTerms(BoolQueryBuilder activeQuery) {
+    activeQuery.should(QueryBuilders.matchQuery("active", true).boost(100000f));
   }
 
   /**
@@ -230,18 +299,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    */
   @Override
   public MappingResultList findConceptMappings(String query, SearchCriteria searchCriteria) {
-    int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
-    // PageRequest.of(page, searchCriteria.getPageSize());
-
-    // handle fromRecord offset from pageSize (e.g. fromRecord=6, pageSize=10)
-    final int fromOffset = searchCriteria.getFromRecord() % searchCriteria.getPageSize();
-    final int esFromRecord = searchCriteria.getFromRecord() - fromOffset;
-    final int esPageSize =
-        fromOffset == 0 ? searchCriteria.getPageSize() : (searchCriteria.getPageSize() * 2);
-    final int fromIndex = searchCriteria.getFromRecord() % searchCriteria.getPageSize();
-    final int toIndex = fromIndex + searchCriteria.getPageSize();
-
-    final Pageable pageable = new EVSPageable(page, esPageSize, esFromRecord);
+    final Pageable pageable =
+        EVSPageable.fromRecord(searchCriteria.getFromRecord(), searchCriteria.getPageSize());
 
     // build search query from string query
     final NativeSearchQueryBuilder searchQuery =
@@ -309,17 +368,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     result.setParameters(searchCriteria);
 
-    if (fromOffset == 0) {
-      result.setMaps(hits.stream().map(SearchHit::getContent).collect(Collectors.toList()));
-    } else {
-      final List<Mapping> results =
-          hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
-      if (fromIndex >= results.size()) {
-        result.setMaps(new ArrayList<>());
-      } else {
-        result.setMaps(results.subList(fromIndex, Math.min(toIndex, results.size())));
-      }
-    }
+    result.setMaps(hits.stream().map(SearchHit::getContent).collect(Collectors.toList()));
     return result;
   }
 
@@ -410,7 +459,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the contains query
    * @throws Exception the exception
    */
-  private BoolQueryBuilder getContainsQuery(
+  public static BoolQueryBuilder getContainsQuery(
       final SearchCriteria searchCriteria, final String term, boolean fuzzyFlag, boolean andFlag)
       throws Exception {
     return getContainsQuery(searchCriteria, term, fuzzyFlag, andFlag, true);
@@ -427,7 +476,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the contains query
    * @throws Exception the exception
    */
-  private BoolQueryBuilder getContainsQuery(
+  private static BoolQueryBuilder getContainsQuery(
       final SearchCriteria searchCriteria,
       final String term,
       boolean fuzzyFlag,
@@ -663,7 +712,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param andFlag the and flag
    * @throws Exception the exception
    */
-  private void addOptionalSearchPhraseQuery(
+  private static void addOptionalSearchPhraseQuery(
       final BoolQueryBuilder termQuery,
       final SearchCriteria searchCriteria,
       final String normTerm,
@@ -686,7 +735,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param term the normalized search term
    * @return the term without optional search phrases
    */
-  private String removeOptionalSearchPhrases(final String term) {
+  private static String removeOptionalSearchPhrases(final String term) {
     if (StringUtils.isBlank(term)) {
       return term;
     }
@@ -706,7 +755,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param fuzzyFlag the fuzzy flag
    * @return the code and name query, or null when the term is not eligible
    */
-  private QueryBuilder getCodeAndNameQuery(
+  private static QueryBuilder getCodeAndNameQuery(
       final String term, final String type, final boolean fuzzyFlag) {
     if (!"contains".equals(type) || StringUtils.isBlank(term) || !term.contains(" ")) {
       return null;
@@ -739,7 +788,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param type the search type
    * @param fuzzyFlag the fuzzy flag
    */
-  private void addCodeAndNameQuery(
+  private static void addCodeAndNameQuery(
       final BoolQueryBuilder parentQuery,
       final String[] tokens,
       final int codeIndex,
@@ -779,7 +828,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param fuzzyFlag the fuzzy flag
    * @return the name/synonym query, or null when no normalized name term exists
    */
-  private QueryBuilder getNameOnlyContainsQuery(
+  private static QueryBuilder getNameOnlyContainsQuery(
       final String term, final String type, final boolean fuzzyFlag) {
     final String normTerm = ConceptUtils.normalize(term);
     if (StringUtils.isBlank(normTerm)) {
@@ -864,7 +913,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param boost the boost
    * @return the code query
    */
-  private BoolQueryBuilder getCodeQuery(final String codeList, final float boost) {
+  private static BoolQueryBuilder getCodeQuery(final String codeList, final float boost) {
     return QueryBuilders.boolQuery()
         // concept code
         .should(QueryBuilders.queryStringQuery(codeList).field("code").boost(boost))
@@ -886,7 +935,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param boost the boost
    * @return the exact code query
    */
-  private BoolQueryBuilder getExactCodeQuery(final String code, final float boost) {
+  private static BoolQueryBuilder getExactCodeQuery(final String code, final float boost) {
     return QueryBuilders.boolQuery()
         .should(QueryBuilders.matchPhraseQuery("code", code).boost(boost))
         .should(
@@ -907,7 +956,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the match query
    * @throws Exception the exception
    */
-  private BoolQueryBuilder getMatchQuery(final String term, final boolean startsWithFlag)
+  public static BoolQueryBuilder getMatchQuery(final String term, final boolean startsWithFlag)
       throws Exception {
 
     // Normalized term with escaped spaces for exact matching
@@ -968,7 +1017,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param boost the boost
    * @return the nested original code query
    */
-  private NestedQueryBuilder getOriginalCodeQuery(
+  private static NestedQueryBuilder getOriginalCodeQuery(
       final String codeList, final boolean analyzeWildcard, final float boost) {
     return QueryBuilders.nestedQuery(
             "properties",
@@ -989,7 +1038,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param boost the boost
    * @return the nested original code query
    */
-  private NestedQueryBuilder getOriginalCodeExactQuery(final String code, final float boost) {
+  private static NestedQueryBuilder getOriginalCodeExactQuery(
+      final String code, final float boost) {
     return QueryBuilders.nestedQuery(
             "properties",
             QueryBuilders.boolQuery()
@@ -1047,7 +1097,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param type the type of search
    * @return the updated term
    */
-  private String updateTermForType(String term, String type) {
+  private static String updateTermForType(String term, String type) {
     if (StringUtils.isBlank(term) || StringUtils.isBlank(type)) {
       return term;
     }
@@ -1079,7 +1129,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @param modifier the modifier
    * @return the modified term or phrase
    */
-  private String updateTokens(String term, Character modifier) {
+  private static String updateTokens(String term, Character modifier) {
     String[] tokens = term.split("\\s+");
     StringBuilder builder = new StringBuilder();
 
@@ -1239,6 +1289,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     List<String> subsets = searchCriteria.getSubset();
     BoolQueryBuilder subsetListQuery = QueryBuilders.boolQuery();
+    // Conditions on the concept itself, outside the nested association query
+    BoolQueryBuilder conceptQuery = QueryBuilders.boolQuery();
 
     if (subsets.size() == 1) {
       subsetListQuery =
@@ -1252,7 +1304,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 subsets.get(0), terminologies.get(0), new IncludeParam("synonyms"));
         // For CDISC groupers, only keep members matching CDISC in name
         if (concept.isPresent() && ConceptUtils.isCdiscGrouper(concept.get())) {
-          subsetListQuery.must(
+          conceptQuery.must(
               QueryBuilders.queryStringQuery("CDISC*").field("name").analyzeWildcard(true));
         }
       }
@@ -1271,7 +1323,322 @@ public class OpenSearchServiceImpl implements OpenSearchService {
         && searchCriteria.getSubset().get(0).contentEquals("*"))) {
       subsetQuery.must(subsetListQuery);
     }
-    return subsetQuery;
+
+    // Associations are nested, so the type and subset code must match on the same association
+    return conceptQuery.must(QueryBuilders.nestedQuery("associations", subsetQuery, ScoreMode.Max));
+  }
+
+  /**
+   * Applies hierarchy constraints (descendantOf, notDescendantOf, ancestorOf, ancestor, descendant)
+   * as filter clauses, so they do not affect scoring and can be cached.
+   *
+   * @param boolQuery the bool query
+   * @param terminology the terminology
+   * @param searchCriteria the search criteria
+   * @throws Exception the exception
+   */
+  private void applyHierarchyFilters(
+      final BoolQueryBuilder boolQuery,
+      final Terminology terminology,
+      final SearchCriteria searchCriteria)
+      throws Exception {
+    final boolean includeSelf =
+        searchCriteria.getIncludeSelf() == null || searchCriteria.getIncludeSelf();
+    final List<String> descendantOf = searchCriteria.getDescendantOf();
+    final List<String> notDescendantOf = searchCriteria.getNotDescendantOf();
+    final String ancestorOf = searchCriteria.getAncestorOf();
+    final String ancestor = searchCriteria.getAncestor();
+    final String descendant = searchCriteria.getDescendant();
+
+    checkHierarchyCodesExist(terminology, "descendantOf", descendantOf);
+    checkHierarchyCodesExist(terminology, "notDescendantOf", notDescendantOf);
+    if (ancestorOf != null) {
+      checkHierarchyCodesExist(terminology, "ancestorOf", List.of(ancestorOf));
+    }
+    if (ancestor != null) {
+      checkHierarchyCodesExist(terminology, "ancestor", List.of(ancestor));
+    }
+    if (descendant != null) {
+      checkHierarchyCodesExist(terminology, "descendant", List.of(descendant));
+    }
+
+    // ancestor: the code itself and the concepts that have it among their ancestors (its subtree)
+    if (ancestor != null) {
+      boolQuery.filter(codeOrRelated("ancestors.code", ancestor));
+    }
+
+    // descendant: the code itself and the concepts that have it among their descendants
+    if (descendant != null) {
+      boolQuery.filter(codeOrRelated("descendants.code", descendant));
+    }
+
+    // Indexes loaded before the ancestor fields existed use the query-time fallback
+    final boolean indexed = Boolean.TRUE.equals(terminology.getMetadata().getHierarchyFields());
+    if (!indexed && (!descendantOf.isEmpty() || !notDescendantOf.isEmpty())) {
+      noteHierarchyFallback(terminology);
+    }
+
+    // descendantOf: descendant of any anchor (optionally within maxLevel), or an anchor itself
+    if (!descendantOf.isEmpty()) {
+      final BoolQueryBuilder branch = QueryBuilders.boolQuery().minimumShouldMatch(1);
+      if (!indexed) {
+        addIdsClauses(
+            branch,
+            expandDescendants(
+                terminology, "descendantOf", descendantOf, searchCriteria.getMaxLevel()),
+            false);
+      } else if (searchCriteria.getMaxLevel() == null) {
+        branch.should(QueryBuilders.termsQuery("ancestors.code", descendantOf));
+      } else {
+        branch.should(
+            QueryBuilders.termsQuery(
+                "ancestorDepths", getDepthTokens(descendantOf, searchCriteria.getMaxLevel())));
+      }
+      if (includeSelf) {
+        branch.should(QueryBuilders.idsQuery().addIds(descendantOf.toArray(new String[0])));
+      }
+      // An anchor with no descendants and includeSelf=false has no clauses: match nothing
+      if (branch.should().isEmpty()) {
+        branch.should(QueryBuilders.idsQuery());
+      }
+      boolQuery.filter(branch);
+    }
+
+    // notDescendantOf: exclude descendants of every anchor, and the anchors themselves
+    if (!notDescendantOf.isEmpty()) {
+      if (indexed) {
+        boolQuery.mustNot(QueryBuilders.termsQuery("ancestors.code", notDescendantOf));
+      } else {
+        addIdsClauses(
+            boolQuery,
+            expandDescendants(terminology, "notDescendantOf", notDescendantOf, null),
+            true);
+      }
+      if (includeSelf) {
+        boolQuery.mustNot(QueryBuilders.idsQuery().addIds(notDescendantOf.toArray(new String[0])));
+      }
+    }
+
+    // ancestorOf: the anchor's ancestors come from its stored paths (small, no new fields needed)
+    if (ancestorOf != null) {
+      final Set<String> ancestors = new HashSet<>();
+      final Paths paths = osQueryService.getPathsToRoot(ancestorOf, terminology);
+      if (paths != null && paths.getPaths() != null) {
+        for (final Path path : paths.getPaths()) {
+          for (final ConceptMinimal concept : path.getConcepts()) {
+            if (!concept.getCode().equals(ancestorOf)) {
+              ancestors.add(concept.getCode());
+            }
+          }
+        }
+      }
+      if (includeSelf) {
+        ancestors.add(ancestorOf);
+      }
+      // An empty ids query matches nothing, e.g. ancestors of a root without self
+      boolQuery.filter(QueryBuilders.idsQuery().addIds(ancestors.toArray(new String[0])));
+    }
+  }
+
+  /**
+   * Returns a query matching the code itself or any concept whose hierarchy field contains it.
+   *
+   * @param field the hierarchy field, e.g. ancestors.code
+   * @param code the code
+   * @return the query
+   */
+  private BoolQueryBuilder codeOrRelated(final String field, final String code) {
+    return QueryBuilders.boolQuery()
+        .minimumShouldMatch(1)
+        .should(QueryBuilders.termQuery(field, code))
+        .should(QueryBuilders.idsQuery().addIds(code));
+  }
+
+  /**
+   * Fallback for indexes without ancestor fields: expands anchor codes to their descendants.
+   * Without maxLevel, the precomputed descendant lists are used. With maxLevel, children are walked
+   * breadth-first from all anchors, which gives the exact shortest depth under polyhierarchy (the
+   * stored descendant level comes from a depth-first walk and can be larger).
+   *
+   * @param terminology the terminology
+   * @param name the parameter name
+   * @param codes the anchor codes
+   * @param maxLevel the max level, or null for all descendants
+   * @return the descendant codes
+   */
+  private Set<String> expandDescendants(
+      final Terminology terminology,
+      final String name,
+      final List<String> codes,
+      final Integer maxLevel) {
+    final Set<String> result = new HashSet<>();
+    if (maxLevel == null) {
+      for (final String code : codes) {
+        for (final Concept descendant : osQueryService.getDescendants(code, terminology)) {
+          result.add(descendant.getCode());
+        }
+        checkHierarchyFallbackSize(name, result);
+      }
+      return result;
+    }
+
+    Set<String> frontier = new HashSet<>(codes);
+    for (int level = 1; level <= maxLevel && !frontier.isEmpty(); level++) {
+      final Set<String> next = new HashSet<>();
+      final List<String> parents = new ArrayList<>(frontier);
+      for (int i = 0; i < parents.size(); i += CHILDREN_BATCH_SIZE) {
+        for (final Concept parent :
+            osQueryService.getConcepts(
+                parents.subList(i, Math.min(i + CHILDREN_BATCH_SIZE, parents.size())),
+                terminology,
+                new IncludeParam("children"))) {
+          for (final Concept child : parent.getChildren()) {
+            if (result.add(child.getCode())) {
+              next.add(child.getCode());
+            }
+          }
+        }
+      }
+      checkHierarchyFallbackSize(name, result);
+      frontier = next;
+    }
+    return result;
+  }
+
+  /**
+   * Checks that a fallback expansion is within the configured limit.
+   *
+   * @param name the parameter name
+   * @param codes the expanded codes
+   */
+  private void checkHierarchyFallbackSize(final String name, final Set<String> codes) {
+    final int maxCodes = getHierarchyFallbackMaxCodes();
+    if (codes.size() > maxCodes) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Parameter '"
+              + name
+              + "' branch is too large for this index version (more than "
+              + maxCodes
+              + " concepts). The terminology must be reindexed to support it.");
+    }
+  }
+
+  /**
+   * Adds ids clauses in chunks to keep each clause a reasonable size.
+   *
+   * @param query the bool query
+   * @param codes the codes
+   * @param mustNot true to add as must_not clauses, false to add as should clauses
+   */
+  private void addIdsClauses(
+      final BoolQueryBuilder query, final Set<String> codes, final boolean mustNot) {
+    final List<String> list = new ArrayList<>(codes);
+    for (int i = 0; i < list.size(); i += IDS_CHUNK_SIZE) {
+      final String[] chunk =
+          list.subList(i, Math.min(i + IDS_CHUNK_SIZE, list.size())).toArray(new String[0]);
+      if (mustNot) {
+        query.mustNot(QueryBuilders.idsQuery().addIds(chunk));
+      } else {
+        query.should(QueryBuilders.idsQuery().addIds(chunk));
+      }
+    }
+  }
+
+  /**
+   * Returns the configured fallback limit, or the default when not configured.
+   *
+   * @return the max codes
+   */
+  private int getHierarchyFallbackMaxCodes() {
+    final Integer configured =
+        applicationProperties == null ? null : applicationProperties.getHierarchyFallbackMaxCodes();
+    return configured == null ? DEFAULT_HIERARCHY_FALLBACK_MAX_CODES : configured;
+  }
+
+  /**
+   * Logs a warning and records an audit entry the first time the fallback is used for a terminology
+   * version in this run, so un-reindexed terminologies are easy to find without flooding the logs.
+   *
+   * @param terminology the terminology
+   */
+  private void noteHierarchyFallback(final Terminology terminology) {
+    if (!hierarchyFallbackNoted.add(terminology.getTerminologyVersion())) {
+      return;
+    }
+    final String message =
+        "Hierarchy search fallback used for "
+            + terminology.getTerminologyVersion()
+            + " (no ancestor fields); reindex to enable indexed hierarchy filters";
+    logger.warn(message);
+    try {
+      Audit.addAudit(
+          esOperationsService,
+          "HierarchySearchFallback",
+          OpenSearchServiceImpl.class.getName(),
+          terminology.getTerminology(),
+          message,
+          "WARN");
+    } catch (final Exception e) {
+      logger.warn("  unable to record hierarchy fallback audit", e);
+    }
+  }
+
+  /**
+   * Checks that hierarchy anchor codes exist in the terminology.
+   *
+   * @param terminology the terminology
+   * @param name the parameter name
+   * @param codes the codes
+   */
+  private void checkHierarchyCodesExist(
+      final Terminology terminology, final String name, final List<String> codes) {
+    if (codes.isEmpty()) {
+      return;
+    }
+    // Count first: it never loads documents, which matters because large anchors (e.g. C3262)
+    // store their whole descendant list in _source and are slow to fetch even when filtered
+    final Set<String> unique = new HashSet<>(codes);
+    final long count =
+        operations.count(
+            new NativeSearchQueryBuilder()
+                .withQuery(QueryBuilders.idsQuery().addIds(unique.toArray(new String[0])))
+                .build(),
+            Concept.class,
+            IndexCoordinates.of(terminology.getIndexName()));
+    if (count == unique.size()) {
+      return;
+    }
+
+    // Something is missing: look the codes up to report which one
+    final Set<String> found =
+        osQueryService.getConcepts(codes, terminology, new IncludeParam("minimal")).stream()
+            .map(Concept::getCode)
+            .collect(Collectors.toSet());
+    for (final String code : codes) {
+      if (!found.contains(code)) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Parameter '" + name + "' has an invalid code = " + code);
+      }
+    }
+  }
+
+  /**
+   * Returns "code|depth" tokens for each code and depth from 1 to maxLevel, matching the indexed
+   * ancestorDepths field, e.g. C3262 and 2 gives C3262|1 and C3262|2.
+   *
+   * @param codes the codes
+   * @param maxLevel the max level
+   * @return the depth tokens
+   */
+  private List<String> getDepthTokens(final List<String> codes, final int maxLevel) {
+    final List<String> tokens = new ArrayList<>();
+    for (final String code : codes) {
+      for (int i = 1; i <= maxLevel; i++) {
+        tokens.add(code + "|" + i);
+      }
+    }
+    return tokens;
   }
 
   /**

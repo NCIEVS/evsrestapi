@@ -73,6 +73,44 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Text)
   private String stemName;
 
+  /**
+   * The ancestors (all paths to root, excluding self), each at its shortest distance. Given this is
+   * a List<Concept>, we will not set enabled = false even though we don't need most of the field
+   * data associated with ancestor. Otherwise, we are creating a self circular reference that
+   * results in a StackOverflowError
+   */
+  @Field(
+      type = FieldType.Object,
+      ignoreFields = {
+        "ancestorDepths",
+        "ancestors",
+        "associations",
+        "children",
+        "descendants",
+        "definitions",
+        "disjointWith",
+        "extensions",
+        "history",
+        "inverseAssociations",
+        "inverseRoles",
+        "maps",
+        "parents",
+        "paths",
+        "properties",
+        "qualifiers",
+        "roles",
+        "synonyms",
+      })
+  private List<Concept> ancestors;
+
+  /**
+   * The ancestor codes with shortest distance, as "code|depth" tokens (e.g. "C3262|3"). Used for
+   * depth-limited hierarchy search filters.
+   */
+  @WriteOnlyProperty
+  @Field(type = FieldType.Keyword)
+  private List<String> ancestorDepths;
+
   /** The subset Link. */
   @Field(type = FieldType.Keyword)
   private String subsetLink;
@@ -92,6 +130,14 @@ public class Concept extends ConceptMinimal {
   /** The leaf. */
   @Field(type = FieldType.Boolean)
   private Boolean leaf;
+
+  /**
+   * The number of descendants, stored so searches can rank on it without loading {@link
+   * #descendants}. Like normName, it is written to the index but not read back.
+   */
+  @WriteOnlyProperty
+  @Field(type = FieldType.Integer)
+  private Integer descendantCount;
 
   /**
    * The active flag. Intentionally not on ConceptMinimal to avoid parents/children having to have
@@ -124,6 +170,8 @@ public class Concept extends ConceptMinimal {
   @Field(
       type = FieldType.Object,
       ignoreFields = {
+        "ancestorDepths",
+        "ancestors",
         "associations",
         "children",
         "descendants",
@@ -151,6 +199,8 @@ public class Concept extends ConceptMinimal {
   @Field(
       type = FieldType.Object,
       ignoreFields = {
+        "ancestorDepths",
+        "ancestors",
         "associations",
         "children",
         "descendants",
@@ -178,6 +228,8 @@ public class Concept extends ConceptMinimal {
   @Field(
       type = FieldType.Object,
       ignoreFields = {
+        "ancestorDepths",
+        "ancestors",
         "associations",
         "children",
         "descendants",
@@ -202,29 +254,27 @@ public class Concept extends ConceptMinimal {
    * the index = false, to avoid indexing the fields in this Concept model. The
    * DynamicMappingValue.False will prevent indexing fields from the Qualifiers object.
    */
-  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
-  @Mapping(enabled = false)
+  //  @Field(type = FieldType.Object, includeInParent = false)
+  // @Mapping(enabled = false)
+  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**
-   * The associations. enabled = false will set the index = false, to avoid indexing the fields in
-   * this Concept model
+   * The associations. Nested so an association's type and target can be searched together (see
+   * HasAssociation).
    */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Nested)
   private List<Association> associations;
 
   /**
-   * The inverse associations. enabled = false will set the index = false, to avoid indexing the
-   * fields in this Concept model
+   * The inverse associations: other concepts' associations pointing to this one. Nested so an
+   * inverse association's type and source can be searched together (see HasInverseAssociation).
    */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Nested)
   private List<Association> inverseAssociations;
 
-  /**
-   * The roles. enabled = false will set the index = false, to avoid indexing the fields in this
-   * Concept model
-   */
-  @Field(type = FieldType.Object, enabled = false)
+  /** The roles. Nested so a role's type and target can be searched together (see HasRole). */
+  @Field(type = FieldType.Nested)
   private List<Role> roles;
 
   /**
@@ -235,10 +285,10 @@ public class Concept extends ConceptMinimal {
   private List<DisjointWith> disjointWith;
 
   /**
-   * The inverse roles. enabled = false will set the index = false, to avoid indexing the fields in
-   * this Concept model
+   * The inverse roles. Nested so an inverse role's type and target can be searched together (see
+   * HasInverseRole).
    */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Nested)
   private List<Role> inverseRoles;
 
   /**
@@ -362,10 +412,13 @@ public class Concept extends ConceptMinimal {
     highlights = new HashMap<>(other.getHighlights());
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
+    descendantCount = other.getDescendantCount();
     active = other.getActive();
     defining = other.getDefining();
     normName = other.getNormName();
     stemName = other.getStemName();
+    ancestors = new ArrayList<>(other.getAncestors());
+    ancestorDepths = new ArrayList<>(other.getAncestorDepths());
     if (!subsetFlag || subsetFlag && subsetLink == null) {
       subsetLink = other.getSubsetLink();
     }
@@ -475,6 +528,50 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Returns the ancestors.
+   *
+   * @return the ancestors
+   */
+  @Schema(description = "Ancestor concepts in the hierarchy")
+  public List<Concept> getAncestors() {
+    if (ancestors == null) {
+      ancestors = new ArrayList<>();
+    }
+    return ancestors;
+  }
+
+  /**
+   * Sets the ancestors.
+   *
+   * @param ancestors the ancestors
+   */
+  public void setAncestors(final List<Concept> ancestors) {
+    this.ancestors = ancestors;
+  }
+
+  /**
+   * Returns the ancestor depths.
+   *
+   * @return the ancestor depths
+   */
+  @Schema(hidden = true)
+  public List<String> getAncestorDepths() {
+    if (ancestorDepths == null) {
+      ancestorDepths = new ArrayList<>();
+    }
+    return ancestorDepths;
+  }
+
+  /**
+   * Sets the ancestor depths.
+   *
+   * @param ancestorDepths the ancestor depths
+   */
+  public void setAncestorDepths(final List<String> ancestorDepths) {
+    this.ancestorDepths = ancestorDepths;
+  }
+
+  /**
    * Returns the subset link.
    *
    * @return the subsetLink
@@ -550,6 +647,25 @@ public class Concept extends ConceptMinimal {
    */
   public void setLeaf(final Boolean leaf) {
     this.leaf = leaf;
+  }
+
+  /**
+   * Returns the descendant count.
+   *
+   * @return the descendant count
+   */
+  @Schema(hidden = true)
+  public Integer getDescendantCount() {
+    return descendantCount;
+  }
+
+  /**
+   * Sets the descendant count.
+   *
+   * @param descendantCount the descendant count
+   */
+  public void setDescendantCount(final Integer descendantCount) {
+    this.descendantCount = descendantCount;
   }
 
   /**
@@ -1003,6 +1119,9 @@ public class Concept extends ConceptMinimal {
     if (descendants != null) {
       Collections.sort(descendants);
     }
+    if (ancestors != null) {
+      Collections.sort(ancestors);
+    }
     if (associations != null) {
       Collections.sort(associations);
     }
@@ -1037,6 +1156,7 @@ public class Concept extends ConceptMinimal {
   public void clearHidden() {
     normName = null;
     stemName = null;
+    ancestorDepths = null;
     getSynonyms().forEach(s -> s.clearHidden());
   }
 }

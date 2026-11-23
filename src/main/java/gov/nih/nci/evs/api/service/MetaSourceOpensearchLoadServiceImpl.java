@@ -522,6 +522,10 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
           .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(terminology.getIndexName()))
           .putMapping(Concept.class);
+      // New index with current mapping, so ancestor fields are available for hierarchy search
+      if (Boolean.TRUE.equals(terminology.getMetadata().getHierarchy())) {
+        terminology.getMetadata().setHierarchyFields(true);
+      }
     }
 
     // Cache the concept preferred names so when we resolve relationships we
@@ -593,8 +597,11 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
               if (!code.equals("138875005")) {
                 concept.setDescendants(hierarchy.getDescendants(code));
               }
+              concept.setDescendantCount(concept.getDescendants().size());
+              concept.setAncestors(hierarchy.getAncestors(code));
 
               concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
+              HierarchyUtils.applyAncestors(concept);
               // Clear space/memory
               hierarchy.getPathsMap(terminology).remove(concept.getCode());
               if (maps.containsKey(concept.getCode())) {
@@ -690,7 +697,10 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
             concept = codeConceptMap.get(code);
             concept.setLeaf(concept.getChildren().size() > 0);
             concept.setDescendants(hierarchy.getDescendants(code));
+            concept.setDescendantCount(concept.getDescendants().size());
+            concept.setAncestors(hierarchy.getAncestors(code));
             concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
+            HierarchyUtils.applyAncestors(concept);
             if (maps.containsKey(concept.getCode())) {
               concept.getMaps().addAll(maps.get(concept.getCode()));
             }

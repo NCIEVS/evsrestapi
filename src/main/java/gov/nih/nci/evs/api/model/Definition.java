@@ -10,7 +10,6 @@ import java.util.List;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.data.elasticsearch.annotations.Mapping;
 
 /** Represents a synonym of a concept. */
 @Schema(description = "Represents a text definition for a concept")
@@ -39,8 +38,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
   private String source;
 
   /** The qualifiers. */
-  @Field(type = FieldType.Object, enabled = false)
-  @Mapping(enabled = false)
+  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /** Instantiates an empty {@link Definition}. */

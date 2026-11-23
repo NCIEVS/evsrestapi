@@ -38,6 +38,18 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   private static final Logger logger =
       LoggerFactory.getLogger(OpensearchOperationsServiceImpl.class);
 
+  /**
+   * Most nested entries one document may hold, counted across all its nested lists (synonyms,
+   * definitions, properties, roles, associations, ...). OpenSearch rejects a document over the
+   * limit, so the concept would be missing from the index.
+   *
+   * <p>OpenSearch's default is 10,000. That was enough while inverse associations weren't indexed,
+   * but now that they're nested for searching (see HasInverseAssociation), a subset concept holds
+   * one entry per member. In NCIt 26.01a, the CDISC Terminology (C61410) has 31,917 inverse
+   * associations and C66830 has 27,438. 100,000 leaves room for subsets to grow.
+   */
+  private static final int NESTED_ENTRIES_PER_DOCUMENT_LIMIT = 100_000;
+
   /** Opensearch operations *. */
   @Autowired OpenSearchOperations operations;
 
@@ -55,7 +67,14 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
     }
 
     // create index
-    operations.indexOps(IndexCoordinates.of(index)).create(Map.of("index.number_of_shards", 1));
+    operations
+        .indexOps(IndexCoordinates.of(index))
+        .create(
+            Map.of(
+                "index.number_of_shards",
+                1,
+                "index.mapping.nested_objects.limit",
+                NESTED_ENTRIES_PER_DOCUMENT_LIMIT));
     return true;
   }
 

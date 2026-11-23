@@ -15,15 +15,15 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class Qualifier extends BaseModel implements Comparable<Qualifier> {
 
   /** The code. */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Keyword)
   private String code;
 
   /** The type. */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The value. */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Keyword)
   private String value;
 
   /** Instantiates an empty {@link Qualifier}. */

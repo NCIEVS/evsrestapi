@@ -10,7 +10,6 @@ import java.util.List;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.data.elasticsearch.annotations.Mapping;
 
 /** Represents a synonym of a concept. */
 @Schema(description = "Represents a type/value property on a concept")
@@ -35,9 +34,11 @@ public class Property extends BaseModel implements Comparable<Property> {
   /** The highlight. */
   @Transient @JsonSerialize @JsonDeserialize private String highlight;
 
-  /** The qualifiers. */
-  @Field(type = FieldType.Object, enabled = false)
-  @Mapping(enabled = false)
+  /**
+   * The qualifiers. Nested so a qualifier's type and value can be searched together (see
+   * HasProperty).
+   */
+  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /** The source. */

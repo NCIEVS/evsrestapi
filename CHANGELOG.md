@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Hierarchy-constrained search: `descendantOf`, `notDescendantOf`, `ancestorOf`, `maxLevel`, and
+  `includeSelf` parameters on concept search endpoints (including SPARQL-filtered search), so
+  results can be restricted to a hierarchy branch on the server with exact totals and paging
+- Concepts are indexed with `ancestors` and `ancestorDepths` fields, and terminology metadata
+  records `hierarchyFields` when they are present. Reindex terminologies to use them
+- Query-time fallback for terminologies indexed before these fields existed, limited by
+  `nci.evs.application.hierarchyFallbackMaxCodes` (default 65536)
+
 ## [2.5.0.RELEASE] - 2026-08-28
 ### Changed
 - Small improvements for handling of NCIM data

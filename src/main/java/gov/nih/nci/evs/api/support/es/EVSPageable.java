@@ -25,6 +25,19 @@ public class EVSPageable extends PageRequest {
     this.offset = offset;
   }
 
+  /**
+   * Returns the page of {@code pageSize} records starting at {@code fromRecord}, which need not be
+   * a multiple of {@code pageSize}: OpenSearch starts the page at {@link #getOffset()}, not at the
+   * page number times the size.
+   *
+   * @param fromRecord the index of the first record on the page
+   * @param pageSize the number of records on the page
+   * @return the page
+   */
+  public static EVSPageable fromRecord(final int fromRecord, final int pageSize) {
+    return new EVSPageable(fromRecord / pageSize, pageSize, fromRecord);
+  }
+
   /* see superclass */
   @Override
   public long getOffset() {

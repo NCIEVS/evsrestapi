@@ -845,7 +845,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.setDisjointWith(disjointWithMap.get(concept.getUri()));
       }
       concept.setPaths(hierarchy.getPaths(terminology, conceptCode));
+      HierarchyUtils.applyAncestors(concept);
       concept.setDescendants(hierarchy.getDescendants(conceptCode));
+      concept.setDescendantCount(concept.getDescendants().size());
+      concept.setAncestors(hierarchy.getAncestors(conceptCode));
       concept.setLeaf(concept.getChildren().isEmpty());
 
       // Ensure that all list elements of the concept are in a natural sort

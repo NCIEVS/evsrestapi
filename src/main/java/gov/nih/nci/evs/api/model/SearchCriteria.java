@@ -1,8 +1,11 @@
 package gov.nih.nci.evs.api.model;
 
+import gov.nih.nci.evs.api.service.MetadataService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 /** Search criteria object for /concept/search implementation. */
 @Schema(description = "Criteria for a search or find operation")
@@ -93,6 +96,18 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
    */
   public void setSparql(final String sparql) {
     this.sparql = sparql;
+  }
+
+  /* see superclass */
+  @Override
+  public void validate(final Terminology terminology, final MetadataService metadataService)
+      throws Exception {
+    // Hierarchy codes belong to one terminology, so they cannot span several
+    if (hasHierarchyConstraints() && getTerminology().size() > 1) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Hierarchy parameters require exactly one terminology");
+    }
+    super.validate(terminology, metadataService);
   }
 
   /* see superclass */
