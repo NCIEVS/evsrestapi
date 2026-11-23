@@ -169,6 +169,18 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
   }
 
   /**
+   * Test an ordinary fromRecord, well above the smallest allowed, is accepted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testFromRecordAboveMinimumReturnsOk() throws Exception {
+    final int typicalFromRecord = 20;
+
+    postQueryPage(BREAST_CHILDREN_QUERY, typicalFromRecord, PAGE_OF_TEN).andExpect(status().isOk());
+  }
+
+  /**
    * Test a negative fromRecord is rejected as a bad request.
    *
    * @throws Exception the exception
@@ -218,6 +230,18 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
   public void testPageSizeAtMaximumReturnsOk() throws Exception {
     postQueryPage(BREAST_CHILDREN_QUERY, 0, SearchCriteriaWithoutTerminology.MAX_PAGE_SIZE)
         .andExpect(status().isOk());
+  }
+
+  /**
+   * Test an ordinary page size, between the smallest and largest allowed, is accepted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeBetweenMinimumAndMaximumReturnsOk() throws Exception {
+    final int typicalPageSize = 50;
+
+    postQueryPage(BREAST_CHILDREN_QUERY, 0, typicalPageSize).andExpect(status().isOk());
   }
 
   /**

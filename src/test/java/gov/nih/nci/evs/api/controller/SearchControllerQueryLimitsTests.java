@@ -49,6 +49,17 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
+  /** An ordinary page, ending well within the result window, is searched. */
+  @Test
+  public void testPageEndingWithinResultWindowReturnsOk() {
+    final int typicalFromRecord = 1_000;
+
+    final ResponseEntity<String> response =
+        exchangeQuery(LEAF_QUERY, typicalFromRecord, SMALL_PAGE_SIZE);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
   /** A page ending past the result window is rejected as a bad request. */
   @Test
   public void testPageEndingPastResultWindowReturnsBadRequest() {
@@ -77,6 +88,18 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
 
     final ResponseEntity<String> response =
         exchangeQuery(atMaxDepthQuery, FIRST_RECORD, SMALL_PAGE_SIZE);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  /** An ordinary query, nested well within the depth limit, is searched. */
+  @Test
+  public void testQueryWithinMaxDepthReturnsOk() {
+    final int typicalDepth = 3;
+    final String withinMaxDepthQuery = getNotsAroundLeaf(typicalDepth);
+
+    final ResponseEntity<String> response =
+        exchangeQuery(withinMaxDepthQuery, FIRST_RECORD, SMALL_PAGE_SIZE);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
   }

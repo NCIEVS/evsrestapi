@@ -212,6 +212,19 @@ public class SearchControllerQueryParameterTests extends AbstractSearchControlle
   }
 
   /**
+   * Test a license-restricted terminology accepts an ordinary page below the bulk limit.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testLicensedTerminologyPageSizeBelowLimitReturnsOk() throws Exception {
+    final int typicalLicensedPageSize = 5;
+
+    postQueryTo(LICENSED_TERMINOLOGY, appProperties.getUiLicense(), typicalLicensedPageSize)
+        .andExpect(status().isOk());
+  }
+
+  /**
    * Test a license-restricted terminology rejects a page one past the bulk limit.
    *
    * @throws Exception the exception
