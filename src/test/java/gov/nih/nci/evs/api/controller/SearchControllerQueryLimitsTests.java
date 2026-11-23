@@ -2,8 +2,8 @@ package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.query.EvsQuery;
-import gov.nih.nci.evs.api.support.es.OpenSearchLimits;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -11,9 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Tests that every limit below the query endpoint reaches the client as a bad request that says
- * which limit the query broke. A limit of a lower layer (OpenSearch, the JSON parser, the query
- * tree) limits the endpoint too, so each one is part of the endpoint's contract.
+ * Tests that every limit the query endpoint asserts reaches the client as a bad request that says
+ * which limit the query broke. The limits (paging, the JSON parser's nesting, the query tree's
+ * depth and children per node) are part of the endpoint's contract.
  *
  * <p>Each limit's exact edge is tested where the limit is owned (see {@code
  * SearchCriteriaUnitTest}, {@code EvsQueryTest}, {@code OpenSearchLimitReasonTest}, {@code
@@ -39,13 +39,13 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
   private static final int JSON_MAX_NESTING_DEPTH = 1_000;
 
   // ---------------------------------------------------------------------------------------------
-  // Result window: fromRecord + pageSize ≤ OpenSearchLimits.MAX_RESULT_WINDOW
+  // Result window: fromRecord + pageSize ≤ SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW
   // ---------------------------------------------------------------------------------------------
 
   /** A page ending exactly at the result window is searched. */
   @Test
   public void testPageEndingAtResultWindowReturnsOk() {
-    final int fromRecord = OpenSearchLimits.MAX_RESULT_WINDOW - SMALL_PAGE_SIZE;
+    final int fromRecord = SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW - SMALL_PAGE_SIZE;
 
     final ResponseEntity<String> response = exchangeQuery(LEAF_QUERY, fromRecord, SMALL_PAGE_SIZE);
 
@@ -65,35 +65,30 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
   public void testPageEndingPastResultWindowErrorNamesLimit() {
     final String message = getErrorMessage(exchangePastResultWindow());
 
-    assertThat(message).contains(String.valueOf(OpenSearchLimits.MAX_RESULT_WINDOW));
+    assertThat(message)
+        .contains(String.valueOf(SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW));
   }
 
   // ---------------------------------------------------------------------------------------------
-  // Clauses: each And or Or can hold at most OpenSearchLimits.MAX_CLAUSE_COUNT children, translated
-  // from OpenSearch. The limit counts per And or Or, not across the whole tree.
+  // Clauses: each And or Or can hold at most EvsQuery.MAX_CHILDREN children. The
+  // limit counts per And or Or, not across the whole tree.
   // ---------------------------------------------------------------------------------------------
 
-  /**
-   * Test an Or with exactly as many children as OpenSearch allows clauses in one bool query is
-   * searched.
-   */
+  /** Test an Or with exactly the most children allowed is searched. */
   @Test
   public void testOrWithMaxClauseCountChildrenReturnsOk() {
-    final ResponseEntity<String> response =
-        exchangeOrWithChildren(OpenSearchLimits.MAX_CLAUSE_COUNT);
+    final ResponseEntity<String> response = exchangeOrWithChildren(EvsQuery.MAX_CHILDREN);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
   /**
    * Test the clause limit counts each Or separately: two nested Ors, each at the limit, hold twice
-   * as many leaves as the limit and are still searched. OpenSearch 1.x (Lucene 8) counts clauses
-   * per boolean query; Lucene 9 counts them across the whole query, so this fails if an OpenSearch
-   * upgrade changes the limit to a total.
+   * as many leaves as the limit and are still searched.
    */
   @Test
   public void testNestedOrsEachAtMaxClauseCountReturnOk() {
-    final String orAtMaxClauseCount = getOrWithChildren(OpenSearchLimits.MAX_CLAUSE_COUNT);
+    final String orAtMaxClauseCount = getOrWithChildren(EvsQuery.MAX_CHILDREN);
     final String orOfOrsAtMaxClauseCount =
         "{\"type\": \"Or\", \"children\": ["
             + orAtMaxClauseCount
@@ -107,7 +102,7 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
-  /** An Or with more children than OpenSearch allows clauses is rejected as a bad request. */
+  /** An Or with more children than allowed is rejected as a bad request. */
   @Test
   public void testOrWithTooManyChildrenReturnsBadRequest() {
     final ResponseEntity<String> response = exchangeTooManyClauses();
@@ -115,12 +110,12 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
 
-  /** An Or with too many children gets an error naming OpenSearch's clause limit. */
+  /** An Or with too many children gets an error naming the limit. */
   @Test
   public void testOrWithTooManyChildrenErrorNamesLimit() {
     final String message = getErrorMessage(exchangeTooManyClauses());
 
-    assertThat(message).contains(String.valueOf(OpenSearchLimits.MAX_CLAUSE_COUNT));
+    assertThat(message).contains(String.valueOf(EvsQuery.MAX_CHILDREN));
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -236,18 +231,17 @@ public class SearchControllerQueryLimitsTests extends AbstractSearchControllerQu
    * @return the response
    */
   private ResponseEntity<String> exchangePastResultWindow() {
-    final int fromRecord = OpenSearchLimits.MAX_RESULT_WINDOW - SMALL_PAGE_SIZE + 1;
+    final int fromRecord = SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW - SMALL_PAGE_SIZE + 1;
     return exchangeQuery(LEAF_QUERY, fromRecord, SMALL_PAGE_SIZE);
   }
 
   /**
-   * Posts an Or with one more child than OpenSearch allows clauses. Each child also builds clauses
-   * of its own, so the query is well past the limit.
+   * Posts an Or with one more child than allowed.
    *
    * @return the response
    */
   private ResponseEntity<String> exchangeTooManyClauses() {
-    return exchangeOrWithChildren(OpenSearchLimits.MAX_CLAUSE_COUNT + 1);
+    return exchangeOrWithChildren(EvsQuery.MAX_CHILDREN + 1);
   }
 
   /**

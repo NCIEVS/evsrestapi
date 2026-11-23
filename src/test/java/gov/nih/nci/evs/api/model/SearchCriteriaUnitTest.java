@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.GetterSetterTester;
 import gov.nih.nci.evs.api.SerializationTester;
-import gov.nih.nci.evs.api.support.es.OpenSearchLimits;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -322,31 +321,31 @@ public class SearchCriteriaUnitTest {
   }
 
   /**
-   * Test validate accepts a page ending exactly at the furthest OpenSearch pages.
+   * Test validate accepts a page ending exactly at the furthest a search can page.
    *
    * @throws Exception the exception
    */
   @Test
   public void testValidatePageEndingAtResultWindowIsAccepted() throws Exception {
     final SearchCriteria sc = criteria("ncit");
-    sc.setFromRecord(OpenSearchLimits.MAX_RESULT_WINDOW - sc.getPageSize());
+    sc.setFromRecord(SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW - sc.getPageSize());
 
     assertDoesNotThrow(() -> sc.validate(terminology("ncit", true), null));
   }
 
   /**
-   * Test validate rejects a page ending one past the furthest OpenSearch pages, naming the limit.
+   * Test validate rejects a page ending one past the furthest a search can page, naming the limit.
    *
    * @throws Exception the exception
    */
   @Test
   public void testValidatePageEndingPastResultWindowThrowsErrorNamingLimit() throws Exception {
     final SearchCriteria sc = criteria("ncit");
-    sc.setFromRecord(OpenSearchLimits.MAX_RESULT_WINDOW - sc.getPageSize() + 1);
+    sc.setFromRecord(SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW - sc.getPageSize() + 1);
 
     assertBadRequest(
         () -> sc.validate(terminology("ncit", true), null),
-        String.valueOf(OpenSearchLimits.MAX_RESULT_WINDOW));
+        String.valueOf(SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW));
   }
 
   /**
@@ -362,7 +361,7 @@ public class SearchCriteriaUnitTest {
 
     assertBadRequest(
         () -> sc.validate(terminology("ncit", true), null),
-        String.valueOf(OpenSearchLimits.MAX_RESULT_WINDOW));
+        String.valueOf(SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW));
   }
 
   /**

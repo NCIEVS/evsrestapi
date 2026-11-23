@@ -10,12 +10,12 @@ import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.query.EvsQuery;
 import gov.nih.nci.evs.api.query.QueryTooBroadException;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
-import gov.nih.nci.evs.api.support.es.OpenSearchLimits;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayDeque;
@@ -155,7 +155,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * Runs a search, reporting a breach of an OpenSearch limit as a {@link QueryTooBroadException}
    * carrying OpenSearch's reason, since the client can fix it by narrowing the query. Most limits
    * are checked before the search; this catches the ones that can't be, e.g. how many clauses a
-   * query builds, and an index paging less far than {@link OpenSearchLimits#MAX_RESULT_WINDOW}.
+   * query builds, and an index paging less far than {@link
+   * SearchCriteriaWithoutTerminology#MAX_RESULT_WINDOW}.
    *
    * @param <T> the search result type
    * @param search the search

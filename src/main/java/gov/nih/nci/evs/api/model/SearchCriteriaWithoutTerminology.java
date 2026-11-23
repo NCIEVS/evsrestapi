@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.model;
 
 import gov.nih.nci.evs.api.service.MetadataService;
-import gov.nih.nci.evs.api.support.es.OpenSearchLimits;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
@@ -40,6 +39,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * so a client can't page through the whole terminology in bulk.
    */
   public static final int MAX_LICENSED_PAGE_SIZE = 10;
+
+  /**
+   * The furthest a search can page, {@code fromRecord + pageSize}. Stays within the {@code
+   * index.max_result_window} that {@code reindex.sh} sets on every concept index.
+   */
+  public static final int MAX_RESULT_WINDOW = 300_000;
 
   /** The term. */
   private String term;
@@ -863,12 +868,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Long, so a huge fromRecord can't overflow past the check
     final long pageEnd = (long) fromRecord + pageSize;
-    final boolean isPastResultWindow = pageEnd > OpenSearchLimits.MAX_RESULT_WINDOW;
+    final boolean isPastResultWindow = pageEnd > MAX_RESULT_WINDOW;
     if (isPastResultWindow) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
           "Parameters 'fromRecord' + 'pageSize' must be at most "
-              + OpenSearchLimits.MAX_RESULT_WINDOW
+              + MAX_RESULT_WINDOW
               + ", the furthest a search can page = "
               + pageEnd);
     }
