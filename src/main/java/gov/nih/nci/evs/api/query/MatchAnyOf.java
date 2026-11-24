@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.OpenSearchLimits;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -22,8 +23,8 @@ import org.opensearch.index.query.QueryBuilders;
  */
 class MatchAnyOf extends EvsQuery {
 
-  /** OpenSearch's default limit on values in one {@code terms} query. */
-  static final int MAX_VALUES = 65_536;
+  /** OpenSearch's limit on values in one {@code terms} query. */
+  static final int MAX_VALUES = OpenSearchLimits.MAX_TERMS_COUNT;
 
   /** The field to match against. */
   private String field;
@@ -48,7 +49,7 @@ class MatchAnyOf extends EvsQuery {
 
     final boolean hasTooManyValues = this.values.size() > MAX_VALUES;
     if (hasTooManyValues) {
-      throw new IllegalArgumentException(
+      throw new QueryTooBroadException(
           "Too many values for one terms query on '"
               + field
               + "': "

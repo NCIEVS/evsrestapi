@@ -1,6 +1,8 @@
 package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,7 +22,7 @@ public final class AnyQualifiers implements QualifierCondition {
   private static final int MINIMUM_MATCHING_CONDITIONS = 1;
 
   /** The alternative conditions. */
-  private List<QualifierCondition> conditions;
+  @NotNull private List<@NotNull @Valid QualifierCondition> conditions;
 
   /** Instantiates an empty {@link AnyQualifiers}. */
   public AnyQualifiers() {

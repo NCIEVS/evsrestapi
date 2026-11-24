@@ -1,0 +1,46 @@
+{
+  "uiLabel": "EVS Test Terminology",
+  "fhirUri": "http://evs.example/fake/EvsTest.owl",
+  "fhirPublisher": "National Cancer Institute",
+  "_comment": "Metadata for EvsTest.ttl, a fake terminology for testing query nodes. These values are injected into SPARQL queries, so they must be the properties as they appear in the RDF. The property codes copy ncit.json.",
+  "code": "NHC0",
+  "codeLabel": "EVS Test Code",
+  "conceptStatus": "P310",
+  "retiredStatusValue": "Retired_Concept",
+  "preferredName": "P108",
+  "_comment2": "These are used to analyze results and must be the actual code values.",
+  "synonym": ["P90", "P108"],
+  "synonymTermType": "P383",
+  "synonymSource": "P384",
+  "synonymCode": "P385",
+  "synonymSubSource": "P386",
+  "definition": ["P97"],
+  "definitionSource": "P378",
+  "map": "P375",
+  "mapRelation": "P393",
+  "mapTarget": "P395",
+  "mapTargetTermType": "P394",
+  "mapTargetTerminology": "P396",
+  "mapTargetTerminologyVersion": "P397",
+  "relationshipToTarget": "P393",
+  "subsetMember": ["A8"],
+  "subset": ["FK3"],
+  "sources": {
+    "NCI": "National Cancer Institute Thesaurus",
+    "FDA": "U.S. Food and Drug Administration",
+    "CDISC": "Clinical Data Interchange Standards Consortium"
+  },
+  "termTypes": {
+    "PT": "*Preferred term",
+    "SY": "Synonym",
+    "AB": "Abbreviation"
+  },
+  "hierarchy": true,
+  "detailsColumns": {
+    "definitions-source": true,
+    "synonyms-source": true,
+    "synonyms-termType": true,
+    "synonyms-code": true,
+    "synonyms-subSource": true
+  }
+}

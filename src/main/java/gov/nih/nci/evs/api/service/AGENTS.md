@@ -20,6 +20,8 @@ handling.
 
 - `OpenSearchServiceImpl` builds user-facing concept search queries and maps search hits to API
   result objects.
+- `Typeahead` builds and ranks the `GET /concept/typeahead` search. It isn't an `EvsQuery` node;
+  `OpenSearchServiceImpl.findTypeaheadConcepts` runs it.
 - `OpensearchQueryServiceImpl` performs direct indexed object, concept, metadata, and cached object
   lookups.
 - `OpensearchOperationsServiceImpl` centralizes index operations, save/delete behavior, and audit

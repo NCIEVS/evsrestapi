@@ -11,12 +11,11 @@ Every node is an `EvsQuery` and says which concepts match. There are three kinds
   that `type`, and rank by relevance.
 - **Field nodes** (`HasProperty`, `HasSynonym`, `HasRole`, `InSubset`, `HasAncestor`, ...) match
   names, codes, and values stored on the concept. Each value is a plain `String`, compared exactly.
-- **Logical queries** (`And`, `Or`, `Not`, and the `Boost` wrapper) combine other queries.
+- **Logical queries** (`And`, `Or`, `Not`) combine other queries.
 
 `MatchAnyOf` (one field equal to any of a set of values) and `NameOrCodeMatch` (a name field or a
 code field equal to any of a set of names or codes) are the leaves nodes are built from. They're
-package-private, not part of the API: tests showing how to use the API, like `HasRoleTest`, stick
-to the public nodes.
+package-private, not part of the API: tests showing how to use the API stick to the public nodes.
 
 Because every query has the same interface, any query can be nested inside any composite:
 
@@ -29,10 +28,10 @@ Because every query has the same interface, any query can be nested inside any c
 ## Logical operators: exploratory on this branch
 
 The plan is to build queries almost entirely from logical operator nodes (`And`, `Or`, `Not`,
-`Boost`, and similar), with raw OpenSearch `QueryBuilder`s only inside the leaf nodes. On the
+and similar), with raw OpenSearch `QueryBuilder`s only inside the leaf nodes. On the
 exploratory branch `eas/explore-filters` they're merged in from `eas/logical-operators` and can be
-used to combine nodes (see [Logical queries](#logical-queries)). They're still only tested by
-`LogicalQueryTest` and the lessons that use them, so on other branches don't build on them yet.
+used to combine nodes (see [Logical queries](#logical-queries)). They're still only lightly
+tested, so on other branches don't build on them yet.
 
 Inside a node's own `fetchOpenSearchQuery`, existing nodes still combine conditions with raw
 OpenSearch (`QueryBuilders.boolQuery()`, `nestedQuery`, `constantScoreQuery`, ...), e.g. a
@@ -54,16 +53,12 @@ classDiagram
         <<abstract>>
         +fetchOpenSearchQuery(OpenSearchOperations, List~Terminology~)* QueryBuilder
         +fetchConcepts(OpenSearchOperations, List~Terminology~, Pageable, IncludeParam) SearchHits~Concept~
-        #getSorts() List~SortBuilder~
-        #getHighlightFields() List~HighlightBuilder.Field~
-        +getIndexCoordinates(List~Terminology~)$ IndexCoordinates
     }
 
     class TermSearch {
         <<abstract>>
         -String term
         #getTermQuery(String escapedTerm)* QueryBuilder
-        #getSorts() List~SortBuilder~
     }
     class Exact
     class StartsWith
@@ -122,17 +117,6 @@ classDiagram
     class Not {
         -EvsQuery child
     }
-    class Boost {
-        -EvsQuery child
-        -float score
-    }
-
-    class Typeahead {
-        -String term
-        +getHasWordsToComplete(String)$ boolean
-        +fetchOpenSearchQuery(OpenSearchOperations, List~Terminology~) QueryBuilder
-        +getSorts() List~SortBuilder~
-    }
 
     class MatchAnyOf {
         -String field
@@ -153,13 +137,7 @@ classDiagram
         #fetchRelativesQuery(OpenSearchOperations, Terminology, Set~String~)* QueryBuilder
     }
     class HasAncestor
-    class HasAncestorOrIs {
-        +fetchOpenSearchQuery(OpenSearchOperations, List~Terminology~) QueryBuilder
-    }
     class HasDescendant
-    class HasDescendantOrIs {
-        +fetchOpenSearchQuery(OpenSearchOperations, List~Terminology~) QueryBuilder
-    }
 
     EvsQuery <|-- TermSearch
     TermSearch <|-- Exact
@@ -168,11 +146,9 @@ classDiagram
     TermSearch <|-- Fuzzy
     EvsQuery <|-- HasRelationship
     EvsQuery <|-- HasProperty
-    EvsQuery <|-- Typeahead
     EvsQuery <|-- And
     EvsQuery <|-- Or
     EvsQuery <|-- Not
-    EvsQuery <|-- Boost
     EvsQuery <|-- HasSynonym
     HasRelationship <|-- HasRole
     HasRelationship <|-- HasAssociation
@@ -184,7 +160,6 @@ classDiagram
     And o-- EvsQuery : children
     Or o-- EvsQuery : children
     Not o-- EvsQuery : child
-    Boost o-- EvsQuery : child
     HasProperty o-- QualifierCondition : qualifiers
     QualifierCondition <|.. PropertyQualifier
     QualifierCondition <|.. AllQualifiers
@@ -199,14 +174,12 @@ classDiagram
     EvsQuery <|-- HasHierarchyRelative
     HasHierarchyRelative <|-- HasAncestor
     HasHierarchyRelative <|-- HasDescendant
-    HasAncestor <|-- HasAncestorOrIs
-    HasDescendant <|-- HasDescendantOrIs
 ```
 
 | Class | Role |
 |---|---|
 | `EvsQuery` | Base type for every node. Its contract is `fetchOpenSearchQuery(operations, terminologies)`. Nodes don't hold the terminologies being searched: they're passed in when the tree runs (see [Why `operations` and `terminologies` are parameters](#why-operations-and-terminologies-are-parameters)). It also (experimental, see [Sorting](#sorting-experimental)) contributes sorts and builds a whole search request. Code that accepts a query should accept `EvsQuery`, so leaves and composites can be used interchangeably. |
-| `TermSearch` | Base type for the term searches. Holds `term` and searches a concept's name, code (including the original code property), and synonyms for it, the way the legacy `GET /concept/search` does for one `type`: it escapes the term (`OpenSearchServiceImpl.escape`), asks the subclass for the legacy query (`getTermQuery`), and boosts active concepts above inactive ones. Overrides `getSorts()` to rank by score. In JSON: `{"type": "Contains", "term": "melanoma"}`. |
+| `TermSearch` | Base type for the term searches. Holds `term` and searches a concept's name, code (including the original code property), and synonyms for it, the way the legacy `GET /concept/search` does for one `type`: it escapes the term (`OpenSearchServiceImpl.escape`), asks the subclass for the legacy query (`getTermQuery`), and boosts active concepts above inactive ones. Matches come back by score, OpenSearch's default order. In JSON: `{"type": "Contains", "term": "melanoma"}`. |
 | `Exact`, `StartsWith`, `Contains`, `Fuzzy` | The term searches, one per legacy search `type` (`match`, `startsWith`, `contains`, `fuzzy`). See [Term searches](#term-searches). |
 | `HasRelationship` | Matches concepts by a relationship's type and target, each a name or code compared exactly to the entry's name and code (see [Relationships](#relationships)). In JSON the type is `role` (`HasRole`, `HasInverseRole`) or `association` (`HasAssociation`, `HasInverseAssociation`), since `type` names the node. |
 | `InSubset` | Matches members of a subset, given by its code or name. A subset is a concept, and membership is an association to it (NCIt's Concept_In_Subset, A8, read from the terminology's `subsetMember` metadata), so it builds an `Or` of one `HasAssociation` per membership association type. Any-of, all-of, and but-not combine `InSubset`s with `Or`, `And`, and `Not`. Exploratory: drops the current search's CDISC grouper special case. |
@@ -218,12 +191,9 @@ classDiagram
 | `NameOrCodeMatch` | Package-private. A name field or a code field equal to any of a set of names or codes: two `MatchAnyOf`s, either one enough. Used for a relationship's type and target, a property's or qualifier's type, and the hierarchy targets. |
 | `HasHierarchyRelative` | Base type for hierarchy nodes. The targets are the concepts whose name or code is `target`. When the concept's own fields can't answer the query yet, it looks up the target codes first (`fetchTargetCodes`), then, for each terminology version, matches the targets' relatives only in that terminology's index (see [Hierarchy queries](#hierarchy-queries)). Handles `maxLevel` (shortest distance, at least 1). Subclasses implement `fetchRelativesQuery`. |
 | `HasAncestor` | Matches concepts strictly below the targets, optionally within `maxLevel` levels. `ancestors` holds codes only, so it always looks up the target codes first. Terminologies with `ancestors`/`ancestorDepths` then match with one query on those fields; older indexes fall back to the stored hierarchy (`StoredHierarchyFallback`, to be removed after reindexing). Convenience constructors take a code. |
-| `HasAncestorOrIs` | `HasAncestor` that also matches the targets themselves (distance 0): it ORs `HasAncestor`'s query with a match on the concept's own name or code. |
 | `HasDescendant` | The upward counterpart: matches concepts strictly above the targets, optionally within `maxLevel` levels. Without `maxLevel` it's one query on the concept's stored `descendants` names and codes. With `maxLevel` it looks up the target codes and reads their stored paths to root (`StoredPaths`). |
-| `HasDescendantOrIs` | `HasDescendant` that also matches the targets themselves, the same way as `HasAncestorOrIs`. |
 | `RawBoolQueries` | The raw `bool` combining helpers (`getAllOfQuery`, `getAnyOfQuery`, `getMatchNothingQuery`) used until the logical operator nodes land; each maps onto `And`, `Or`, or `Not`. |
-| `And`, `Or`, `Not`, `Boost` | Logical queries. They hold child `EvsQuery` nodes instead of names, codes, and values. See [Logical queries](#logical-queries). Exploratory on this branch: merged from `eas/logical-operators`, tested only by `LogicalQueryTest` and the subset lessons. |
-| `Typeahead` | The query behind `/concept/typeahead`. Builds its OpenSearch queries directly: preferred names with a `bool_prefix` `multi_match` over `name.search_as_you_type` and its `._2gram` / `._3gram` subfields (every typed word, in any order, only the last one partial, ignoring case), and codes case sensitively with `term` (whole code) and `prefix` (partial code) on `code`, leaving out concepts with `active: false`, and overrides `getSorts()` to sort matches into tiers (a whole typed code, then name matches, then code-only matches) and rank general concepts with short names first within a tier. It ranks on the `descendantCount` field stored at load time, falling back to counting `descendants.leaf` on indexes loaded before that field existed. The count is the size of the stored `descendants`, so the SNOMED root (`138875005`), whose descendants the loader skips, has a count of 0 and ranks like a leaf. `Typeahead.getHasWordsToComplete(term)` says whether a term has anything to complete; the constructor rejects terms that don't. The endpoint's `total` stops at 10,000 (OpenSearch's default count limit): typeahead doesn't page, so unlike search it doesn't run a second query for the exact count. `SearchControllerTests.testTypeaheadTotalCapsAtCountedHitLimit` pins this. Highlighting is optional: the endpoint takes an `include` parameter like search (default `minimal`). With `include=minimal,highlights`, `fetchConcepts` asks OpenSearch to highlight the matched fields, and the endpoint returns OpenSearch's highlight of each suggestion's name (or of its code, if only the code matched). OpenSearch marks whole words: `lung ca` gives `<em>Lung</em> <em>Carcinoma</em>`. Typeahead overrides `getHighlightFields()` to highlight the main `name` field with a `match_bool_prefix` highlight query, because highlighting the `search_as_you_type` subfield it matched never marks the partial last word (and `*` doesn't reach subfields at all). `TypeaheadTest` lesson 10, `SearchControllerTests.testTypeaheadNameMatchHighlightsTypedWords`, `...testTypeaheadCodeMatchHighlightsCode`, `...testTypeaheadEndpointDefaultIncludeReturnsNoHighlights`, and `...testTypeaheadEndpointHighlightsIncludeReturnsHighlights` pin this. |
+| `And`, `Or`, `Not` | Logical queries. They hold child `EvsQuery` nodes instead of names, codes, and values. See [Logical queries](#logical-queries). Exploratory on this branch: merged from `eas/logical-operators`, tested only by `LogicalQueryTest` and the subset lessons. |
 
 ## Term searches
 
@@ -237,8 +207,6 @@ query, so results and their order agree with the legacy endpoint:
 | `StartsWith` | `startsWith` | starts with the term | `getMatchQuery(term, true)` |
 | `Contains` | `contains` | contains the term's words | `getContainsQuery(criteria, term, false, false)` |
 | `Fuzzy` | `fuzzy` | contains the term's words, allowing a typo per word | `getContainsQuery(criteria, term, true, false)` |
-
-`TermSearchTest` runs each against the test index.
 
 There's no case-insensitive, prefix, fuzzy, or contains match on a single field. The field nodes
 compare their names, codes, and values exactly; to search by part of a name, use a term search and
@@ -277,47 +245,66 @@ wrapped in a `nestedQuery`, which is a natural job for a future `In` composite. 
 | `And` | every child matches. No children matches everything. | `bool` with each child in `must` |
 | `Or` | at least one child matches. No children matches **nothing**, so an empty list of alternatives (e.g. a dependency that found no concepts) doesn't widen a search to everything. | `bool` with each child in `should`, `minimum_should_match: 1`; `must_not: match_all` when empty |
 | `Not` | the child doesn't match, including when the child's field is missing. Adds nothing to the score. | `bool` with `filter: match_all` and the child in `must_not` |
-| `Boost` | the child matches. Every match gets the same fixed score, however well it matched, so boosted alternatives inside an `Or` rank in tiers. | `constant_score` with `boost` |
 
-`LogicalQueryTest` runs each against a test index.
+## Sorting
 
-## Sorting (experimental)
+Nodes don't sort. `fetchConcepts` returns matches in OpenSearch's default order, highest score
+first, so term searches rank by relevance as the legacy search does, and nodes that only filter
+give every match the same score. Nothing breaks ties, so concepts with equal scores come back in
+OpenSearch's internal order.
 
-> **Experimental** (branch `eas/typeahead-composed-sorts`). This lets query nodes contribute
-> sorts that compose by priority. If it turns out not to fit, go back to commit `5765d1eb`, where
-> `Typeahead` supplied its sorts and `OpenSearchServiceImpl` built the request. The alternatives
-> considered were ranking through the score (`script_score` / `rank_feature`, which blends across
-> branches) and a separate top-level sort object (an `EvsSort` tree passed alongside the query).
-
-Any node can be run as the outermost query of a search, one page at a time:
+To order results another way, build the search yourself around the node's query and add sorts with
+the OpenSearch library:
 
 ```java
-final SearchHits<Concept> hits = query.fetchConcepts(operations, pageable, include);
+final NativeSearchQuery search =
+    new NativeSearchQueryBuilder()
+        .withQuery(query.fetchOpenSearchQuery(operations, terminologies))
+        .withSorts(SortBuilders.fieldSort("code").order(SortOrder.ASC))
+        .withPageable(pageable)
+        .build();
+final SearchHits<Concept> hits =
+    operations.search(
+        search, Concept.class, TerminologyUtils.getIndexCoordinates(terminologies));
 ```
 
-The request's sort order comes from `getSorts()`. Most nodes only match and return no sorts.
-`Typeahead` returns its ranking sort. The rules:
+The one search that sorts is [Typeahead](#typeahead-not-a-node), which isn't a node.
 
-1. **A node's own sorts come first, then each child's sorts in child order.** Composites must
-   implement `getSorts()` this way. A nested node's sorts therefore only break ties left by the
-   nodes above and before it, like `ORDER BY a, b, c` in SQL. `And(a, b)` and `And(b, a)` match the
-   same concepts but can order them differently.
-2. **Negating composites contribute nothing.** A `Not` returns none of its children's sorts.
-3. **Duplicates are dropped.** The first occurrence of a sort keeps its position.
-4. **`fetchConcepts` always appends the tie-break `_index`, then `code`.** Each terminology
-   has its own index, so this orders by terminology, then code, and results are stable between
-   requests. (`terminology` is analyzed text and can't be sorted on.)
+## Typeahead (not a node)
 
-Known limits:
+`gov.nih.nci.evs.api.service.Typeahead` is the search behind `GET /concept/typeahead`. It isn't an
+`EvsQuery` and can't be nested in a tree: it returns suggestions, ranked best first, not every
+match, and it's the only search that sorts. `getOpenSearchQuery()` returns its query,
+`getSearch(page, include)` returns the whole request with its sorts (and highlights) attached, and
+`fetchConcepts(operations, terminologies, page, include)` runs it.
 
-- **A sort ranks every hit, not just the hits its node matched.** Under `And`, every hit matched
-  every child, so this doesn't come up. Under `Or`, a child's sort also orders hits that only its
-  sibling matched. Script sorts like `Typeahead`'s work on any concept. Field sorts put documents
-  missing the field last.
-- **There's no way to replace the tree's sorts yet,** for example with a user-chosen "name A to Z".
-  Add an override parameter to `fetchConcepts` when one is needed.
-- **Sorts can't blend.** A higher-priority sort always wins outright. Blending relevance across
-  branches needs ranking through the score instead.
+It builds its OpenSearch query directly: preferred names with a `bool_prefix` `multi_match` over
+`name.search_as_you_type` and its `._2gram` / `._3gram` subfields (every typed word, in any order,
+only the last one partial, ignoring case), and codes case sensitively with `term` (whole code) and
+`prefix` (partial code) on `code`, leaving out concepts with `active: false`. Its sorts put matches
+into tiers (a whole typed code, then name matches, then code-only matches), rank general concepts
+with short names first within a tier, and break ties by terminology (`_index`), then `code`. It
+ranks on the `descendantCount` field stored at load time, falling back to counting
+`descendants.leaf` on indexes loaded before that field existed. The count is the size of the stored
+`descendants`, so the SNOMED root (`138875005`), whose descendants the loader skips, has a count of
+0 and ranks like a leaf.
+
+`Typeahead.getHasWordsToComplete(term)` says whether a term has anything to complete; the
+constructor rejects terms that don't, and the endpoint returns an empty list for them. The
+endpoint's `total` stops at 10,000 (OpenSearch's default count limit): typeahead doesn't page, so
+unlike search it doesn't run a second query for the exact count.
+`SearchControllerTypeaheadTests.testTypeaheadTotalCapsAtCountedHitLimit` pins this.
+
+Highlighting is optional: the endpoint takes an `include` parameter like search (default
+`minimal`). With `include=minimal,highlights`, the endpoint returns OpenSearch's highlight of each
+suggestion's name (or of its code, if only the code matched). OpenSearch marks whole words: `lung
+ca` gives `<em>Lung</em> <em>Carcinoma</em>`. Typeahead highlights the main `name` field with a
+`match_bool_prefix` highlight query, because highlighting the `search_as_you_type` subfield it
+matched never marks the partial last word (and `*`, which the nodes highlight with, doesn't reach
+subfields at all). `TypeaheadTest` lesson 10,
+`SearchControllerTypeaheadTests.testTypeaheadNameMatchHighlightsTypedWords`,
+`...testTypeaheadCodeMatchHighlightsCode`, `...testTypeaheadEndpointDefaultIncludeReturnsNoHighlights`,
+and `...testTypeaheadEndpointHighlightsIncludeReturnsHighlights` pin this.
 
 ## Relationships
 
@@ -345,7 +332,7 @@ name and its code, so the caller doesn't name the entry's fields:
 name is analyzed text, so a name compares against its lowercased words, not the whole name. Both
 are stored on the entry itself, so no other search runs.
 
-**Targets aren't queries.** Only the logical queries (`And`, `Or`, `Not`, `Boost`) hold other
+**Targets aren't queries.** Only the logical queries (`And`, `Or`, `Not`) hold other
 queries. "Primary site is Skin or anything below Skin" would need the codes below Skin first,
 because a role entry only stores its target's code and name; that's left to the caller, who can run
 one query and pass its codes back as an `Or` of one node per code.
@@ -353,6 +340,9 @@ one query and pass its codes back as an `Or` of one node per code.
 ## Hierarchy queries
 
 The hierarchy nodes take the target concept's name or code, not an inner query.
+They match strictly above or below the targets. To include the targets themselves, combine with
+`Or`: `new Or(List.of(new Exact("C12971"), new HasAncestor("C12971")))` is Breast and everything
+below it.
 Some cases can't be answered from the concept's own fields yet, so `HasHierarchyRelative.fetchTargetCodes`
 looks the target codes up first, one terminology at a time:
 
@@ -377,8 +367,7 @@ entries.
 
 A static lookup hides which nodes search and makes tests change global state; injecting
 `operations` at construction means every tree containing a search needs it just to be built.
-Taking it in `fetchOpenSearchQuery` keeps trees plain data, and lets unit tests pass a mock (see
-`HasHierarchyRelativeTargetCodesTest`).
+Taking it in `fetchOpenSearchQuery` keeps trees plain data, and lets unit tests pass a mock.
 
 The terminologies are passed the same way, as their own parameter. Most nodes only hand them to
 their children; the nodes that read them are `fetchConcepts` (which searches their indexes),
@@ -438,7 +427,7 @@ public class StartsWith extends TermSearch {
 
 ### Adding a composite query
 
-> `And`, `Or`, `Not`, and `Boost` already exist on this branch (see
+> `And`, `Or`, and `Not` already exist on this branch (see
 > [Logical operators](#logical-operators-exploratory-on-this-branch)). This section describes how
 > composites work.
 
@@ -503,7 +492,11 @@ final EvsQuery query =
    names, codes, and values, not other queries, unless it's a logical query.
 3. Escape any characters in the term that are syntax for the OpenSearch query you use (see
    `OpenSearchServiceImpl.escape`, which `TermSearch` applies).
-4. Add a lesson to the node's test (e.g. `TermSearchTest`, `HasRoleTest`) that runs the query
-   against the test index and asserts which concepts it finds. Test behavior, not the built
-   `QueryBuilder`.
-5. Run `./gradlew spotlessApply`.
+4. Annotate the fields a client must send, e.g. `@NotNull` on a required name or code, `@Min` on a
+   bound, `@Valid` on nested queries or qualifier conditions. The query endpoint validates the body
+   with `@Valid`, so a missing or out-of-range field is a 400 naming the field, not a 500 when the
+   node runs. If the node can match too much to run, throw `QueryTooBroadException`, which the
+   endpoint also reports as a 400.
+5. Add a test for the node that runs the query against the test index and asserts which concepts
+   it finds. Test behavior, not the built `QueryBuilder`.
+6. Run `./gradlew spotlessApply`.

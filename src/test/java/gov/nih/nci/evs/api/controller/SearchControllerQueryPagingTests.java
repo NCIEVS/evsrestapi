@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -13,7 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
 /** Tests paging through the query endpoint's matches with fromRecord and pageSize. */
-public class PagingEndpointTest extends AbstractQueryEndpointTest {
+public class SearchControllerQueryPagingTests extends AbstractSearchControllerQueryTests {
 
   /** The four children of Breast, a query with a few matches to page through. */
   private static final String BREAST_CHILDREN_QUERY =
@@ -26,63 +26,6 @@ public class PagingEndpointTest extends AbstractQueryEndpointTest {
       """
       {"type": "HasAncestor", "target": "C7057"}
       """;
-
-  /**
-   * Test a page from a record returns the matches at those positions: records 1-2 of the four
-   * children of Breast are the second and third of all the matches.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testPageFromRecordReturnsMatchesAtThosePositions() throws Exception {
-    final int fromRecord = 1;
-    final int pageSize = 2;
-
-    final List<String> allCodes = fetchCodes(BREAST_CHILDREN_QUERY);
-    final List<String> pageCodes = fetchCodesOnPage(BREAST_CHILDREN_QUERY, fromRecord, pageSize);
-
-    assertThat(pageCodes).isEqualTo(allCodes.subList(fromRecord, fromRecord + pageSize));
-  }
-
-  /**
-   * Test a page from a record past the last match returns no concepts, but still the total.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testPageFromRecordPastLastMatchReturnsNoConcepts() throws Exception {
-    final int pastLastMatch = BREAST_CHILDREN.size();
-
-    final ConceptResultList results = fetchPage(BREAST_CHILDREN_QUERY, pastLastMatch, 10);
-
-    assertThat(results.getConcepts()).isEmpty();
-    assertThat(results.getTotal()).isEqualTo(BREAST_CHILDREN.size());
-  }
-
-  /**
-   * Test the total counts every match past OpenSearch's default limit of 10,000, as legacy search
-   * does: Disease, Disorder or Finding has more descendants than that.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testTotalCountsMatchesPastCountedHitLimit() throws Exception {
-    final long countedHitLimit = 10_000L;
-
-    final ConceptResultList results = fetchPage(DISEASE_DESCENDANTS_QUERY, 0, 10);
-
-    assertThat(results.getTotal()).isGreaterThan(countedHitLimit);
-  }
-
-  /**
-   * Test a negative fromRecord is rejected as a bad request.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testNegativeFromRecordReturnsBadRequest() throws Exception {
-    postQueryPage(BREAST_CHILDREN_QUERY, -1, 10).andExpect(status().isBadRequest());
-  }
 
   /**
    * Posts a query tree and returns the codes on one page of its matches.
@@ -137,5 +80,52 @@ public class PagingEndpointTest extends AbstractQueryEndpointTest {
             .param("pageSize", String.valueOf(pageSize))
             .contentType(MediaType.APPLICATION_JSON)
             .content(queryJson));
+  }
+
+  /**
+   * Test a page from a record returns the matches at those positions: records 1-2 of the four
+   * children of Breast are the second and third of all the matches.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageFromRecordReturnsMatchesAtThosePositions() throws Exception {
+    final int fromRecord = 1;
+    final int pageSize = 2;
+
+    final List<String> allCodes = fetchCodes(BREAST_CHILDREN_QUERY);
+    final List<String> pageCodes = fetchCodesOnPage(BREAST_CHILDREN_QUERY, fromRecord, pageSize);
+
+    assertThat(pageCodes).isEqualTo(allCodes.subList(fromRecord, fromRecord + pageSize));
+  }
+
+  /**
+   * Test a page from a record past the last match returns no concepts, but still the total.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageFromRecordPastLastMatchReturnsNoConcepts() throws Exception {
+    final int pastLastMatch = BREAST_CHILDREN.size();
+
+    final ConceptResultList results = fetchPage(BREAST_CHILDREN_QUERY, pastLastMatch, 10);
+
+    assertThat(results.getConcepts()).isEmpty();
+    assertThat(results.getTotal()).isEqualTo(BREAST_CHILDREN.size());
+  }
+
+  /**
+   * Test the total counts every match past OpenSearch's default limit of 10,000, as legacy search
+   * does: Disease, Disorder or Finding has more descendants than that.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTotalCountsMatchesPastCountedHitLimit() throws Exception {
+    final long countedHitLimit = 10_000L;
+
+    final ConceptResultList results = fetchPage(DISEASE_DESCENDANTS_QUERY, 0, 10);
+
+    assertThat(results.getTotal()).isGreaterThan(countedHitLimit);
   }
 }

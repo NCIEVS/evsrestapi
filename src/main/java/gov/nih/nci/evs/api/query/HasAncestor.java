@@ -22,12 +22,12 @@ import org.opensearch.index.query.QueryBuilder;
  * Terminologies indexed with ancestor fields then match with one query on {@code ancestors.code}
  * (or {@code ancestorDepths} for a depth limit). Older indexes fall back to reading the stored
  * hierarchy (see {@link StoredHierarchyFallback}).
+ *
  * <p>The {@code ancestors} field only holds codes, so the target codes are looked up first (see
  * {@link HasHierarchyRelative#fetchTargetCodes}). Terminologies indexed with ancestor fields then
  * match with one query on {@code ancestors} (or {@code ancestorDepths} for a depth limit). Older
  * indexes fall back to reading the stored hierarchy (see {@link StoredHierarchyFallback}).
  *
- * @see HasAncestorOrIs
  * @see HasDescendant
  */
 public class HasAncestor extends HasHierarchyRelative {
@@ -103,7 +103,7 @@ public class HasAncestor extends HasHierarchyRelative {
     final long tokenCount = (long) targetCodes.size() * maxLevel;
     final boolean hasTooManyTokens = tokenCount > MatchAnyOf.MAX_VALUES;
     if (hasTooManyTokens) {
-      throw new IllegalArgumentException(
+      throw new QueryTooBroadException(
           "Too many targets for maxLevel "
               + maxLevel
               + ": "

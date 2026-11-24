@@ -13,15 +13,20 @@ import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.query.EvsQuery;
+import gov.nih.nci.evs.api.query.QueryTooBroadException;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
+import gov.nih.nci.evs.api.support.es.OpenSearchLimits;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -91,6 +96,18 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   /** Number of concepts per children lookup in the hierarchy search fallback. */
   private static final int CHILDREN_BATCH_SIZE = 1000;
 
+  /**
+   * Text OpenSearch puts in its reason when a search breaks one of its limits: too many clauses
+   * ({@code indices.query.bool.max_clause_count}), counted per query or across nested queries, and
+   * paging too far ({@code index.max_result_window}).
+   */
+  private static final List<String> OPENSEARCH_LIMIT_MARKERS =
+      List.of(
+          "maxClauseCount",
+          "too_many_clauses",
+          "too_many_nested_clauses",
+          "Result window is too large");
+
   /** OpenSearch's default limit on the hits a search counts, at which its total stops. */
   private static final long COUNTED_HIT_LIMIT = 10_000L;
 
@@ -99,17 +116,108 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
   /* see superclass */
   @Override
-  public ConceptResultList findQueryConcepts(
-      final EvsQuery query,
+  public ConceptResultList findTypeaheadConcepts(
+      final Typeahead typeahead,
       final List<Terminology> terminologies,
       final SearchCriteria searchCriteria) {
     final SearchHits<Concept> hits =
-        query.fetchConcepts(
+        typeahead.fetchConcepts(
             operations,
             terminologies,
             EVSPageable.fromRecord(searchCriteria.getFromRecord(), searchCriteria.getPageSize()),
             new IncludeParam(searchCriteria.getInclude()));
 
+    return getConceptResultList(hits, searchCriteria);
+  }
+
+  /* see superclass */
+  @Override
+  public ConceptResultList findQueryConcepts(
+      final EvsQuery query,
+      final List<Terminology> terminologies,
+      final SearchCriteria searchCriteria) {
+    final SearchHits<Concept> hits =
+        fetchWithinOpenSearchLimits(
+            () ->
+                query.fetchConcepts(
+                    operations,
+                    terminologies,
+                    EVSPageable.fromRecord(
+                        searchCriteria.getFromRecord(), searchCriteria.getPageSize()),
+                    new IncludeParam(searchCriteria.getInclude())));
+
+    return getConceptResultList(hits, searchCriteria);
+  }
+
+  /**
+   * Runs a search, reporting a breach of an OpenSearch limit as a {@link QueryTooBroadException}
+   * carrying OpenSearch's reason, since the client can fix it by narrowing the query. Most limits
+   * are checked before the search; this catches the ones that can't be, e.g. how many clauses a
+   * query builds, and an index paging less far than {@link OpenSearchLimits#MAX_RESULT_WINDOW}.
+   *
+   * @param <T> the search result type
+   * @param search the search
+   * @return the search result
+   * @throws QueryTooBroadException if the search breaches an OpenSearch limit
+   */
+  private static <T> T fetchWithinOpenSearchLimits(final Supplier<T> search) {
+    try {
+      return search.get();
+    } catch (final RuntimeException e) {
+      final String limitReason = getOpenSearchLimitReason(e);
+      final boolean isOpenSearchLimitBreach = limitReason != null;
+      if (!isOpenSearchLimitBreach) {
+        throw e;
+      }
+      throw new QueryTooBroadException("The query is past an OpenSearch limit: " + limitReason, e);
+    }
+  }
+
+  /**
+   * Returns OpenSearch's reason for failing a search because of one of its limits, e.g.
+   * "maxClauseCount is set to 1024", or null if it failed for another reason. OpenSearch's reason
+   * may be on any exception in the chain: the client wraps it in its own exceptions, as causes or
+   * suppressed exceptions.
+   *
+   * @param error the error the search threw
+   * @return the reason, or null
+   */
+  static String getOpenSearchLimitReason(final Throwable error) {
+    final Deque<Throwable> unchecked = new ArrayDeque<>(List.of(error));
+    final Set<Throwable> checked = new HashSet<>();
+    while (!unchecked.isEmpty()) {
+      final Throwable current = unchecked.pop();
+      final boolean isNewlyChecked = checked.add(current);
+      if (!isNewlyChecked) {
+        continue;
+      }
+
+      final String message = current.getMessage();
+      final boolean hasLimitReason =
+          message != null && OPENSEARCH_LIMIT_MARKERS.stream().anyMatch(message::contains);
+      if (hasLimitReason) {
+        return message;
+      }
+
+      final boolean hasCause = current.getCause() != null;
+      if (hasCause) {
+        unchecked.push(current.getCause());
+      }
+      unchecked.addAll(List.of(current.getSuppressed()));
+    }
+    return null;
+  }
+
+  /**
+   * Returns one page of hits as a result list, with each concept's highlights and the search
+   * criteria echoed back as the result parameters.
+   *
+   * @param hits the page of hits
+   * @param searchCriteria the search criteria
+   * @return the result list
+   */
+  private static ConceptResultList getConceptResultList(
+      final SearchHits<Concept> hits, final SearchCriteria searchCriteria) {
     final ConceptResultList results = new ConceptResultList();
     results.setParameters(searchCriteria);
     // Capped at 10,000: findQueryConceptsWithExactTotal runs a second query for the exact count
@@ -132,7 +240,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     final boolean hasTotalAtCountedHitLimit = results.getTotal() >= COUNTED_HIT_LIMIT;
     if (hasTotalAtCountedHitLimit) {
-      results.setTotal(query.fetchConceptCount(operations, terminologies));
+      results.setTotal(
+          fetchWithinOpenSearchLimits(() -> query.fetchConceptCount(operations, terminologies)));
     }
 
     return results;

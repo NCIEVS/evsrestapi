@@ -1,6 +1,8 @@
 package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import org.opensearch.data.core.OpenSearchOperations;
@@ -12,7 +14,7 @@ import org.opensearch.index.query.QueryBuilders;
 public class And extends EvsQuery {
 
   /** The queries that must all match. */
-  private List<EvsQuery> children;
+  @NotNull private List<@NotNull @Valid EvsQuery> children;
 
   /** Instantiates an empty {@link And}. */
   public And() {
@@ -47,6 +49,16 @@ public class And extends EvsQuery {
    */
   public void setChildren(final List<EvsQuery> children) {
     this.children = children;
+  }
+
+  /* see superclass */
+  @Override
+  public int getDepth() {
+    int deepestChildDepth = 0;
+    for (final EvsQuery child : getChildren()) {
+      deepestChildDepth = Math.max(deepestChildDepth, child.getDepth());
+    }
+    return deepestChildDepth + 1;
   }
 
   /* see superclass */

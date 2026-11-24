@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.query;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,6 +77,42 @@ public class EvsQueryTest {
         QueryTestTerminologies.getTerminology(TERMINOLOGY, null, INDEX_NAME);
 
     assertMatchFailsNaming(terminology, "version");
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // Depth: a query can nest at most EvsQuery.MAX_QUERY_DEPTH levels
+  // ---------------------------------------------------------------------------------------------
+
+  /** A leaf holds no other query, so its depth is 1. */
+  @Test
+  public void testLeafHasDepthOne() {
+    final int leafDepth = 1;
+
+    assertEquals(leafDepth, new Exact("C12470").getDepth());
+  }
+
+  /** A node's depth is one more than its deepest child's. */
+  @Test
+  public void testAndHasDepthOfDeepestChildPlusOne() {
+    final EvsQuery skinAndNotSkin =
+        new And(List.of(new Exact("C12470"), new Not(new Exact("C12470"))));
+    final int depthOfNotAndExactPlusAnd = 3;
+
+    assertEquals(depthOfNotAndExactPlusAnd, skinAndNotSkin.getDepth());
+  }
+
+  /**
+   * Returns a leaf wrapped in Nots until the query is the given depth.
+   *
+   * @param depth the depth, at least 1
+   * @return the query
+   */
+  private static EvsQuery getNotsAroundLeaf(final int depth) {
+    EvsQuery query = new Exact("C12470");
+    for (int level = 1; level < depth; level++) {
+      query = new Not(query);
+    }
+    return query;
   }
 
   /**
