@@ -38,11 +38,10 @@ queries, and how to add a new node.
   refactored onto the logical nodes later.
 - Build leaf conditions with `MatchAnyOf` (or `NameOrCodeMatch` for a name or code) and call its
   `fetchOpenSearchQuery` instead of writing `termQuery`/`termsQuery` by hand.
-- `MatchAnyOf` and `NameOrCodeMatch` are only for building nodes. Don't make them public;
-  tutorials like `HasRoleTest` must use public nodes.
+- `MatchAnyOf` and `NameOrCodeMatch` are only for building nodes. Don't make them public.
 - Keep the raw combining code in small, clearly named helpers, so each maps onto one logical node.
 
 ## Tests
 
-- `TermSearchTest`, `HasRoleTest`, and `HasAssociationTest` run against OpenSearch on port 9201.
-- `HasHierarchyRelativeTargetCodesTest` uses a mocked `OpenSearchOperations` and needs no services.
+- Node tests are being redone with a new approach; the earlier per-node tests were removed.
+- `EvsQueryTest` covers what every node shares: the terminology checks and the query depth limit.

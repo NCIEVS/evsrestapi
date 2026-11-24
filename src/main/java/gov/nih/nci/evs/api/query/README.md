@@ -15,8 +15,7 @@ Every node is an `EvsQuery` and says which concepts match. There are three kinds
 
 `MatchAnyOf` (one field equal to any of a set of values) and `NameOrCodeMatch` (a name field or a
 code field equal to any of a set of names or codes) are the leaves nodes are built from. They're
-package-private, not part of the API: tests showing how to use the API, like `HasRoleTest`, stick
-to the public nodes.
+package-private, not part of the API: tests showing how to use the API stick to the public nodes.
 
 Because every query has the same interface, any query can be nested inside any composite:
 
@@ -31,8 +30,8 @@ Because every query has the same interface, any query can be nested inside any c
 The plan is to build queries almost entirely from logical operator nodes (`And`, `Or`, `Not`,
 and similar), with raw OpenSearch `QueryBuilder`s only inside the leaf nodes. On the
 exploratory branch `eas/explore-filters` they're merged in from `eas/logical-operators` and can be
-used to combine nodes (see [Logical queries](#logical-queries)). They're still only tested by
-`LogicalQueryTest` and the lessons that use them, so on other branches don't build on them yet.
+used to combine nodes (see [Logical queries](#logical-queries)). They're still only lightly
+tested, so on other branches don't build on them yet.
 
 Inside a node's own `fetchOpenSearchQuery`, existing nodes still combine conditions with raw
 OpenSearch (`QueryBuilders.boolQuery()`, `nestedQuery`, `constantScoreQuery`, ...), e.g. a
@@ -209,8 +208,6 @@ query, so results and their order agree with the legacy endpoint:
 | `Contains` | `contains` | contains the term's words | `getContainsQuery(criteria, term, false, false)` |
 | `Fuzzy` | `fuzzy` | contains the term's words, allowing a typo per word | `getContainsQuery(criteria, term, true, false)` |
 
-`TermSearchTest` runs each against the test index.
-
 There's no case-insensitive, prefix, fuzzy, or contains match on a single field. The field nodes
 compare their names, codes, and values exactly; to search by part of a name, use a term search and
 combine it with the field nodes:
@@ -248,8 +245,6 @@ wrapped in a `nestedQuery`, which is a natural job for a future `In` composite. 
 | `And` | every child matches. No children matches everything. | `bool` with each child in `must` |
 | `Or` | at least one child matches. No children matches **nothing**, so an empty list of alternatives (e.g. a dependency that found no concepts) doesn't widen a search to everything. | `bool` with each child in `should`, `minimum_should_match: 1`; `must_not: match_all` when empty |
 | `Not` | the child doesn't match, including when the child's field is missing. Adds nothing to the score. | `bool` with `filter: match_all` and the child in `must_not` |
-
-`LogicalQueryTest` runs each against a test index.
 
 ## Sorting
 
@@ -372,8 +367,7 @@ entries.
 
 A static lookup hides which nodes search and makes tests change global state; injecting
 `operations` at construction means every tree containing a search needs it just to be built.
-Taking it in `fetchOpenSearchQuery` keeps trees plain data, and lets unit tests pass a mock (see
-`HasHierarchyRelativeTargetCodesTest`).
+Taking it in `fetchOpenSearchQuery` keeps trees plain data, and lets unit tests pass a mock.
 
 The terminologies are passed the same way, as their own parameter. Most nodes only hand them to
 their children; the nodes that read them are `fetchConcepts` (which searches their indexes),
@@ -503,7 +497,6 @@ final EvsQuery query =
    with `@Valid`, so a missing or out-of-range field is a 400 naming the field, not a 500 when the
    node runs. If the node can match too much to run, throw `QueryTooBroadException`, which the
    endpoint also reports as a 400.
-5. Add a lesson to the node's test (e.g. `TermSearchTest`, `HasRoleTest`) that runs the query
-   against the test index and asserts which concepts it finds. Test behavior, not the built
-   `QueryBuilder`.
+5. Add a test for the node that runs the query against the test index and asserts which concepts
+   it finds. Test behavior, not the built `QueryBuilder`.
 6. Run `./gradlew spotlessApply`.

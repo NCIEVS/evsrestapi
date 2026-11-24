@@ -15,9 +15,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 /**
  * Tests that a query too broad to run reaches the client as a bad request carrying the reason.
  * Nodes throw {@link QueryTooBroadException} for limits real data rarely reaches, e.g. a hierarchy
- * target with more than 65,536 codes below it, so the search is mocked to throw one. Each limit's
- * edge is tested where it's owned ({@code HasHierarchyRelativeLimitsTest}); they all reach the
- * client through this one mapping.
+ * target with more than 65,536 codes below it, so the search is mocked to throw one. Every such
+ * limit reaches the client through this one mapping.
  *
  * <p>In its own class because the mock replaces the search service for every test in the class.
  */

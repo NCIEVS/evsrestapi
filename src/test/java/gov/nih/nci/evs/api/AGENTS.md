@@ -10,8 +10,6 @@ This is the test Java package root. Tests use JUnit 5, Spring Boot test support,
 - `ProxyTester.java` creates populated objects through reflection and proxies.
 - `GetterSetterTester.java`, `CopyConstructorTester.java`, `EqualsHashcodeTester.java`, and
   `SerializationTester.java` provide reusable model contract checks.
-- `EvsQuerySerializationTester.java` checks query nodes' JSON wire format with the application's
-  object mapper.
 - `ConceptSampleTester.java` and `SampleRecord.java` support terminology sample-based endpoint
   tests.
 - `ApplicationTests.java` and `DynamicMappingTest.java` cover broader application/index behavior.
