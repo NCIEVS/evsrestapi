@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.LogicalDefinition;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
@@ -227,6 +228,28 @@ public interface SparqlQueryManagerService {
    */
   public Map<String, Set<String>> getLogicalDefinitionCodes(Terminology terminology)
       throws Exception;
+
+  /**
+   * Returns the machine-readable equivalent-class definition for a concept.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the logical definition, or null if the concept has no equivalent-class definition
+   * @throws Exception the exception
+   */
+  public LogicalDefinition getLogicalDefinition(String conceptCode, Terminology terminology)
+      throws Exception;
+
+  /**
+   * Returns machine-readable equivalent-class definitions for a batch of concepts.
+   *
+   * @param conceptCodes the concept codes
+   * @param terminology the terminology
+   * @return logical definitions keyed by concept code
+   * @throws Exception the exception
+   */
+  public Map<String, LogicalDefinition> getLogicalDefinitions(
+      List<String> conceptCodes, Terminology terminology) throws Exception;
 
   /**
    * Returns the associations.
