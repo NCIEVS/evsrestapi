@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -64,16 +63,6 @@ public class SearchControllerQueryParameterTests extends AbstractSearchControlle
 
   /** An association of the sample terminology: Concept_In_Subset. */
   private static final String SAMPLE_ASSOCIATION_CODE = "A8";
-
-  /**
-   * The terminology for the inverse relationship samples. The local NCIt indexes predate nesting
-   * inverse roles and associations, so these search Gene Ontology until NCIt is reindexed.
-   */
-  private static final String INVERSE_SAMPLE_TERMINOLOGY = "go";
-
-  /** The node types whose samples search {@link #INVERSE_SAMPLE_TERMINOLOGY}. */
-  private static final Set<String> INVERSE_NODE_TYPES =
-      Set.of("HasInverseRole", "HasInverseAssociation");
 
   /**
    * A sample body for every node type, each using every field the node declares, on {@link
@@ -363,10 +352,7 @@ public class SearchControllerQueryParameterTests extends AbstractSearchControlle
   public void testEveryNodeTypeWithEveryFieldReturnsOk(
       final String nodeType, final String sampleBody) throws Exception {
     // fetchQueryResults asserts the response is OK
-    final boolean isInverseNode = INVERSE_NODE_TYPES.contains(nodeType);
-    final String terminology = isInverseNode ? INVERSE_SAMPLE_TERMINOLOGY : SAMPLE_TERMINOLOGY;
-
-    fetchQueryResults(terminology, sampleBody, "minimal");
+    fetchQueryResults(SAMPLE_TERMINOLOGY, sampleBody, "minimal");
   }
 
   /**
@@ -405,14 +391,7 @@ public class SearchControllerQueryParameterTests extends AbstractSearchControlle
               + SAMPLE_CONCEPT_CODE
               + "\", \"maxLevel\": 1}");
     }
-    sampleBodyByNodeType.put(
-        "HasInverseRole",
-        "{\"type\": \"HasInverseRole\", \"role\": \"occurs_in\", \"target\": \"GO:0006624\"}");
-    sampleBodyByNodeType.put(
-        "HasInverseAssociation",
-        "{\"type\": \"HasInverseAssociation\", \"association\": \"IAO_0100001\","
-            + " \"target\": \"GO:0005773\"}");
-    for (final String roleNode : List.of("HasRole")) {
+    for (final String roleNode : List.of("HasRole", "HasInverseRole")) {
       sampleBodyByNodeType.put(
           roleNode,
           "{\"type\": \""
@@ -423,7 +402,7 @@ public class SearchControllerQueryParameterTests extends AbstractSearchControlle
               + SAMPLE_CONCEPT_CODE
               + "\"}");
     }
-    for (final String associationNode : List.of("HasAssociation")) {
+    for (final String associationNode : List.of("HasAssociation", "HasInverseAssociation")) {
       sampleBodyByNodeType.put(
           associationNode,
           "{\"type\": \""
