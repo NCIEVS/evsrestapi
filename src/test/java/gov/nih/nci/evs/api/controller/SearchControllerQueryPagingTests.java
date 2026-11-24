@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
       """
       {"type": "HasAncestor", "target": "C7057"}
       """;
+
+  /** A page size for tests that aren't about page size. */
+  private static final int PAGE_OF_TEN = 10;
 
   /**
    * Posts a query tree and returns the codes on one page of its matches.
@@ -82,6 +86,10 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
             .content(queryJson));
   }
 
+  // ---------------------------------------------------------------------------------------------
+  // Behavior: which concepts a page holds, and the total
+  // ---------------------------------------------------------------------------------------------
+
   /**
    * Test a page from a record returns the matches at those positions: records 1-2 of the four
    * children of Breast are the second and third of all the matches.
@@ -127,5 +135,138 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
     final ConceptResultList results = fetchPage(DISEASE_DESCENDANTS_QUERY, 0, 10);
 
     assertThat(results.getTotal()).isGreaterThan(countedHitLimit);
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // fromRecord: optional, at least MIN_FROM_RECORD
+  // ---------------------------------------------------------------------------------------------
+
+  /**
+   * Test fromRecord is optional: a search without it is accepted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testWithoutFromRecordReturnsOk() throws Exception {
+    mvc.perform(
+            post(QUERY_URL, TERMINOLOGY)
+                .param("pageSize", String.valueOf(PAGE_OF_TEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(BREAST_CHILDREN_QUERY))
+        .andExpect(status().isOk());
+  }
+
+  /**
+   * Test the first record, the smallest fromRecord allowed, is accepted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testFromRecordAtMinimumReturnsOk() throws Exception {
+    postQueryPage(
+            BREAST_CHILDREN_QUERY, SearchCriteriaWithoutTerminology.MIN_FROM_RECORD, PAGE_OF_TEN)
+        .andExpect(status().isOk());
+  }
+
+  /**
+   * Test an ordinary fromRecord, well above the smallest allowed, is accepted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testFromRecordAboveMinimumReturnsOk() throws Exception {
+    final int typicalFromRecord = 20;
+
+    postQueryPage(BREAST_CHILDREN_QUERY, typicalFromRecord, PAGE_OF_TEN).andExpect(status().isOk());
+  }
+
+  /**
+   * Test a negative fromRecord is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNegativeFromRecordReturnsBadRequest() throws Exception {
+    postQueryPage(BREAST_CHILDREN_QUERY, -1, 10).andExpect(status().isBadRequest());
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // pageSize: optional, MIN_PAGE_SIZE to MAX_PAGE_SIZE
+  // ---------------------------------------------------------------------------------------------
+
+  /**
+   * Test pageSize is optional: a search without it is accepted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testWithoutPageSizeReturnsOk() throws Exception {
+    mvc.perform(
+            post(QUERY_URL, TERMINOLOGY)
+                .param(
+                    "fromRecord", String.valueOf(SearchCriteriaWithoutTerminology.MIN_FROM_RECORD))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(BREAST_CHILDREN_QUERY))
+        .andExpect(status().isOk());
+  }
+
+  /**
+   * Test the smallest page size allowed is accepted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeAtMinimumReturnsOk() throws Exception {
+    postQueryPage(BREAST_CHILDREN_QUERY, 0, SearchCriteriaWithoutTerminology.MIN_PAGE_SIZE)
+        .andExpect(status().isOk());
+  }
+
+  /**
+   * Test the largest page size allowed is accepted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeAtMaximumReturnsOk() throws Exception {
+    postQueryPage(BREAST_CHILDREN_QUERY, 0, SearchCriteriaWithoutTerminology.MAX_PAGE_SIZE)
+        .andExpect(status().isOk());
+  }
+
+  /**
+   * Test an ordinary page size, between the smallest and largest allowed, is accepted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeBetweenMinimumAndMaximumReturnsOk() throws Exception {
+    final int typicalPageSize = 50;
+
+    postQueryPage(BREAST_CHILDREN_QUERY, 0, typicalPageSize).andExpect(status().isOk());
+  }
+
+  /**
+   * Test a page size below the smallest allowed is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeBelowMinimumReturnsBadRequest() throws Exception {
+    final int pageSizeBelowMinimum = SearchCriteriaWithoutTerminology.MIN_PAGE_SIZE - 1;
+
+    postQueryPage(BREAST_CHILDREN_QUERY, 0, pageSizeBelowMinimum)
+        .andExpect(status().isBadRequest());
+  }
+
+  /**
+   * Test a page size above the largest allowed is rejected as a bad request.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeAboveMaximumReturnsBadRequest() throws Exception {
+    final int pageSizeAboveMaximum = SearchCriteriaWithoutTerminology.MAX_PAGE_SIZE + 1;
+
+    postQueryPage(BREAST_CHILDREN_QUERY, 0, pageSizeAboveMaximum)
+        .andExpect(status().isBadRequest());
   }
 }

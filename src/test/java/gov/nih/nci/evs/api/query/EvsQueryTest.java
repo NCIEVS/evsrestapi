@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import gov.nih.nci.evs.api.model.Concept;
@@ -99,6 +100,42 @@ public class EvsQueryTest {
     final int depthOfNotAndExactPlusAnd = 3;
 
     assertEquals(depthOfNotAndExactPlusAnd, skinAndNotSkin.getDepth());
+  }
+
+  /** A query exactly at the depth limit passes the depth check. */
+  @Test
+  public void testQueryAtMaxDepthPassesDepthCheck() {
+    final EvsQuery atMaxDepth = getNotsAroundLeaf(EvsQuery.MAX_QUERY_DEPTH);
+
+    assertDoesNotThrow(atMaxDepth::checkDepth);
+  }
+
+  /** A query one level past the depth limit fails, naming the limit. */
+  @Test
+  public void testQueryPastMaxDepthThrowsErrorNamingLimit() {
+    final EvsQuery pastMaxDepth = getNotsAroundLeaf(EvsQuery.MAX_QUERY_DEPTH + 1);
+
+    final QueryTooBroadException error =
+        assertThrows(QueryTooBroadException.class, pastMaxDepth::checkDepth);
+
+    assertTrue(
+        error.getMessage().contains("at most " + EvsQuery.MAX_QUERY_DEPTH), error.getMessage());
+  }
+
+  /** A query past the depth limit fails before it reaches OpenSearch. */
+  @Test
+  public void testQueryPastMaxDepthFailsBeforeSearching() {
+    final OpenSearchOperations operations = mock(OpenSearchOperations.class);
+    final Terminology terminology =
+        QueryTestTerminologies.getTerminology(TERMINOLOGY, VERSION, INDEX_NAME);
+    final EvsQuery pastMaxDepth = getNotsAroundLeaf(EvsQuery.MAX_QUERY_DEPTH + 1);
+
+    assertThrows(
+        QueryTooBroadException.class,
+        () ->
+            pastMaxDepth.fetchConcepts(
+                operations, List.of(terminology), FIRST_PAGE, MINIMAL_FIELDS));
+    verifyNoInteractions(operations);
   }
 
   /**
