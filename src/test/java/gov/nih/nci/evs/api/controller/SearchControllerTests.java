@@ -20,6 +20,7 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.query.EvsQuery;
 import gov.nih.nci.evs.api.query.Typeahead;
@@ -30,6 +31,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -104,6 +106,9 @@ public class SearchControllerTests {
 
   /** The largest page size typeahead accepts. */
   private static final int TYPEAHEAD_MAX_PAGE_SIZE = 1000;
+
+  /** The graph properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The base url. */
   private String baseUrl = "";
@@ -4171,6 +4176,127 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test that SPARQL queries other than a plain SELECT (e.g. updates, or a SELECT with a SERVICE
+   * call) are rejected by both SPARQL endpoints.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSparqlNonSelectAndServiceFailures() throws Exception {
+    // Point SERVICE back at our own graph endpoint so the call would otherwise succeed
+    final String serviceUrl = graphProperties.getQueryUrl();
+    String content = null;
+
+    final String selectOnly = "Only SPARQL SELECT queries are allowed";
+    final String noService = "SPARQL SERVICE is not allowed";
+
+    // query -> expected error message
+    final Map<String, String> queries = new LinkedHashMap<>();
+    // INSERT DATA
+    queries.put(
+        "INSERT DATA { GRAPH <http://NCI_T_monthly> { :C3224 :P108 \"Melanoma Test\" } }",
+        selectOnly);
+    // DELETE DATA
+    queries.put(
+        "DELETE DATA { GRAPH <http://NCI_T_monthly> { :C3224 :P108 \"Melanoma\" } }", selectOnly);
+    // DELETE WHERE
+    queries.put(
+        "DELETE WHERE { GRAPH <http://NCI_T_monthly> { ?x :P108 \"Melanoma\" } }", selectOnly);
+    // INSERT ... WHERE with an embedded SELECT subquery
+    queries.put(
+        "INSERT { GRAPH <http://NCI_T_monthly> { ?x :P108 \"Melanoma Test\" } }\n"
+            + "WHERE { SELECT ?x ?code { GRAPH <http://NCI_T_monthly> { ?x :NHC0 ?code . ?x"
+            + " :P108 \"Melanoma\" } } }",
+        selectOnly);
+    // DELETE/INSERT ... WHERE
+    queries.put(
+        "DELETE { GRAPH <http://NCI_T_monthly> { ?x :P108 \"Melanoma\" } }\n"
+            + "INSERT { GRAPH <http://NCI_T_monthly> { ?x :P108 \"Melanoma Test\" } }\n"
+            + "WHERE { GRAPH <http://NCI_T_monthly> { ?x :P108 \"Melanoma\" } }",
+        selectOnly);
+    // CONSTRUCT
+    queries.put(
+        "CONSTRUCT { ?x :P108 ?label } WHERE { GRAPH <http://NCI_T_monthly> { ?x :NHC0 ?code"
+            + " . ?x :P108 ?label . ?x :P108 \"Melanoma\" } }",
+        selectOnly);
+    // ASK
+    queries.put(
+        "ASK { GRAPH <http://NCI_T_monthly> { ?x :NHC0 ?code . ?x :P108 \"Melanoma\" } }",
+        selectOnly);
+    // DESCRIBE
+    queries.put(
+        "DESCRIBE ?x WHERE { GRAPH <http://NCI_T_monthly> { ?x :P108 \"Melanoma\" } }", selectOnly);
+    // SELECT wrapping a SERVICE call
+    queries.put(
+        "SELECT ?code { SERVICE <"
+            + serviceUrl
+            + "> { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . ?x :P108"
+            + " \"Melanoma\" } } }",
+        noService);
+    // SELECT with a SERVICE call inside the GRAPH block
+    queries.put(
+        "SELECT ?code { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code .\n"
+            + "  SERVICE <"
+            + serviceUrl
+            + "> { ?x :P108 \"Melanoma\" } } }",
+        noService);
+    // SELECT with a SERVICE call inside a subquery
+    queries.put(
+        "SELECT ?code { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code .\n"
+            + "  { SELECT ?x { SERVICE <"
+            + serviceUrl
+            + "> { ?x :P108 \"Melanoma\" } } } } }",
+        noService);
+    // SELECT with a SERVICE call inside FILTER EXISTS
+    queries.put(
+        "SELECT ?code { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code .\n"
+            + "  FILTER EXISTS { SERVICE <"
+            + serviceUrl
+            + "> { ?x :P108 \"Melanoma\" } } } }",
+        noService);
+    queries.put(
+        "SELECT ?code { SERVICE SILENT <" + serviceUrl + "> { ?x :NHC0 ?code } }", noService);
+    queries.put(
+        "SELECT ?code { VALUES ?endpoint { <"
+            + serviceUrl
+            + "> } SERVICE ?endpoint { ?x :NHC0 ?code } }",
+        noService);
+
+    for (final String url : new String[] {"/api/v1/concept/ncit/search", "/api/v1/sparql/ncit"}) {
+      for (final Map.Entry<String, String> entry : queries.entrySet()) {
+        log.info("Testing url - " + url);
+        log.info("  query = " + entry.getKey());
+        final MvcResult result =
+            mvc.perform(
+                    MockMvcRequestBuilders.post(url)
+                        .content(entry.getKey())
+                        .contentType("text/plain")
+                        .param("include", "minimal")
+                        .param("type", "contains"))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+        content = result.getResponse().getErrorMessage();
+        log.info("  content = " + content);
+        assertThat(content).contains(entry.getValue());
+      }
+    }
+  }
+
+  @Test
+  public void testContainsServiceIgnoresCommentsAndLiterals() {
+    assertThat(SearchController.containsService("SELECT * WHERE { ?s ?p ?o } LIMIT 1")).isFalse();
+    assertThat(
+            SearchController.containsService(
+                "SELECT * WHERE { ?s ?p \"SERVICE\" . # SERVICE <http://example.org>\n }"))
+        .isFalse();
+    assertThat(
+            SearchController.containsService(
+                "SELECT * WHERE { { SELECT * WHERE { SERVICE <http://example.org>"
+                    + " { ?s ?p ?o } } } }"))
+        .isTrue();
+  }
+
+  /**
    * Test sparql variations.
    *
    * @throws Exception the exception
@@ -6357,6 +6483,79 @@ public class SearchControllerTests {
       }
     }
     return true;
+  }
+
+  /**
+   * Test codeList with codes that contain ':' (e.g. GO, HGNC, ChEBI). These previously matched
+   * nothing because the ':' was parsed as a field name.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchCodeListSpecialCharacters() throws Exception {
+    assertCodeListSearch("go", "GO:0008150", "GO:0031672");
+    assertCodeListSearch("hgnc", "HGNC:4931");
+    assertCodeListSearch("chebi", "CHEBI:13193");
+    // Codes without special characters are unchanged
+    assertCodeListSearch("ncit", "C3224", "C4872");
+  }
+
+  /**
+   * Test that only ':' is escaped in codeList, so wildcards and codes the caller already escaped
+   * still work as before.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchCodeListWildcardsUnchanged() throws Exception {
+    assertThat(getCodeListTotal("ncit", "C322*")).isGreaterThan(1);
+    assertThat(getCodeListTotal("ncit", "C322?")).isGreaterThan(1);
+    assertThat(getCodeListTotal("go", "GO\\:0008150")).isEqualTo(1);
+  }
+
+  /**
+   * Returns the total of a codeList search.
+   *
+   * @param terminology the terminology
+   * @param codeList the codeList parameter value
+   * @return the total
+   * @throws Exception the exception
+   */
+  private long getCodeListTotal(final String terminology, final String codeList) throws Exception {
+    final String url = "/api/v1/concept/" + terminology + "/search";
+    log.info("Testing url - " + url + "?codeList=" + codeList);
+    final MvcResult result =
+        this.mvc
+            .perform(get(url).param("codeList", codeList))
+            .andExpect(status().isOk())
+            .andReturn();
+    return ThreadLocalMapper.get()
+        .readValue(result.getResponse().getContentAsString(), ConceptResultList.class)
+        .getTotal();
+  }
+
+  /**
+   * Asserts that a codeList search returns exactly the listed codes.
+   *
+   * @param terminology the terminology
+   * @param codes the codes
+   * @throws Exception the exception
+   */
+  private void assertCodeListSearch(final String terminology, final String... codes)
+      throws Exception {
+    final String url = "/api/v1/concept/" + terminology + "/search";
+    log.info("Testing url - " + url + "?codeList=" + String.join(",", codes));
+    final MvcResult result =
+        this.mvc
+            .perform(get(url).param("codeList", String.join(",", codes)))
+            .andExpect(status().isOk())
+            .andReturn();
+    final ConceptResultList list =
+        ThreadLocalMapper.get()
+            .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+    assertThat(list.getTotal()).isEqualTo(codes.length);
+    assertThat(list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(codes);
   }
 
   /**
