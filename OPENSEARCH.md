@@ -16,9 +16,10 @@ When operating this tool, `export ES_PORT=9201` when using the configuration bel
 
 ## Running OpenSearch Locally
 
-Spring Data OpenSearch 3.x requires an OpenSearch 2.x or 3.x server. OpenSearch 1.x is no longer
-supported by this application. Use a new data directory when replacing a 1.x server, then reload
-the test data; a 1.x data directory cannot be mounted directly into a newer major version.
+The local server baseline is **OpenSearch 2.18.0**. Spring Data OpenSearch **3.1.4** is the
+Java integration library version, not the server version. It supports OpenSearch 2.x and 3.x;
+OpenSearch 1.3.20 is outside the supported combination. See the upstream
+[compatibility matrix](https://github.com/opensearch-project/spring-data-opensearch/#opensearch-3x--2x-client-libraries).
 
 In a terminal, run the following to have an opensearch instance running on the background without security.
 
@@ -26,6 +27,21 @@ In a terminal, run the following to have an opensearch instance running on the b
       -v "$OS_DIR":/usr/share/opensearch/data \
       -e DISABLE_SECURITY_PLUGIN=true \
       --name opensearch-node -d opensearchproject/opensearch:2.18.0
+
+## Upgrading existing data
+
+Upgrading **1.3.20 to 2.18.0 does not inherently require reloading all indexes**. Compatible
+indexes and the existing Docker data volume can be retained through the supported upgrade
+procedure. Back up cluster data and configuration, check index/plugin compatibility and breaking
+changes, and follow the [upgrade guidance](https://docs.opensearch.org/latest/migrate-or-upgrade/rolling-upgrade/).
+Indexes inherited from older Elasticsearch releases may need separate reindexing.
+
+Fresh storage and a test-data reload are an alternative for local testing. Keep old storage
+separate if needed for recovery; never start two containers against the same data directory.
+
+A **3.x** upgrade is different: do not mount the 1.x directory directly into a 3.x container.
+The staged path goes through 2.19.x, and indexes created before 2.x must be reindexed before
+upgrading to 3.x. A fresh cluster and reload is another option. These examples remain on 2.18.0.
 
 ## Configure refresh interval globally
 

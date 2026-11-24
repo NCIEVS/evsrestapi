@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -33,6 +34,14 @@ public class JacksonConfiguration implements WebMvcConfigurer {
   @Override
   @SuppressWarnings("removal")
   public void extendMessageConverters(final List<HttpMessageConverter<?>> converters) {
-    converters.add(0, new MappingJackson2HttpMessageConverter(objectMapper()));
+    // Preserve raw byte responses while keeping Jackson 2's JSON string and DTO serialization.
+    int jsonIndex = 0;
+    for (int i = 0; i < converters.size(); i++) {
+      if (converters.get(i) instanceof ByteArrayHttpMessageConverter) {
+        jsonIndex = i + 1;
+        break;
+      }
+    }
+    converters.add(jsonIndex, new MappingJackson2HttpMessageConverter(objectMapper()));
   }
 }

@@ -41,6 +41,18 @@ ext['httpcore5.version'] = '5.4.3'
 ext['spring-framework.version'] = '7.0.10'
 ext['jackson-bom.version'] = '3.1.8'
 ext['jackson-2-bom.version'] = '2.21.8'
+// Keep dependency patch versions aligned with the paired operations upgrade.
+ext['commons-lang3.version'] = '3.18.0'
+ext['httpclient5.version'] = '5.6.3'
+ext['log4j2.version'] = '2.25.5'
+ext['opentelemetry.version'] = '1.62.0'
+ext['tomcat.version'] = '11.0.25'
+
+dependencyManagement {
+  dependencies {
+    dependency 'com.google.guava:guava:33.7.2-jre'
+  }
+}
 
 // Extra Properties
 ext {

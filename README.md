@@ -2,7 +2,34 @@
 
 Information on the build and deployment process for the EVSRESTAPI project
 
+## Version baseline
+
+These are the versions configured on EVSRESTAPI-742, not a statement about deployed servers.
+This branch retains its loader scripts and local Fuseki image; the shared-core/operations
+move on EVSRESTAPI-731 is separate.
+
+| Component | Version | Source |
+| --- | --- | --- |
+| EVS REST API | 2.6.0.RELEASE | `build.gradle` |
+| Java | 25 | Toolchain; API image `eclipse-temurin:25-jre-noble` |
+| Gradle | 9.3.0 | Wrapper; build image `gradle:9.3.0-jdk25` |
+| Spring Boot / Framework | 4.1.1 / 7.0.10 | `build.gradle` |
+| Embedded Tomcat | 11.0.25 | Boot BOM override in `build.gradle` |
+| HAPI FHIR / HL7 converters | 9.0.0 (released) / 6.10.3 | `build.gradle` |
+| Jackson | 2.21.8 and 3.1.8 | Separate BOM overrides; application models still use Jackson 2 |
+| SpringDoc | 3.0.1 | `build.gradle` |
+| Spring Data OpenSearch | 3.1.4 (Spring Data 2026.0 line) | `build.gradle`; distinct from server version |
+| Local OpenSearch server | 2.18.0 | [OpenSearch setup](OPENSEARCH.md) |
+| Local Jena/Fuseki | 5.3.0 on Java 25 | [Fuseki setup](JENA.md) and `docker/fuseki/Dockerfile` |
+
+The build files are authoritative. The client SDK has its own build and output targets;
+they do not determine the server's Java requirement.
+
 ## Prerequisites
+
+Native server installations must select Java 25 through `JAVA_HOME` in `config/setenv.sh`.
+The launcher defaults to `/usr/local/jdk25`; configure the actual installation path before
+starting the service. Updating this checkout does not install a JDK or replace an installed service.
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
   * **NOTE**: For Macs, you may want to adjust the CPU & memory settings.
@@ -12,9 +39,9 @@ Information on the build and deployment process for the EVSRESTAPI project
   * Bash (Git Bash / WSL): `export dir="/c/Users/carlsenbr/eclipse-workspace/data"`
   * Windows CMD: `set dir=C:\Users\carlsenbr\eclipse-workspace\data`
 * Execute `mkdir -p $dir/opensearch/data`
-- Set a new variable `$ES_DIR` to the new directory just created. This `$ES_DIR` will be referenced in upcoming steps.
-  * Bash: `export ES_DIR="$dir/opensearch/data"`
-  * Windows CMD: `set ES_DIR=%dir%\\opensearch\\data`
+- Set `$OS_DIR` to this directory for the commands in `OPENSEARCH.md`.
+  * Bash: `export OS_DIR="$dir/opensearch/data"`
+  * Windows CMD: `set OS_DIR=%dir%\\opensearch\\data`
 * Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your `$dir` folder (so that `$dir/UnitTestData` exists)
   * run `prep.sh`
 

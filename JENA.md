@@ -2,6 +2,11 @@
 
 Information on using Apache jena/fuseki with EVSRESTAPI.
 
+The local image packages Jena/Fuseki **5.3.0** on **Java 25**, as declared in
+`docker/fuseki/Dockerfile`. The image tag is the Fuseki version, not a Java version.
+This branch retains the image and loader scripts locally; their move to operations is
+separate work on EVSRESTAPI-731.
+
 ## Build and run a local docker image
 
 Run the following command to build the Jena image:
