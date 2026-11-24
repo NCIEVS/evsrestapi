@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.QueryBuilder;
@@ -52,6 +53,14 @@ public class Or extends EvsQuery {
    */
   public void setChildren(final List<EvsQuery> children) {
     this.children = children;
+  }
+
+  /* see superclass */
+  @Override
+  public void checkRoles(final String terminology, final Map<String, String> roleNameByCode) {
+    for (final EvsQuery child : getChildren()) {
+      child.checkRoles(terminology, roleNameByCode);
+    }
   }
 
   /* see superclass */

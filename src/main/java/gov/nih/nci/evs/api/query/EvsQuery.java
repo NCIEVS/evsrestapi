@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.List;
+import java.util.Map;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.QueryBuilder;
@@ -109,6 +110,19 @@ public abstract class EvsQuery {
   @JsonIgnore
   public int getDepth() {
     return LEAF_DEPTH;
+  }
+
+  /**
+   * Fails if this query names a role the searched terminology doesn't have. Leaves without a role
+   * have nothing to check; nodes that name a role check it, and nodes that hold other queries check
+   * their children.
+   *
+   * @param terminology the terminology searched, for the error message, e.g. ncit 25.12e
+   * @param roleNameByCode the terminology's roles, each code with its name
+   * @throws UnknownRoleException if a role isn't one of the terminology's, by code or name
+   */
+  public void checkRoles(final String terminology, final Map<String, String> roleNameByCode) {
+    // n/a: no role to check
   }
 
   /**

@@ -4,6 +4,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.QueryBuilder;
@@ -52,6 +53,12 @@ public class Not extends EvsQuery {
    */
   public void setChild(final EvsQuery child) {
     this.child = child;
+  }
+
+  /* see superclass */
+  @Override
+  public void checkRoles(final String terminology, final Map<String, String> roleNameByCode) {
+    child.checkRoles(terminology, roleNameByCode);
   }
 
   /* see superclass */

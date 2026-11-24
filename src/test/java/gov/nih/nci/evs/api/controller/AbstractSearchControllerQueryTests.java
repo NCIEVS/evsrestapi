@@ -244,6 +244,21 @@ public abstract class AbstractSearchControllerQueryTests {
    */
   protected ResponseEntity<String> exchangeQuery(
       final String queryJson, final int fromRecord, final int pageSize) {
+    return exchangeQuery(TERMINOLOGY, queryJson, fromRecord, pageSize);
+  }
+
+  /**
+   * Posts a query to search a terminology over real HTTP, asking for a JSON response, including on
+   * error.
+   *
+   * @param terminology the terminology to search
+   * @param queryJson the query tree as JSON
+   * @param fromRecord the index of the first concept to return
+   * @param pageSize the maximum number of concepts to return
+   * @return the response
+   */
+  protected ResponseEntity<String> exchangeQuery(
+      final String terminology, final String queryJson, final int fromRecord, final int pageSize) {
     final HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.setAccept(List.of(MediaType.APPLICATION_JSON));
@@ -253,7 +268,7 @@ public abstract class AbstractSearchControllerQueryTests {
         HttpMethod.POST,
         new HttpEntity<>(queryJson, headers),
         String.class,
-        TERMINOLOGY,
+        terminology,
         fromRecord,
         pageSize);
   }

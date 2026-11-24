@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.MapResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
@@ -15,6 +16,7 @@ import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.query.EvsQuery;
 import gov.nih.nci.evs.api.query.QueryTooBroadException;
+import gov.nih.nci.evs.api.query.UnknownRoleException;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.OpenSearchService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
@@ -44,6 +46,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import org.apache.jena.query.QueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -717,6 +720,8 @@ public class SearchController extends BaseController {
     final List<Terminology> terminologies =
         parseAndValidateTerminologiesFromSearchCriteria(searchCriteria, license);
 
+    checkQueryRoles(query, terminologies);
+
     final ConceptResultList results;
     try {
       results =
@@ -728,6 +733,41 @@ public class SearchController extends BaseController {
 
     results.setTimeTaken(System.currentTimeMillis() - timerStartDate);
     return results;
+  }
+
+  /**
+   * Fails with a bad request if the query names a role a searched terminology doesn't have, listing
+   * that terminology's roles.
+   *
+   * @param query the query tree
+   * @param terminologies the terminologies searched
+   * @throws Exception the exception
+   */
+  private void checkQueryRoles(final EvsQuery query, final List<Terminology> terminologies)
+      throws Exception {
+    for (final Terminology terminology : terminologies) {
+      final String terminologyLabel = terminology.getTerminology() + " " + terminology.getVersion();
+      try {
+        query.checkRoles(terminologyLabel, fetchRoleNameByCode(terminology));
+      } catch (final UnknownRoleException e) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+      }
+    }
+  }
+
+  /**
+   * Fetches the terminology's roles, each code with its name, sorted by code.
+   *
+   * @param terminology the terminology
+   * @return the role names by code
+   * @throws Exception the exception
+   */
+  private Map<String, String> fetchRoleNameByCode(final Terminology terminology) throws Exception {
+    final Map<String, String> roleNameByCode = new TreeMap<>();
+    for (final Concept role : osQueryService.getRoles(terminology, new IncludeParam("minimal"))) {
+      roleNameByCode.put(role.getCode(), role.getName());
+    }
+    return roleNameByCode;
   }
 
   /**

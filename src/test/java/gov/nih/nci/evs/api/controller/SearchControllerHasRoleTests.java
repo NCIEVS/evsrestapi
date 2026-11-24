@@ -7,6 +7,8 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Role;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 /**
  * Tests the HasRole query node, which matches the concepts with a role to a target concept, through
@@ -44,6 +46,12 @@ public class SearchControllerHasRoleTests extends AbstractSearchControllerQueryT
 
   /** A role code the terminology doesn't have. */
   private static final String UNKNOWN_ROLE_CODE = "R999";
+
+  /** The first record of a search. */
+  private static final int FIRST_RECORD = 0;
+
+  /** A page size for these tests. */
+  private static final int SMALL_PAGE_SIZE = 10;
 
   /** The include value that returns each concept's roles. */
   private static final String ROLES_INCLUDE = "roles";
@@ -108,45 +116,62 @@ public class SearchControllerHasRoleTests extends AbstractSearchControllerQueryT
   }
 
   // ---------------------------------------------------------------------------------------------
-  // role values that aren't errors but match nothing
+  // role not of the terminology: 400 naming the role and listing the terminology's roles
   // ---------------------------------------------------------------------------------------------
 
-  /**
-   * Test HasRole with a role that doesn't exist returns no concepts, not an error.
-   *
-   * @throws Exception the exception
-   */
+  /** Test HasRole with a role the terminology doesn't have is rejected as a bad request. */
   @Test
-  public void testHasRoleWithUnknownRoleReturnsNoConcepts() throws Exception {
-    final String unknownRoleQuery = getHasRoleQuery(UNKNOWN_ROLE_CODE, null);
+  public void testHasRoleWithUnknownRoleReturnsBadRequest() {
+    final ResponseEntity<String> response = exchangeRoleQuery(UNKNOWN_ROLE_CODE);
 
-    assertThat(fetchCodes(SEARCHED_TERMINOLOGY, unknownRoleQuery)).isEmpty();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
 
   /**
-   * Test HasRole with a role name in the wrong case returns no concepts: role names are compared
-   * case-sensitively.
-   *
-   * @throws Exception the exception
+   * Test HasRole with an unknown role gets an error naming it and listing the terminology's roles,
+   * each code with its name.
    */
   @Test
-  public void testHasRoleWithRoleNameInWrongCaseReturnsNoConcepts() throws Exception {
-    final String wrongCaseRoleQuery = getHasRoleQuery(ROLE_NAME_IN_WRONG_CASE, null);
+  public void testHasRoleWithUnknownRoleErrorNamesRoleAndListsRoles() {
+    final String message = getErrorMessage(exchangeRoleQuery(UNKNOWN_ROLE_CODE));
 
-    assertThat(fetchCodes(SEARCHED_TERMINOLOGY, wrongCaseRoleQuery)).isEmpty();
+    assertThat(message).contains(UNKNOWN_ROLE_CODE).contains(ROLE_CODE + " (" + ROLE_NAME + ")");
   }
 
   /**
-   * Test HasRole with an association code as the role returns no concepts: associations are
-   * searched with HasAssociation.
-   *
-   * @throws Exception the exception
+   * Test HasRole with a role name in the wrong case is rejected as a bad request: role names are
+   * compared case-sensitively.
    */
   @Test
-  public void testHasRoleWithAssociationCodeReturnsNoConcepts() throws Exception {
-    final String associationAsRoleQuery = getHasRoleQuery(ASSOCIATION_CODE, null);
+  public void testHasRoleWithRoleNameInWrongCaseReturnsBadRequest() {
+    final ResponseEntity<String> response = exchangeRoleQuery(ROLE_NAME_IN_WRONG_CASE);
 
-    assertThat(fetchCodes(SEARCHED_TERMINOLOGY, associationAsRoleQuery)).isEmpty();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  /**
+   * Test HasRole with an association code as the role is rejected as a bad request: associations
+   * are searched with HasAssociation.
+   */
+  @Test
+  public void testHasRoleWithAssociationCodeReturnsBadRequest() {
+    final ResponseEntity<String> response = exchangeRoleQuery(ASSOCIATION_CODE);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  /**
+   * Test an unknown role inside an And is rejected too: logical nodes check their children's roles.
+   */
+  @Test
+  public void testHasRoleWithUnknownRoleInAndReturnsBadRequest() {
+    final String unknownRoleInAndQuery =
+        "{\"type\": \"And\", \"children\": [" + getHasRoleQuery(UNKNOWN_ROLE_CODE, null) + "]}";
+
+    final ResponseEntity<String> response =
+        exchangeQuery(SEARCHED_TERMINOLOGY, unknownRoleInAndQuery, FIRST_RECORD, SMALL_PAGE_SIZE);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -232,6 +257,17 @@ public class SearchControllerHasRoleTests extends AbstractSearchControllerQueryT
   // ---------------------------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------------------------
+
+  /**
+   * Posts a HasRole query with the role and no target over real HTTP.
+   *
+   * @param role the role code or name
+   * @return the response
+   */
+  private ResponseEntity<String> exchangeRoleQuery(final String role) {
+    return exchangeQuery(
+        SEARCHED_TERMINOLOGY, getHasRoleQuery(role, null), FIRST_RECORD, SMALL_PAGE_SIZE);
+  }
 
   /**
    * Returns a HasRole query as JSON.
