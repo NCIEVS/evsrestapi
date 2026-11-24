@@ -1,0 +1,83 @@
+flowchart LR
+  SC["SearchController.search<br/>POST /concept/{terminology}/search"]
+
+  %% ---------------- request parameters ----------------
+  SC --> TERM["terminology : String"]
+  TERM --> TERM0["required (path variable)"]
+  TERM0 --> TERM0R["✗ 405 from routing: no POST at /concept/search · blank → 404<br/>QueryParameterTests: testWithoutTerminologyReturnsMethodNotAllowed<br/>QueryParameterTests: testBlankTerminologyReturnsNotFound"]
+  TERM --> TERM1["∈ loaded terminologies<br/>(name, or name_version)"]
+  TERM1 --> TERM1A["✓ QueryParameterTests<br/>testTerminologyByNameReturnsOk<br/>testTerminologyByNameAndVersionReturnsOk"]
+  TERM1 --> TERM1R["✗ 404 naming it · QueryParameterTests<br/>testUnknownTerminologyReturnsNotFound<br/>testUnknownTerminologyErrorNamesTerminology"]
+
+  SC --> LIC["X-EVSRESTAPI-License-Key"]
+  LIC --> LIC1["required for licensed terminologies"]
+  LIC1 --> LIC1A["✓ QueryParameterTests<br/>testLicensedTerminologyWithLicenseKeyReturnsOk"]
+  LIC1 --> LIC1R["✗ 403 naming the header · QueryParameterTests<br/>testLicensedTerminologyWithoutLicenseKeyReturnsForbidden<br/>testLicensedTerminologyWithoutLicenseKeyErrorNamesHeader"]
+  LIC --> LIC2["optional; ignored for unlicensed terminologies"]
+  LIC2 --> LIC2A["✓ QueryParameterTests<br/>testUnlicensedTerminologyWithoutLicenseKeyReturnsOk<br/>testUnlicensedTerminologyWithLicenseKeyReturnsOk"]
+
+  SC --> FR["fromRecord : int"]
+  FR --> FR1["≥ MIN_FROM_RECORD (0)"]
+  FR1 --> FR1A["✓ at the edges · QueryPagingTests<br/>testFromRecordAtMinimumReturnsOk"]
+  FR1 --> FR1M["✓ in between · QueryPagingTests<br/>testFromRecordAboveMinimumReturnsOk"]
+  FR1 --> FR1R["✗ 400 · QueryPagingTests<br/>testNegativeFromRecordReturnsBadRequest"]
+  FR --> FR0["optional"]
+  FR0 --> FR0A["✓ QueryPagingTests<br/>testWithoutFromRecordReturnsOk"]
+
+  SC --> PS["pageSize : int"]
+  PS --> PS1["MIN_PAGE_SIZE (1) .. MAX_PAGE_SIZE (1000)"]
+  PS1 --> PS1A["✓ at the edges · QueryPagingTests<br/>testPageSizeAtMinimumReturnsOk<br/>testPageSizeAtMaximumReturnsOk"]
+  PS1 --> PS1M["✓ in between · QueryPagingTests<br/>testPageSizeBetweenMinimumAndMaximumReturnsOk"]
+  PS1 --> PS1R["✗ 400 naming it<br/>QueryPagingTests: testPageSizeBelowMinimumReturnsBadRequest<br/>QueryPagingTests: testPageSizeAboveMaximumReturnsBadRequest<br/>QueryLimitsTests: testPageSizeOutOfRangeErrorNamesParameter"]
+  PS --> PS0["optional"]
+  PS0 --> PS0A["✓ QueryPagingTests<br/>testWithoutPageSizeReturnsOk"]
+  PS --> PS2["≤ MAX_LICENSED_PAGE_SIZE (10) on licensed terminologies<br/>(query search has no term, so always applies)"]
+  PS2 --> PS2A["✓ at the edges · QueryParameterTests<br/>testLicensedTerminologyPageSizeAtLimitReturnsOk"]
+  PS2 --> PS2M["✓ in between · QueryParameterTests<br/>testLicensedTerminologyPageSizeBelowLimitReturnsOk"]
+  PS2 --> PS2R["✗ 400 naming it · QueryParameterTests<br/>testLicensedTerminologyPageSizeOverLimitReturnsBadRequest<br/>testLicensedTerminologyPageSizeOverLimitErrorNamesLimit"]
+
+  SC --> WIN["fromRecord + pageSize<br/>SearchCriteria.validate"]
+  WIN --> WIN1["≤ SearchCriteriaWithoutTerminology.MAX_RESULT_WINDOW (300,000)"]
+  WIN1 --> WIN1A["✓ at the edges<br/>SearchCriteriaUnitTest: testValidatePageEndingAtResultWindowIsAccepted<br/>QueryLimitsTests: testPageEndingAtResultWindowReturnsOk"]
+  WIN1 --> WIN1M["✓ in between · QueryLimitsTests<br/>testPageEndingWithinResultWindowReturnsOk"]
+  WIN1 --> WIN1R["✗ 400 naming it<br/>SearchCriteriaUnitTest: testValidatePageEndingPastResultWindowThrowsErrorNamingLimit<br/>SearchCriteriaUnitTest: testValidateLargestFromRecordThrowsErrorNamingLimit<br/>QueryLimitsTests: testPageEndingPastResultWindowReturnsBadRequest<br/>QueryLimitsTests: testPageEndingPastResultWindowErrorNamesLimit"]
+
+  %% ---------------- body ----------------
+  SC --> BODY["body : EvsQuery"]
+  BODY --> B0["required"]
+  B0 --> B0R["✗ 400 · QueryParameterTests<br/>testWithoutBodyReturnsBadRequest"]
+  BODY --> B1["type ∈ node names, required"]
+  B1 --> B1A["✓ QueryParameterTests (NCIt)<br/>testEveryNodeTypeWithEveryFieldReturnsOk ×16<br/>testEveryNodeTypeHasSampleBody"]
+  B1 --> B1R["✗ 400 · HasRoleTests: testHasRoleWithoutTypeReturnsBadRequest<br/>QueryParameterTests: testNotWithChildGivenAsTypeNameReturnsBadRequest"]
+  BODY --> B2["no unknown fields"]
+  B2 --> B2A["✓ every field a node declares · QueryParameterTests<br/>testEveryNodeTypeWithEveryFieldReturnsOk ×16"]
+  B2 --> B2R["✗ 400 · HasRoleTests: testHasRoleWithUnknownFieldReturnsBadRequest<br/>QueryParameterTests: testAndWithMisspelledChildrenPropertyReturnsBadRequest<br/>QueryParameterTests: testInSubsetWithConstructorParameterNameReturnsBadRequest"]
+  BODY --> B3["JSON nesting ≤ 1,000 (Jackson)"]
+  B3 --> B3A["✓ at the edges · QueryLimitsTests<br/>testBodyAtJsonNestingLimitPassesParser<br/>(then fails the stricter depth limit, not nesting)"]
+  B3 --> B3M["✓ in between, covered by QueryLimitsTests: testQueryWithinMaxDepthReturnsOk<br/>sends a body nested 3 deep and gets a 200; nothing nested 11–1,000 can pass,<br/>because the depth limit (10) runs first"]
+  B3 --> B3R["✗ 400 naming it · QueryLimitsTests<br/>testBodyPastJsonNestingLimitReturnsBadRequest<br/>testBodyPastJsonNestingLimitErrorNamesLimit"]
+  BODY --> B4["depth ≤ EvsQuery.MAX_QUERY_DEPTH (10)"]
+  B4 --> B4A["✓ at the edges<br/>EvsQueryTest: testQueryAtMaxDepthPassesDepthCheck<br/>QueryLimitsTests: testQueryAtMaxDepthReturnsOk"]
+  B4 --> B4M["✓ in between · QueryLimitsTests<br/>testQueryWithinMaxDepthReturnsOk"]
+  B4 --> B4R["✗ 400 naming it<br/>EvsQueryTest: testQueryPastMaxDepthThrowsErrorNamingLimit<br/>EvsQueryTest: testQueryPastMaxDepthFailsBeforeSearching<br/>QueryLimitsTests: testQueryPastMaxDepthReturnsBadRequest<br/>QueryLimitsTests: testQueryPastMaxDepthErrorNamesLimit"]
+  BODY --> B6["a failed field is named with its path in the body"]
+  B6 --> B6R["✗ QueryLimitsTests<br/>testMissingRoleErrorNamesField<br/>testMissingRoleInChildErrorNamesFieldPath"]
+
+  %% ---------------- HasRole ----------------
+  BODY --> HR["HasRole extends HasRelationship"]
+  HR --> HR1["role : String, required, a role of the terminology (code or name)"]
+  HR1 --> HR1A["✓ implicit · HasRoleTests<br/>testHasRoleByCodeReturnsConceptsWithRoleToTarget: sends role R101 by code, gets results<br/>testHasRoleByNameReturnsEveryConceptFoundByCode: sends the role by name, gets results<br/>so both forms are accepted, but only as a side effect of checking results"]
+  HR1 --> HR1U["✗ 400 naming the role and listing the terminology's roles, code (name)<br/>SearchController.checkQueryRoles → HasRole.checkRoles; And, Or, Not check their children<br/>HasRoleTests: testHasRoleWithUnknownRoleReturnsBadRequest<br/>HasRoleTests: testHasRoleWithUnknownRoleErrorNamesRoleAndListsRoles<br/>HasRoleTests: testHasRoleWithRoleNameInWrongCaseReturnsBadRequest<br/>HasRoleTests: testHasRoleWithAssociationCodeReturnsBadRequest<br/>HasRoleTests: testHasRoleWithUnknownRoleInAndReturnsBadRequest"]
+  HR1 --> HR1R["✗ 400 · HasRoleTests<br/>testHasRoleWithoutRoleReturnsBadRequest<br/>testHasRoleWithNullRoleReturnsBadRequest"]
+  HR --> HR2["target : String, optional"]
+  HR2 --> HR2A["✓ HasRoleTests (NCIt)<br/>testHasRoleWithoutTargetReturnsEveryConceptWithRole"]
+  HR2 --> HR2R["✗ 400 when given as a query · HasRoleTests<br/>testHasRoleWithTargetGivenAsQueryReturnsBadRequest"]
+
+  classDef accepts fill:#E1F5EE,stroke:#0F6E56,color:#085041;
+  classDef rejects fill:#FAECE7,stroke:#993C1D,color:#712B13;
+  classDef gap fill:#FCEBEB,stroke:#A32D2D,color:#791F1F;
+  classDef implicit fill:#FAEEDA,stroke:#854F0B,color:#633806;
+  classDef candidate fill:#EEEDFE,stroke:#534AB7,color:#3C3489;
+  class LIC2A,FR0A,PS0A,TERM1A,LIC1A,FR1A,FR1M,PS1A,PS1M,PS2A,PS2M,WIN1A,WIN1M,B1A,B2A,B3A,B3M,B4A,B4M,HR2A accepts;
+  class HR1A implicit;
+  class TERM0R,B0R,TERM1R,LIC1R,FR1R,PS1R,PS2R,WIN1R,B1R,B2R,B3R,B4R,B6R,HR1R,HR1U,HR2R rejects;
