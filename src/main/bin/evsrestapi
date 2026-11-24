@@ -9,8 +9,8 @@
 # Short-Description: start and stop the Angular Core application
 ### END INIT INFO
 
-export JAVA_HOME=/usr/local/corretto-jdk17
-export PATH="${JAVA_HOME}/bin:${PATH}"
+# The shared setenv.sh below may override this installation-specific default.
+export JAVA_HOME="${JAVA_HOME:-/usr/local/jdk25}"
 USER=`id | sed -e 's/^[^(]*(\([^(]*\)).*$/\1/'`
 APP_NAME=`basename $0`
 APP_USER=evsuser

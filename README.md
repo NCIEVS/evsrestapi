@@ -2,6 +2,30 @@
 
 Information on the build and deployment process for the EVSRESTAPI project
 
+## Version baseline
+
+These are the versions configured in this checkout, not a statement about deployed servers.
+
+| Component | Version | Source |
+| --- | --- | --- |
+| EVS REST API / shared core | 2.6.0.RELEASE | `build.gradle` |
+| Server and operations Java | 25 | Java toolchains; API runtime image `eclipse-temurin:25-jre-noble` |
+| Gradle | 9.3.0 | Wrapper; API build image `gradle:9.3.0-jdk25` |
+| Spring Boot | 4.1.1 | API and operations `web/build.gradle` |
+| Spring Framework | 7.0.10 | `evsrestapi-core/dependency-versions.gradle` |
+| Embedded Tomcat | 11.0.25 | Shared dependency versions |
+| HAPI FHIR | 9.0.0 (released) | `hapiFhirVersion` in `build.gradle`; API only |
+| HL7 FHIR core / converters | 6.10.3 | HAPI baseline and explicit converter dependency |
+| Jackson | 2.21.8 and 3.1.8 | Shared dependency versions; EVS models use Jackson 2, HAPI uses Jackson 3 |
+| SpringDoc | 3.0.1 | `build.gradle` |
+| Spring Data OpenSearch | 3.1.4 (Spring Data 2026.0 line) | Shared dependency versions; compatible with Boot 4.1 |
+| Local OpenSearch server | 2.18.0 | [OpenSearch setup](OPENSEARCH.md); distinct from the Java client version |
+| Local Jena/Fuseki | 5.3.0 on Java 25 | Operations `docker/fuseki/Dockerfile`; separate service runtime |
+
+The build files are authoritative. Shared Spring/Jackson and library versions are maintained in
+`evsrestapi-core/dependency-versions.gradle` and consumed by both the API and operations.
+The client SDK builds and tests on Java 25 while producing Java 17-compatible output.
+
 ## Data loading has moved to evsrestapi-operations
 
 Indexing and other data-management scripts now live in
@@ -15,6 +39,11 @@ loader compiles core from this checkout, so rebuild the loader after changing co
 
 ## Prerequisites
 
+Native server installations must select a Java 25 JDK through `JAVA_HOME` in the shared
+`config/setenv.sh`. The launcher defaults to `/usr/local/jdk25` if `JAVA_HOME` is unset;
+change the configuration to match the installed location. Updating this checkout does not
+replace an already-installed service or install a JDK on deployment servers.
+
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
   * **NOTE**: For Macs, you may want to adjust the CPU & memory settings.
 * Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
@@ -23,9 +52,9 @@ loader compiles core from this checkout, so rebuild the loader after changing co
   * Bash (Git Bash / WSL): `export dir="/c/Users/carlsenbr/eclipse-workspace/data"`
   * Windows CMD: `set dir=C:\Users\carlsenbr\eclipse-workspace\data`
 * Execute `mkdir -p $dir/opensearch/data`
-- Set a new variable `$ES_DIR` to the new directory just created. This `$ES_DIR` will be referenced in upcoming steps.
-  * Bash: `export ES_DIR="$dir/opensearch/data"`
-  * Windows CMD: `set ES_DIR=%dir%\\opensearch\\data`
+- Set `$OS_DIR` to this directory for the commands in `OPENSEARCH.md`.
+  * Bash: `export OS_DIR="$dir/opensearch/data"`
+  * Windows CMD: `set OS_DIR=%dir%\\opensearch\\data`
 
 ## Steps for Loading NCI Thesaurus Data and Indexes Locally
 
