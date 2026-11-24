@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,10 +50,35 @@ public class SearchControllerQueryParameterTests extends AbstractSearchControlle
   /** A query that runs on any terminology. */
   private static final String CANCER_QUERY = "{\"type\": \"Contains\", \"term\": \"cancer\"}";
 
+  /** The terminology the sample bodies search. */
+  private static final String SAMPLE_TERMINOLOGY = "ncit";
+
+  /** A concept of the sample terminology, used as each sample's code or target: Breast. */
+  private static final String SAMPLE_CONCEPT_CODE = "C12971";
+
+  /** A word in the sample terminology's names, used as each sample's search term. */
+  private static final String SAMPLE_TERM = "breast";
+
+  /** A role of the sample terminology: Disease_Has_Primary_Anatomic_Site. */
+  private static final String SAMPLE_ROLE_CODE = "R101";
+
+  /** An association of the sample terminology: Concept_In_Subset. */
+  private static final String SAMPLE_ASSOCIATION_CODE = "A8";
+
   /**
-   * A sample body for every node type, each using every field the node declares, on evstest. Every
-   * node type must have one: {@link #testEveryNodeTypeHasSampleBody} fails when a node is added
-   * without a sample.
+   * The terminology for the inverse relationship samples. The local NCIt indexes predate nesting
+   * inverse roles and associations, so these search Gene Ontology until NCIt is reindexed.
+   */
+  private static final String INVERSE_SAMPLE_TERMINOLOGY = "go";
+
+  /** The node types whose samples search {@link #INVERSE_SAMPLE_TERMINOLOGY}. */
+  private static final Set<String> INVERSE_NODE_TYPES =
+      Set.of("HasInverseRole", "HasInverseAssociation");
+
+  /**
+   * A sample body for every node type, each using every field the node declares, on {@link
+   * #SAMPLE_TERMINOLOGY}. Every node type must have one: {@link #testEveryNodeTypeHasSampleBody}
+   * fails when a node is added without a sample.
    */
   private static final Map<String, String> SAMPLE_BODY_BY_NODE_TYPE = getSampleBodyByNodeType();
 
@@ -326,7 +352,7 @@ public class SearchControllerQueryParameterTests extends AbstractSearchControlle
   }
 
   /**
-   * Test every node type, with every field it declares, is accepted on evstest.
+   * Test every node type, with every field it declares, is accepted.
    *
    * @param nodeType the node type, for the test name
    * @param sampleBody the sample body
@@ -337,7 +363,10 @@ public class SearchControllerQueryParameterTests extends AbstractSearchControlle
   public void testEveryNodeTypeWithEveryFieldReturnsOk(
       final String nodeType, final String sampleBody) throws Exception {
     // fetchQueryResults asserts the response is OK
-    fetchQueryResults(EVSTEST, sampleBody, "minimal");
+    final boolean isInverseNode = INVERSE_NODE_TYPES.contains(nodeType);
+    final String terminology = isInverseNode ? INVERSE_SAMPLE_TERMINOLOGY : SAMPLE_TERMINOLOGY;
+
+    fetchQueryResults(terminology, sampleBody, "minimal");
   }
 
   /**
@@ -351,41 +380,68 @@ public class SearchControllerQueryParameterTests extends AbstractSearchControlle
   }
 
   /**
-   * Returns a sample body for every node type, each using every field the node declares, with
-   * evstest codes.
+   * Returns a sample body for every node type, each using every field the node declares, with codes
+   * of the sample terminology.
    *
    * @return the sample bodies by node type
    */
   private static Map<String, String> getSampleBodyByNodeType() {
     final Map<String, String> sampleBodyByNodeType = new LinkedHashMap<>();
-    final String leaf = "{\"type\": \"Exact\", \"term\": \"FK100\"}";
+    final String leaf = "{\"type\": \"Exact\", \"term\": \"" + SAMPLE_CONCEPT_CODE + "\"}";
 
     sampleBodyByNodeType.put("And", "{\"type\": \"And\", \"children\": [" + leaf + "]}");
     sampleBodyByNodeType.put("Or", "{\"type\": \"Or\", \"children\": [" + leaf + "]}");
     sampleBodyByNodeType.put("Not", "{\"type\": \"Not\", \"child\": " + leaf + "}");
     for (final String termSearch : List.of("Exact", "StartsWith", "Contains", "Fuzzy")) {
       sampleBodyByNodeType.put(
-          termSearch, "{\"type\": \"" + termSearch + "\", \"term\": \"melanoma\"}");
+          termSearch, "{\"type\": \"" + termSearch + "\", \"term\": \"" + SAMPLE_TERM + "\"}");
     }
     for (final String hierarchyNode : List.of("HasAncestor", "HasDescendant")) {
       sampleBodyByNodeType.put(
           hierarchyNode,
-          "{\"type\": \"" + hierarchyNode + "\", \"target\": \"FK100\", \"maxLevel\": 1}");
+          "{\"type\": \""
+              + hierarchyNode
+              + "\", \"target\": \""
+              + SAMPLE_CONCEPT_CODE
+              + "\", \"maxLevel\": 1}");
     }
-    for (final String roleNode : List.of("HasRole", "HasInverseRole")) {
+    sampleBodyByNodeType.put(
+        "HasInverseRole",
+        "{\"type\": \"HasInverseRole\", \"role\": \"occurs_in\", \"target\": \"GO:0006624\"}");
+    sampleBodyByNodeType.put(
+        "HasInverseAssociation",
+        "{\"type\": \"HasInverseAssociation\", \"association\": \"IAO_0100001\","
+            + " \"target\": \"GO:0005773\"}");
+    for (final String roleNode : List.of("HasRole")) {
       sampleBodyByNodeType.put(
-          roleNode, "{\"type\": \"" + roleNode + "\", \"role\": \"R101\", \"target\": \"FK21\"}");
+          roleNode,
+          "{\"type\": \""
+              + roleNode
+              + "\", \"role\": \""
+              + SAMPLE_ROLE_CODE
+              + "\", \"target\": \""
+              + SAMPLE_CONCEPT_CODE
+              + "\"}");
     }
-    for (final String associationNode : List.of("HasAssociation", "HasInverseAssociation")) {
+    for (final String associationNode : List.of("HasAssociation")) {
       sampleBodyByNodeType.put(
           associationNode,
-          "{\"type\": \"" + associationNode + "\", \"association\": \"A8\", \"target\": \"FK31\"}");
+          "{\"type\": \""
+              + associationNode
+              + "\", \"association\": \""
+              + SAMPLE_ASSOCIATION_CODE
+              + "\", \"target\": \""
+              + SAMPLE_CONCEPT_CODE
+              + "\"}");
     }
     sampleBodyByNodeType.put(
         "HasSynonym",
-        "{\"type\": \"HasSynonym\", \"target\": \"Melanoma\", \"source\": \"NCI\","
+        "{\"type\": \"HasSynonym\", \"target\": \""
+            + SAMPLE_TERM
+            + "\", \"source\": \"NCI\","
             + " \"termType\": \"PT\", \"subSource\": \"NCI\"}");
-    sampleBodyByNodeType.put("InSubset", "{\"type\": \"InSubset\", \"target\": \"FK31\"}");
+    sampleBodyByNodeType.put(
+        "InSubset", "{\"type\": \"InSubset\", \"target\": \"" + SAMPLE_CONCEPT_CODE + "\"}");
     // Also uses every qualifier condition type
     sampleBodyByNodeType.put(
         "HasProperty",

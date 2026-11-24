@@ -3,6 +3,8 @@ package gov.nih.nci.evs.api.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Role;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -10,111 +12,103 @@ import org.junit.jupiter.api.Test;
  * Tests the HasRole query node, which matches the concepts with a role to a target concept, through
  * the query endpoint.
  *
- * <p>The tests run on evstest and expect exact results, since the test terminology's data doesn't
- * change; each one follows an example or limit in the HasRole section of the agent spec. evstest's
- * roles:
- *
- * <pre>
- * Concept                                  R101 primary site   R102 associated site
- * FK1000  Cutaneous Melanoma               Skin
- * FK10000 Superficial Spreading Melanoma   Skin                Lung
- * FK10001 Nodular Melanoma                 Skin
- * FK1010  Lung Carcinoma                   Lung                Skin
- * FK1011  Skin Carcinoma                   Skin
- * FK200   Pneumonia                        Lung
- * </pre>
+ * <p>The tests check what holds as the terminology's data changes: results contain a known concept,
+ * every result has the role, names find what codes find, and leaving out the target never finds
+ * fewer. The terminology, role, and target they search are the constants below.
  */
 public class SearchControllerHasRoleTests extends AbstractSearchControllerQueryTests {
 
-  /** evstest's Cutaneous Melanoma, primary site Skin. */
-  private static final String CUTANEOUS_MELANOMA = "FK1000";
+  /** The terminology searched. */
+  private static final String SEARCHED_TERMINOLOGY = "ncit";
 
-  /** evstest's Superficial Spreading Melanoma, primary site Skin, associated site Lung. */
-  private static final String SUPERFICIAL_SPREADING_MELANOMA = "FK10000";
+  /** The role's code: Disease_Has_Primary_Anatomic_Site. */
+  private static final String ROLE_CODE = "R101";
 
-  /** evstest's Nodular Melanoma, primary site Skin. */
-  private static final String NODULAR_MELANOMA = "FK10001";
+  /** The role's name, as the terminology spells it. */
+  private static final String ROLE_NAME = "Disease_Has_Primary_Anatomic_Site";
 
-  /** evstest's Lung Carcinoma, primary site Lung, associated site Skin. */
-  private static final String LUNG_CARCINOMA = "FK1010";
+  /** The role's name in the wrong case. */
+  private static final String ROLE_NAME_IN_WRONG_CASE = "disease_has_primary_anatomic_site";
 
-  /** evstest's Skin Carcinoma, primary site Skin. */
-  private static final String SKIN_CARCINOMA = "FK1011";
+  /** The target's code: Breast. */
+  private static final String TARGET_CODE = "C12971";
 
-  /** evstest's Pneumonia, primary site Lung. */
-  private static final String PNEUMONIA = "FK200";
+  /** The target's name, one lowercase word of it. */
+  private static final String TARGET_NAME = "breast";
 
-  /** The evstest concepts whose primary site is Skin. */
-  private static final List<String> PRIMARY_SITE_SKIN =
-      List.of(CUTANEOUS_MELANOMA, SUPERFICIAL_SPREADING_MELANOMA, NODULAR_MELANOMA, SKIN_CARCINOMA);
+  /** A concept with the role to the target: Breast Carcinoma. */
+  private static final String CONCEPT_WITH_ROLE_TO_TARGET = "C4872";
 
-  /** The evstest concepts with any primary site. */
-  private static final List<String> ANY_PRIMARY_SITE =
-      List.of(
-          CUTANEOUS_MELANOMA,
-          SUPERFICIAL_SPREADING_MELANOMA,
-          NODULAR_MELANOMA,
-          LUNG_CARCINOMA,
-          SKIN_CARCINOMA,
-          PNEUMONIA);
+  /** An association code of the terminology, which isn't a role: Concept_In_Subset. */
+  private static final String ASSOCIATION_CODE = "A8";
 
-  /** The evstest query for the concepts whose primary site is Skin, by codes. */
-  private static final String PRIMARY_SITE_SKIN_BY_CODE_QUERY =
-      """
-      {"type": "HasRole", "role": "R101", "target": "FK21"}
-      """;
+  /** A role code the terminology doesn't have. */
+  private static final String UNKNOWN_ROLE_CODE = "R999";
+
+  /** The include value that returns each concept's roles. */
+  private static final String ROLES_INCLUDE = "roles";
+
+  /** The query for the concepts with the role to the target, by codes. */
+  private static final String BY_CODE_QUERY = getHasRoleQuery(ROLE_CODE, TARGET_CODE);
 
   // ---------------------------------------------------------------------------------------------
-  // evstest: exact results
+  // role and target: a role of the terminology, by code or name; target optional
   // ---------------------------------------------------------------------------------------------
 
   /**
-   * Test HasRole by role code and target code returns exactly the concepts with that role to that
-   * target.
+   * Test HasRole by role code and target code returns a known concept with that role to that
+   * target, and that every concept returned has it.
    *
    * @throws Exception the exception
    */
   @Test
   public void testHasRoleByCodeReturnsConceptsWithRoleToTarget() throws Exception {
-    assertThat(fetchCodes(EVSTEST, PRIMARY_SITE_SKIN_BY_CODE_QUERY))
-        .containsExactlyInAnyOrderElementsOf(PRIMARY_SITE_SKIN);
+    final List<Concept> concepts =
+        fetchQueryResults(SEARCHED_TERMINOLOGY, BY_CODE_QUERY, ROLES_INCLUDE).getConcepts();
+
+    assertThat(concepts).extracting(Concept::getCode).contains(CONCEPT_WITH_ROLE_TO_TARGET);
+    assertThat(concepts).allMatch(SearchControllerHasRoleTests::getHasRoleToTarget);
   }
 
   /**
-   * Test HasRole by role name and a one-word lowercase target name returns the same concepts as by
-   * codes.
+   * Test HasRole by role name and a one-word lowercase target name returns every concept found by
+   * codes. It can return more: a target name matches any one word of a target's name, e.g. "breast"
+   * also matches Male Breast.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testHasRoleByNameReturnsSameConceptsAsByCode() throws Exception {
-    final String byNameQuery =
-        """
-        {"type": "HasRole", "role": "Disease_Has_Primary_Anatomic_Site", "target": "skin"}
-        """;
+  public void testHasRoleByNameReturnsEveryConceptFoundByCode() throws Exception {
+    final String byNameQuery = getHasRoleQuery(ROLE_NAME, TARGET_NAME);
 
-    assertThat(fetchCodes(EVSTEST, byNameQuery))
-        .containsExactlyInAnyOrderElementsOf(PRIMARY_SITE_SKIN);
+    final List<String> byNameCodes = fetchCodes(SEARCHED_TERMINOLOGY, byNameQuery);
+    final List<String> byCodeCodes = fetchCodes(SEARCHED_TERMINOLOGY, BY_CODE_QUERY);
+
+    assertThat(byCodeCodes).isNotEmpty();
+    assertThat(byNameCodes).containsAll(byCodeCodes);
   }
 
   /**
-   * Test HasRole without a target returns every concept with the role, whatever it points to.
+   * Test HasRole without a target returns at least as many concepts as with one: the target only
+   * narrows the role.
    *
    * @throws Exception the exception
    */
   @Test
   public void testHasRoleWithoutTargetReturnsEveryConceptWithRole() throws Exception {
-    final String anyPrimarySiteQuery =
-        """
-        {"type": "HasRole", "role": "R101"}
-        """;
+    final String withoutTargetQuery = getHasRoleQuery(ROLE_CODE, null);
 
-    assertThat(fetchCodes(EVSTEST, anyPrimarySiteQuery))
-        .containsExactlyInAnyOrderElementsOf(ANY_PRIMARY_SITE);
+    final long withoutTargetTotal =
+        fetchQueryResults(SEARCHED_TERMINOLOGY, withoutTargetQuery, ROLES_INCLUDE).getTotal();
+    final long withTargetTotal =
+        fetchQueryResults(SEARCHED_TERMINOLOGY, BY_CODE_QUERY, ROLES_INCLUDE).getTotal();
+
+    assertThat(withTargetTotal).isPositive();
+    assertThat(withoutTargetTotal).isGreaterThanOrEqualTo(withTargetTotal);
   }
 
   // ---------------------------------------------------------------------------------------------
-  // evstest: inputs that aren't errors but match nothing
+  // role values that aren't errors but match nothing
   // ---------------------------------------------------------------------------------------------
 
   /**
@@ -124,12 +118,9 @@ public class SearchControllerHasRoleTests extends AbstractSearchControllerQueryT
    */
   @Test
   public void testHasRoleWithUnknownRoleReturnsNoConcepts() throws Exception {
-    final String unknownRoleQuery =
-        """
-        {"type": "HasRole", "role": "R999"}
-        """;
+    final String unknownRoleQuery = getHasRoleQuery(UNKNOWN_ROLE_CODE, null);
 
-    assertThat(fetchCodes(EVSTEST, unknownRoleQuery)).isEmpty();
+    assertThat(fetchCodes(SEARCHED_TERMINOLOGY, unknownRoleQuery)).isEmpty();
   }
 
   /**
@@ -140,28 +131,22 @@ public class SearchControllerHasRoleTests extends AbstractSearchControllerQueryT
    */
   @Test
   public void testHasRoleWithRoleNameInWrongCaseReturnsNoConcepts() throws Exception {
-    final String wrongCaseRoleQuery =
-        """
-        {"type": "HasRole", "role": "disease_has_primary_anatomic_site"}
-        """;
+    final String wrongCaseRoleQuery = getHasRoleQuery(ROLE_NAME_IN_WRONG_CASE, null);
 
-    assertThat(fetchCodes(EVSTEST, wrongCaseRoleQuery)).isEmpty();
+    assertThat(fetchCodes(SEARCHED_TERMINOLOGY, wrongCaseRoleQuery)).isEmpty();
   }
 
   /**
    * Test HasRole with an association code as the role returns no concepts: associations are
-   * searched with HasAssociation. Lung Carcinoma has association A2.
+   * searched with HasAssociation.
    *
    * @throws Exception the exception
    */
   @Test
   public void testHasRoleWithAssociationCodeReturnsNoConcepts() throws Exception {
-    final String associationAsRoleQuery =
-        """
-        {"type": "HasRole", "role": "A2"}
-        """;
+    final String associationAsRoleQuery = getHasRoleQuery(ASSOCIATION_CODE, null);
 
-    assertThat(fetchCodes(EVSTEST, associationAsRoleQuery)).isEmpty();
+    assertThat(fetchCodes(SEARCHED_TERMINOLOGY, associationAsRoleQuery)).isEmpty();
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -242,5 +227,42 @@ public class SearchControllerHasRoleTests extends AbstractSearchControllerQueryT
         """;
 
     postQuery(unknownFieldQuery).andExpect(status().isBadRequest());
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------------------------
+
+  /**
+   * Returns a HasRole query as JSON.
+   *
+   * @param role the role code or name
+   * @param target the target code or name, or null for any target
+   * @return the query JSON
+   */
+  private static String getHasRoleQuery(final String role, final String target) {
+    final boolean hasTarget = target != null;
+    final String targetField = hasTarget ? ", \"target\": \"" + target + "\"" : "";
+    return "{\"type\": \"HasRole\", \"role\": \"" + role + "\"" + targetField + "}";
+  }
+
+  /**
+   * Returns whether the concept has the role to the target.
+   *
+   * @param concept the concept, with its roles
+   * @return whether it has the role to the target
+   */
+  private static boolean getHasRoleToTarget(final Concept concept) {
+    return concept.getRoles().stream().anyMatch(SearchControllerHasRoleTests::getIsRoleToTarget);
+  }
+
+  /**
+   * Returns whether the role is the searched role, pointing to the target.
+   *
+   * @param role the role
+   * @return whether it's the role to the target
+   */
+  private static boolean getIsRoleToTarget(final Role role) {
+    return ROLE_CODE.equals(role.getCode()) && TARGET_CODE.equals(role.getRelatedCode());
   }
 }
