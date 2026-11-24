@@ -66,7 +66,7 @@ ext {
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "2.5.0.RELEASE"
+version = "2.6.0.RELEASE"
 
 sourceCompatibility = 17
 targetCompatibility = 17
@@ -139,6 +139,8 @@ dependencies {
   implementation "org.apache.thrift:libthrift:0.24.0"
   implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
   implementation "org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE"
+  // Security override: CVE-2026-102554 (guava 33.2.1-jre via hapi-fhir-base:7.6.1)
+  implementation "com.google.guava:guava:33.7.2-jre"
 
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
