@@ -21,13 +21,10 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
       {"type": "HasAncestor", "target": "C12971", "maxLevel": 1}
       """;
 
-  /** Gene Ontology, a terminology with a hierarchy far larger than 10,000 concepts. */
-  private static final String GENE_ONTOLOGY = "go";
-
-  /** Every descendant of biological_process (GO:0008150), a query with many matches. */
-  private static final String BIOLOGICAL_PROCESS_DESCENDANTS_QUERY =
+  /** Every descendant of Disease, Disorder or Finding (C7057), a query with many matches. */
+  private static final String DISEASE_DESCENDANTS_QUERY =
       """
-      {"type": "HasAncestor", "target": "GO:0008150"}
+      {"type": "HasAncestor", "target": "C7057"}
       """;
 
   /**
@@ -57,25 +54,8 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
    */
   private ConceptResultList fetchPage(
       final String queryJson, final int fromRecord, final int pageSize) throws Exception {
-    return fetchPage(TERMINOLOGY, queryJson, fromRecord, pageSize);
-  }
-
-  /**
-   * Posts a query tree to search a terminology, asserts the response is OK, and reads one page of
-   * its matches.
-   *
-   * @param terminology the terminology to search
-   * @param queryJson the query tree as JSON
-   * @param fromRecord the index of the first concept to return
-   * @param pageSize the maximum number of concepts to return
-   * @return the result list
-   * @throws Exception the exception
-   */
-  private ConceptResultList fetchPage(
-      final String terminology, final String queryJson, final int fromRecord, final int pageSize)
-      throws Exception {
     final String content =
-        postQueryPage(terminology, queryJson, fromRecord, pageSize)
+        postQueryPage(queryJson, fromRecord, pageSize)
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -94,24 +74,8 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
    */
   private ResultActions postQueryPage(
       final String queryJson, final int fromRecord, final int pageSize) throws Exception {
-    return postQueryPage(TERMINOLOGY, queryJson, fromRecord, pageSize);
-  }
-
-  /**
-   * Posts a query tree asking for one page of its matches, searching a terminology.
-   *
-   * @param terminology the terminology to search
-   * @param queryJson the query tree as JSON
-   * @param fromRecord the index of the first concept to return
-   * @param pageSize the maximum number of concepts to return
-   * @return the result actions
-   * @throws Exception the exception
-   */
-  private ResultActions postQueryPage(
-      final String terminology, final String queryJson, final int fromRecord, final int pageSize)
-      throws Exception {
     return mvc.perform(
-        post(QUERY_URL, terminology)
+        post(QUERY_URL, TERMINOLOGY)
             .param("fromRecord", String.valueOf(fromRecord))
             .param("pageSize", String.valueOf(pageSize))
             .contentType(MediaType.APPLICATION_JSON)
@@ -152,7 +116,7 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
 
   /**
    * Test the total counts every match past OpenSearch's default limit of 10,000, as legacy search
-   * does: biological_process in Gene Ontology has more descendants than that.
+   * does: Disease, Disorder or Finding has more descendants than that.
    *
    * @throws Exception the exception
    */
@@ -160,8 +124,7 @@ public class SearchControllerQueryPagingTests extends AbstractSearchControllerQu
   public void testTotalCountsMatchesPastCountedHitLimit() throws Exception {
     final long countedHitLimit = 10_000L;
 
-    final ConceptResultList results =
-        fetchPage(GENE_ONTOLOGY, BIOLOGICAL_PROCESS_DESCENDANTS_QUERY, 0, 10);
+    final ConceptResultList results = fetchPage(DISEASE_DESCENDANTS_QUERY, 0, 10);
 
     assertThat(results.getTotal()).isGreaterThan(countedHitLimit);
   }
