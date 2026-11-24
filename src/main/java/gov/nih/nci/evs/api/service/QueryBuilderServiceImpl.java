@@ -8,12 +8,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.text.StringSubstitutor;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryException;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.update.UpdateFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Reference implementation of {@link QueryBuilderService}. Includes hibernate tags for MEME
@@ -117,6 +123,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String prepSparql(
       final Terminology terminology, final String query, final Boolean keepPrefixes) {
 
+    // Validate the query as submitted (before prefix stripping can hide a non-SELECT form)
+    validateSparql(constructPrefix(terminology) + "\n" + query);
+
     // Replace non space whitespace
     String sparqlQuery = query.replaceAll("[\t\r\n]", "::newline::");
 
@@ -142,8 +151,40 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     }
     sparqlQuery = sparqlQuery.replaceAll("::newline::", "\n");
 
-    return ((keepPrefixes == null || !keepPrefixes) ? (constructPrefix(terminology) + "\n") : "")
-        + sparqlQuery;
+    sparqlQuery =
+        ((keepPrefixes == null || !keepPrefixes) ? (constructPrefix(terminology) + "\n") : "")
+            + sparqlQuery;
+
+    // Validate the rewritten query as well
+    validateSparql(sparqlQuery);
+
+    return sparqlQuery;
+  }
+
+  /**
+   * Validate that a SPARQL query is a SELECT query. Queries that do not parse (and are not updates)
+   * are passed through so the graph db can report the syntax error.
+   *
+   * @param query the query
+   */
+  private void validateSparql(final String query) {
+    Query parsed = null;
+    try {
+      parsed = QueryFactory.create(query);
+    } catch (final QueryException e) {
+      try {
+        UpdateFactory.create(query);
+      } catch (final Exception e2) {
+        return;
+      }
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Only SPARQL SELECT queries are allowed");
+    }
+
+    if (!parsed.isSelectType()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Only SPARQL SELECT queries are allowed");
+    }
   }
 
   /**
