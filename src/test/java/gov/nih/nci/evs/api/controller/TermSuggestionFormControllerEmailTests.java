@@ -4,15 +4,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.service.CaptchaService;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,38 +33,26 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
- * Test class for the Term Form Controller. Unlike TermSuggestionFormControllerTests here we call
- * real captcha and email service. So to run this you need to set some stuff up. Otherwise these
- * tests will be skipped.
- *
- * <pre>
- * Uses the following env vars (if not set, tests do not run):
- *
- * MAIL_USERNAME
- * MAIL_PASSWORD
- *
- * as well as the following yml properties:
- *
- * mail.host
- * mail.port
- * mail.smtp.auth
- * mail.smtp.starttls.enable
- * </pre>
+ * Exercises form handling and MIME generation with captcha mocked. Mail delivery is mocked when
+ * credentials are missing or placeholders, or TEST_EMAIL_DISABLED=true. With configured mail
+ * credentials and delivery enabled, these tests send real email to the configured recipients.
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@EnabledIfEnvironmentVariable(named = "MAIL_USER", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "MAIL_PASSWORD", matches = ".+")
 public class TermSuggestionFormControllerEmailTests {
 
   /** The Constant log. */
@@ -62,6 +63,71 @@ public class TermSuggestionFormControllerEmailTests {
   /** The mvc. */
   // Mock the MVC automatically
   @Autowired private MockMvc mvc;
+
+  /** Captcha verification is independent of the submission/email behavior tested here. */
+  @MockitoBean private CaptchaService captchaService;
+
+  /** Preserve MIME generation and mock only delivery when SMTP is not configured for testing. */
+  @MockitoSpyBean private JavaMailSender mailSender;
+
+  /** The resolved test configuration. */
+  @Autowired private Environment environment;
+
+  /** Use local templates while retaining the real form service and recipient validation. */
+  @MockitoSpyBean private ApplicationProperties applicationProperties;
+
+  /** Local form templates for this test. */
+  @TempDir private Path templates;
+
+  /**
+   * Set up local forms, deterministic captcha, and real or mocked mail delivery.
+   *
+   * @throws Exception if a form fixture cannot be copied
+   */
+  @BeforeEach
+  void setUpSubmission() throws Exception {
+    copyTemplate("testNCIT.json", "ncit-form.json");
+    copyTemplate("submissionFormTest-cdisc.json", "cdisc-form.json");
+    doReturn(templates.toString()).when(applicationProperties).getConfigBaseUri();
+    when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
+    final boolean mockDelivery =
+        environment.getProperty("TEST_EMAIL_DISABLED", Boolean.class, false)
+            || !isConfigured(environment.getProperty("spring.mail.host"))
+            || !isConfigured(environment.getProperty("spring.mail.username"))
+            || !isConfigured(environment.getProperty("spring.mail.password"));
+    if (mockDelivery) {
+      doReturn(new MimeMessage((Session) null)).when(mailSender).createMimeMessage();
+      doNothing().when(mailSender).send(any(MimeMessage.class));
+    }
+    log.info(
+        "Form submission tests: captcha mocked; mail delivery {}",
+        mockDelivery ? "mocked" : "REAL");
+  }
+
+  /**
+   * Copy a bundled form fixture under the name expected by the form service.
+   *
+   * @param fixture the fixture filename
+   * @param filename the form template filename
+   * @throws Exception if the fixture cannot be copied
+   */
+  private void copyTemplate(final String fixture, final String filename) throws Exception {
+    try (final InputStream input =
+        getClass().getClassLoader().getResourceAsStream("formSamples/" + fixture)) {
+      assertNotNull(input);
+      Files.copy(input, templates.resolve(filename));
+    }
+  }
+
+  /**
+   * Check whether a mail setting has a non-placeholder value.
+   *
+   * @param value the setting
+   * @return whether the setting is configured
+   */
+  private boolean isConfigured(final String value) {
+    return value != null && !value.isBlank() && !value.startsWith("REPLACE_WITH_");
+  }
 
   /** The base url. */
   // Base url for api calls
@@ -103,10 +169,7 @@ public class TermSuggestionFormControllerEmailTests {
   }
 
   /**
-   * Integration test for submitting a filled out form and sending the email. NOTE: Set your local
-   * environment variables in your config. Your test email will need an App Password for access, if
-   * using Gmail. This is an integration test that requires extra info. We need to set these tests
-   * up to avoid running if environment vars are not set, but to support them if they are.
+   * Integration test for submitting a filled out form and handing its email to the mail sender.
    *
    * @throws Exception exception
    */
@@ -134,6 +197,7 @@ public class TermSuggestionFormControllerEmailTests {
                     .content(requestBody))
             .andExpect(status().isOk())
             .andReturn();
+    verify(mailSender).send(any(MimeMessage.class));
   }
 
   /**
@@ -182,6 +246,7 @@ public class TermSuggestionFormControllerEmailTests {
                 .header("Captcha-Token", recaptchaToken)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
+    verify(mailSender).send(any(MimeMessage.class));
   }
 
   /**
@@ -230,6 +295,7 @@ public class TermSuggestionFormControllerEmailTests {
                 .header("Captcha-Token", recaptchaToken)
                 .contentType(MediaType.MULTIPART_FORM_DATA))
         .andExpect(status().isOk());
+    verify(mailSender).send(any(MimeMessage.class));
   }
 
   /**

@@ -110,6 +110,8 @@ nci:
 # Springdoc
 springdoc:
   swagger-ui:
+    # HAPI's OpenAPI module selects this WebJar version over SpringDoc's default.
+    version: 5.32.13
     tagsSorter: alpha
     operationsSorter: alpha
     doc-expansion: none

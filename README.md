@@ -78,6 +78,11 @@ starting the service. Updating this checkout does not install a JDK or replace a
 
 ## Steps for Building and Running EVSRESTAPI locally
 
+Form email tests mock captcha and use local form fixtures. They mock SMTP delivery when mail
+credentials are missing or placeholders, or `TEST_EMAIL_DISABLED=true`; the test log identifies
+the selected mode. With configured credentials and delivery enabled, they send real email.
+To force mocked delivery for a test run, use `TEST_EMAIL_DISABLED=true make test` in Bash.
+
 * Launch Jena/fuseki and Opensearch (as described above)
   * If loaded properly, the loaded artifacts should be persistent and you can take down and restart the docker processes and the data will still be there.
   * NOTE: both services must be loaded and running for the application tests to run properly
