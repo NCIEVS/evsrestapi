@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.OpenSearchLimits;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -17,14 +16,17 @@ import org.opensearch.index.query.QueryBuilders;
  * instead of a {@code should} clause per value, which would hit OpenSearch's clause limit for large
  * sets.
  *
- * <p>OpenSearch accepts at most {@value #MAX_VALUES} values in one {@code terms} query by default,
- * so the constructor rejects larger sets. Callers that build the set from other concepts (see
+ * <p>The constructor rejects sets larger than {@value #MAX_VALUES}, which stays within what one
+ * OpenSearch {@code terms} query accepts. Callers that build the set from other concepts (see
  * {@link HasHierarchyRelative#fetchTargetCodes}) check the size first to report a clearer error.
  */
 class MatchAnyOf extends EvsQuery {
 
-  /** OpenSearch's limit on values in one {@code terms} query. */
-  static final int MAX_VALUES = OpenSearchLimits.MAX_TERMS_COUNT;
+  /**
+   * The most values one match accepts. Stays within OpenSearch's default {@code
+   * index.max_terms_count}.
+   */
+  static final int MAX_VALUES = 65_536;
 
   /** The field to match against. */
   private String field;

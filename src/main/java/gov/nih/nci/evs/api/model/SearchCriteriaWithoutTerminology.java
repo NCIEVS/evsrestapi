@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.model;
 
 import gov.nih.nci.evs.api.service.MetadataService;
-import gov.nih.nci.evs.api.support.es.OpenSearchLimits;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
@@ -34,6 +33,18 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The largest page size allowed. */
   public static final int MAX_PAGE_SIZE = 1000;
+
+  /**
+   * The largest page size allowed on a license-restricted terminology when there's no search term,
+   * so a client can't page through the whole terminology in bulk.
+   */
+  public static final int MAX_LICENSED_PAGE_SIZE = 10;
+
+  /**
+   * The furthest a search can page, {@code fromRecord + pageSize}. Stays within the {@code
+   * index.max_result_window} that {@code reindex.sh} sets on every concept index.
+   */
+  public static final int MAX_RESULT_WINDOW = 300_000;
 
   /** The term. */
   private String term;
@@ -831,20 +842,41 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     // "Required parameter 'term' is missing");
     // }
 
-    if (!TerminologyUtils.asSet(
-            "AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
-        .contains(getType())) {
+    validateType();
+    validateFromRecord();
+    validatePageSize();
+    validatePageEndWithinResultWindow();
+    validateLicensedPageSize(terminology);
+    validateConceptStatuses(terminology, metadataService);
+    validateSynonymSources(terminology, metadataService);
+    validateDefinitionSources(terminology, metadataService);
+    validateHierarchyConstraints(terminology);
+  }
+
+  /** Validates the type is one of the search types. */
+  private void validateType() {
+    final Set<String> searchTypes =
+        TerminologyUtils.asSet(
+            "AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith");
+    if (!searchTypes.contains(getType())) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Required parameter 'type' has an invalid value = " + type);
     }
+  }
 
+  /** Validates fromRecord is at least {@link #MIN_FROM_RECORD}. */
+  private void validateFromRecord() {
     if (fromRecord < MIN_FROM_RECORD) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
           "Parameter 'fromRecord' must be >= " + MIN_FROM_RECORD + " = " + fromRecord);
     }
+  }
 
-    if ((pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE)) {
+  /** Validates pageSize is from {@link #MIN_PAGE_SIZE} to {@link #MAX_PAGE_SIZE}. */
+  private void validatePageSize() {
+    final boolean isPageSizeOutOfRange = (pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE);
+    if (isPageSizeOutOfRange) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
           "Parameter 'pageSize' must be between "
@@ -854,73 +886,116 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
               + " = "
               + pageSize);
     }
+  }
 
+  /** Validates the page ends within {@link #MAX_RESULT_WINDOW}, the furthest a search can page. */
+  private void validatePageEndWithinResultWindow() {
     // Long, so a huge fromRecord can't overflow past the check
     final long pageEnd = (long) fromRecord + pageSize;
-    final boolean isPastResultWindow = pageEnd > OpenSearchLimits.MAX_RESULT_WINDOW;
+    final boolean isPastResultWindow = pageEnd > MAX_RESULT_WINDOW;
     if (isPastResultWindow) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
           "Parameters 'fromRecord' + 'pageSize' must be at most "
-              + OpenSearchLimits.MAX_RESULT_WINDOW
+              + MAX_RESULT_WINDOW
               + ", the furthest a search can page = "
               + pageEnd);
     }
+  }
 
-    // Restrict paging for license-restricted terminologies (unless term is set)
-    if (terminology.getMetadata().getLicenseText() != null
-        && (term == null || term.isEmpty())
-        && pageSize > 10) {
+  /**
+   * Validates a license-restricted terminology is paged at most {@link #MAX_LICENSED_PAGE_SIZE} at
+   * a time, unless there's a search term.
+   *
+   * @param terminology the terminology
+   */
+  private void validateLicensedPageSize(final Terminology terminology) {
+    final boolean isLicensed = terminology.getMetadata().getLicenseText() != null;
+    final boolean hasTerm = term != null && !term.isEmpty();
+    final boolean isBulkPage = isLicensed && !hasTerm && pageSize > MAX_LICENSED_PAGE_SIZE;
+    if (isBulkPage) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
           terminology.getMetadata().getUiLabel().replaceFirst(":.*", "")
-              + " has license restrictions and so bulk operations are limited to working on 10"
+              + " has license restrictions and so bulk operations are limited to working on "
+              + MAX_LICENSED_PAGE_SIZE
               + " things at a time (page size = "
               + pageSize
               + ")");
     }
+  }
 
-    // Validate concept status
-    if (getConceptStatus().size() > 0) {
-      final Set<String> conceptStatuses =
-          new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
-      for (final String cs : getConceptStatus()) {
-        if (!conceptStatuses.contains(cs)) {
-          throw new ResponseStatusException(
-              HttpStatus.BAD_REQUEST, "Parameter 'conceptStatus' has an invalid value = " + cs);
-        }
-      }
+  /**
+   * Validates each concept status is one of the terminology's.
+   *
+   * @param terminology the terminology
+   * @param metadataService the metadata service
+   * @throws Exception the exception
+   */
+  private void validateConceptStatuses(
+      final Terminology terminology, final MetadataService metadataService) throws Exception {
+    if (getConceptStatus().isEmpty()) {
+      return;
     }
 
-    // Validate synonym source - must be a valid synonym source
-    if (getSynonymSource().size() > 0) {
-      final Set<String> synonymSources =
-          metadataService.getSynonymSources(terminology.getTerminology()).stream()
-              .map(c -> c.getCode())
-              .collect(Collectors.toSet());
-      for (final String ss : getSynonymSource()) {
-        if (!synonymSources.contains(ss)) {
-          throw new ResponseStatusException(
-              HttpStatus.BAD_REQUEST, "Parameter 'synonymSource' has an invalid value = " + ss);
-        }
+    final Set<String> conceptStatuses =
+        new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
+    for (final String cs : getConceptStatus()) {
+      if (!conceptStatuses.contains(cs)) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Parameter 'conceptStatus' has an invalid value = " + cs);
       }
     }
+  }
 
-    // Validate definition source - must be a valid definition source
-    if (getDefinitionSource().size() > 0) {
-      final Set<String> definitionSources =
-          metadataService.getDefinitionSources(terminology.getTerminology()).stream()
-              .map(c -> c.getCode())
-              .collect(Collectors.toSet());
-      for (final String ss : getDefinitionSource()) {
-        if (!definitionSources.contains(ss)) {
-          throw new ResponseStatusException(
-              HttpStatus.BAD_REQUEST, "Parameter 'definitionSource' has an invalid value = " + ss);
-        }
-      }
+  /**
+   * Validates each synonym source is one of the terminology's.
+   *
+   * @param terminology the terminology
+   * @param metadataService the metadata service
+   * @throws Exception the exception
+   */
+  private void validateSynonymSources(
+      final Terminology terminology, final MetadataService metadataService) throws Exception {
+    if (getSynonymSource().isEmpty()) {
+      return;
     }
 
-    validateHierarchyConstraints(terminology);
+    final Set<String> synonymSources =
+        metadataService.getSynonymSources(terminology.getTerminology()).stream()
+            .map(c -> c.getCode())
+            .collect(Collectors.toSet());
+    for (final String ss : getSynonymSource()) {
+      if (!synonymSources.contains(ss)) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Parameter 'synonymSource' has an invalid value = " + ss);
+      }
+    }
+  }
+
+  /**
+   * Validates each definition source is one of the terminology's.
+   *
+   * @param terminology the terminology
+   * @param metadataService the metadata service
+   * @throws Exception the exception
+   */
+  private void validateDefinitionSources(
+      final Terminology terminology, final MetadataService metadataService) throws Exception {
+    if (getDefinitionSource().isEmpty()) {
+      return;
+    }
+
+    final Set<String> definitionSources =
+        metadataService.getDefinitionSources(terminology.getTerminology()).stream()
+            .map(c -> c.getCode())
+            .collect(Collectors.toSet());
+    for (final String ds : getDefinitionSource()) {
+      if (!definitionSources.contains(ds)) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Parameter 'definitionSource' has an invalid value = " + ds);
+      }
+    }
   }
 
   /**
