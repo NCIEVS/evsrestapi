@@ -92,6 +92,15 @@ To force mocked delivery for a test run, use `TEST_EMAIL_DISABLED=true make test
   * make clean build
   * Executable war file present in build/libs
 
+### Test suites
+
+* `make test` runs the full normal suite locally, including integration tests. It requires the prepared graph and OpenSearch test data. Performance tests remain separate.
+* `make unit-test` runs self-contained tests with bundled fixtures, mocks, temporary files, and in-process HTTP servers. No external graph service, OpenSearch instance, or UnitTestData download is required. Form email delivery is always mocked in this task.
+* `make integration-test` runs the remaining normal tests against the prepared external services and data. Use `TEST_EMAIL_DISABLED=true make integration-test` to force mocked form email delivery.
+* GitHub Actions currently runs `make unit-test` while the full integration environment is not provisioned on runners.
+
+The shared `selfContainedTestPatterns` selection in `build.gradle` defines the split. Add new self-contained test classes there unless they already match a listed package or naming pattern. Tests outside that selection run through `integrationTest` and remain included in `make test`. Reports are written to `build/reports/tests/unitTest`, `build/reports/tests/integrationTest`, or `build/reports/tests/test`, respectively.
+
 ### Run application in Eclipse
 * Click "Run" -> "Run Configurations"
 * Create a new "Java Application" configuration and name it "evsrestapi - local"

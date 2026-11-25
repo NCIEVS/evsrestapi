@@ -211,6 +211,59 @@ test {
   testLogging.showStandardStreams = true
 }
 
+// Tests that use bundled fixtures, mocks, temporary files, or an in-process HTTP server only.
+// Keep this selection shared so unitTest and integrationTest partition the normal test suite.
+def selfContainedTestPatterns = [
+  'gov.nih.nci.evs.api.ApplicationTests',
+  'gov.nih.nci.evs.api.model.*',
+  'gov.nih.nci.evs.api.code.*',
+  'gov.nih.nci.evs.api.util.*UnitTest',
+  'gov.nih.nci.evs.api.configuration.EvsOpenSearchRestTemplateTest',
+  'gov.nih.nci.evs.api.configuration.EvsOpenSearchRequestLoggingInterceptorTest',
+  'gov.nih.nci.evs.api.configuration.OpenSearchLegacyCompatibilityInterceptorTest',
+  'gov.nih.nci.evs.api.controller.SparqlPrefixesSerializationTest',
+  'gov.nih.nci.evs.api.controller.TermSuggestionFormControllerEmailTests',
+  'gov.nih.nci.evs.api.controller.VersionControllerTests',
+  'gov.nih.nci.evs.api.fhir.HapiCompatibilityTests',
+  'gov.nih.nci.evs.api.fhir.FhirSwaggerUiTests',
+  'gov.nih.nci.evs.api.service.BaseLoaderServiceTest',
+  'gov.nih.nci.evs.api.service.CaptchaServiceTest',
+  'gov.nih.nci.evs.api.service.HierarchyUtilsTest',
+  'gov.nih.nci.evs.api.service.OpenSearchServiceImplTest',
+  'gov.nih.nci.evs.api.service.OpensearchOperationsServiceImplTest',
+  'gov.nih.nci.evs.api.service.OpensearchQueryCacheServiceTest'
+]
+
+['unitTest', 'integrationTest'].each { taskName ->
+  tasks.register(taskName, Test) {
+    group = 'verification'
+    description = taskName == 'unitTest' ?
+        'Runs self-contained tests without external services or data.' :
+        'Runs tests requiring external services or data.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+      excludeTags 'perf'
+    }
+    filter {
+      selfContainedTestPatterns.each { pattern ->
+        if (taskName == 'unitTest') {
+          includeTestsMatching pattern
+        } else {
+          excludeTestsMatching pattern
+        }
+      }
+    }
+    maxHeapSize = taskName == 'unitTest' ? '2g' : '8g'
+    jvmArgs('--add-opens', 'java.base/java.lang=ALL-UNNAMED')
+    systemProperty('spring.profiles.active', 'test')
+    testLogging.showStandardStreams = true
+    if (taskName == 'unitTest') {
+      environment 'TEST_EMAIL_DISABLED', 'true'
+    }
+  }
+}
+
 // Perf-tagged tests against a live local graphdb/opensearch stack.
 // Excluded from the default `test` task; run explicitly with `./gradlew perfTest`.
 task perfTest(type: Test) {

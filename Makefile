@@ -79,6 +79,14 @@ rundocker:
 test:
 	$(GRADLEW) spotlessCheck test
 
+unit-test:
+	$(GRADLEW) spotlessCheck unitTest
+
+integration-test:
+	$(GRADLEW) spotlessCheck integrationTest
+
+.PHONY: test unit-test integration-test
+
 releasetag:
 	git tag -a "${VERSION}-RC-`/bin/date +%Y-%m-%d`" -m "Release ${VERSION}-RC-`/bin/date +%Y-%m-%d`"
 	git push origin "${VERSION}-RC-`/bin/date +%Y-%m-%d`"
