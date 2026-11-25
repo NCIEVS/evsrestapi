@@ -1202,8 +1202,7 @@ public class SearchController extends BaseController {
             "Terminology is not RDF-based and cannot be queried for sparql");
       }
       final String prefixes = queryBuilderService.constructPrefix(term).replaceAll("\\r", "");
-      return new ResponseEntity<>(
-          ThreadLocalMapper.get().writeValueAsString(prefixes), new HttpHeaders(), HttpStatus.OK);
+      return new ResponseEntity<>(prefixes, new HttpHeaders(), HttpStatus.OK);
 
     } catch (final Exception e) {
       handleException(e, terminology);

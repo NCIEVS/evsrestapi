@@ -115,7 +115,8 @@ fi
 
 
 # Setup java environment
-export PATH="/usr/local/corretto-jdk17/bin:$PATH"
+export JAVA_HOME="${JAVA_HOME:-/usr/local/jdk25}"
+export PATH="${JAVA_HOME}/bin:$PATH"
 JAVA_OPTS="${JAVA_OPTS:--Xmx4096M}"
 # Handle the local setup
 local=""

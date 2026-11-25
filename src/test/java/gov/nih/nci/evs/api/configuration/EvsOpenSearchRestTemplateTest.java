@@ -1,6 +1,8 @@
 package gov.nih.nci.evs.api.configuration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -9,13 +11,14 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.http.StatusLine;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.junit.jupiter.api.Test;
 import org.opensearch.OpenSearchStatusException;
 import org.opensearch.client.Response;
 import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.core.rest.RestStatus;
+import org.springframework.data.elasticsearch.core.routing.RoutingResolver;
 
 /** Tests retries at the shared OpenSearch operations boundary. */
 class EvsOpenSearchRestTemplateTest {
@@ -24,6 +27,30 @@ class EvsOpenSearchRestTemplateTest {
   private final List<Long> delays = new ArrayList<>();
   private final EvsOpenSearchRestTemplate template =
       new EvsOpenSearchRestTemplate(client, delays::add);
+
+  @Test
+  void routingCopyPreservesMappingConfigurationAndRetries() {
+    EvsOpenSearchRestTemplate copy =
+        assertInstanceOf(
+            EvsOpenSearchRestTemplate.class, template.withRouting(mock(RoutingResolver.class)));
+    assertSame(template.getElasticsearchConverter(), copy.getElasticsearchConverter());
+    assertSame(template.getMappingParametersCustomizer(), copy.getMappingParametersCustomizer());
+    assertSame(template.getRequestFactory(), copy.getRequestFactory());
+    AtomicInteger calls = new AtomicInteger();
+
+    String result =
+        copy.execute(
+            ignored -> {
+              if (calls.incrementAndGet() == 1) {
+                throw new OpenSearchStatusException("rejected", RestStatus.TOO_MANY_REQUESTS);
+              }
+              return "ok";
+            });
+
+    assertEquals("ok", result);
+    assertEquals(2, calls.get());
+    assertEquals(1, delays.size());
+  }
 
   @Test
   void retries429AndRecovers() {

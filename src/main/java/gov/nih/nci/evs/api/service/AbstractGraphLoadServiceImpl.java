@@ -1019,15 +1019,15 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
     String welcomeText =
         """
-This is a manual EVS mapping of concepts with equivalent meaning in the source and target terminology versions shown below:
-<br><br>
-&nbsp;&nbsp;&nbsp;Source: NCIt (NCI Thesaurus) %s
-<br>
-&nbsp;&nbsp;&nbsp;Target: %s %s
-<br><br>
-The browser links each mapped concept to that concept's page in the current production version of its terminology.
-<br><br>
-"""
+        This is a manual EVS mapping of concepts with equivalent meaning in the source and target terminology versions shown below:
+        <br><br>
+        &nbsp;&nbsp;&nbsp;Source: NCIt (NCI Thesaurus) %s
+        <br>
+        &nbsp;&nbsp;&nbsp;Target: %s %s
+        <br><br>
+        The browser links each mapped concept to that concept's page in the current production version of its terminology.
+        <br><br>
+        """
             .formatted(sourceTerminology.getVersion(), targetTermName, termFullNameAndVersion);
     map.getProperties().add(new Property("welcomeText", welcomeText));
     // sourceTerminology/Version should match what we want to look up

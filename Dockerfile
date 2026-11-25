@@ -1,5 +1,5 @@
 # Build the deployable WAR in an isolated Linux Gradle environment.
-FROM gradle:8.14.2-jdk17 AS gradle-build
+FROM gradle:9.3.0-jdk25 AS gradle-build
 
 WORKDIR /workspace
 
@@ -10,7 +10,7 @@ COPY --chown=gradle:gradle src/main ./src/main
 RUN gradle --no-daemon bootWar -x test -x javadoc
 
 # Run only the packaged application as an unprivileged user.
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:25-jre-noble
 
 WORKDIR /app
 

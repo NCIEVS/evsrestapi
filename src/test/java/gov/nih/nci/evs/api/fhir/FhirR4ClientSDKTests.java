@@ -35,11 +35,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -50,6 +50,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@AutoConfigureTestRestTemplate
 @ActiveProfiles("test")
 class FhirR4ClientSDKTests {
 
@@ -88,7 +89,6 @@ class FhirR4ClientSDKTests {
   public void setUp() throws Exception {
     // the object mapper
     final ObjectMapper objectMapper = ThreadLocalMapper.get();
-    JacksonTester.initFields(this, objectMapper);
 
     // Initialize the map
     postmanNameToRawMap = new HashMap<>();

@@ -2,7 +2,34 @@
 
 Information on the build and deployment process for the EVSRESTAPI project
 
+## Version baseline
+
+These are the versions configured on EVSRESTAPI-742, not a statement about deployed servers.
+This branch retains its loader scripts and local Fuseki image; the shared-core/operations
+move on EVSRESTAPI-731 is separate.
+
+| Component | Version | Source |
+| --- | --- | --- |
+| EVS REST API | 2.6.0.RELEASE | `build.gradle` |
+| Java | 25 | Toolchain; API image `eclipse-temurin:25-jre-noble` |
+| Gradle | 9.3.0 | Wrapper; build image `gradle:9.3.0-jdk25` |
+| Spring Boot / Framework | 4.1.1 / 7.0.10 | `build.gradle` |
+| Embedded Tomcat | 11.0.25 | Boot BOM override in `build.gradle` |
+| HAPI FHIR / HL7 converters | 9.0.0 (released) / 6.10.3 | `build.gradle` |
+| Jackson | 2.21.8 and 3.1.8 | Separate BOM overrides; application models still use Jackson 2 |
+| SpringDoc | 3.0.1 | `build.gradle` |
+| Spring Data OpenSearch | 3.1.4 (Spring Data 2026.0 line) | `build.gradle`; distinct from server version |
+| OpenSearch deployment / local target | 1.3.20 with temporary timeout-parameter compatibility | [OpenSearch setup](OPENSEARCH.md); rewrite is always registered |
+| Local Jena/Fuseki | 5.3.0 on Java 25 | [Fuseki setup](JENA.md) and `docker/fuseki/Dockerfile` |
+
+The build files are authoritative. The client SDK has its own build and output targets;
+they do not determine the server's Java requirement.
+
 ## Prerequisites
+
+Native server installations must select Java 25 through `JAVA_HOME` in `config/setenv.sh`.
+The launcher defaults to `/usr/local/jdk25`; configure the actual installation path before
+starting the service. Updating this checkout does not install a JDK or replace an installed service.
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
   * **NOTE**: For Macs, you may want to adjust the CPU & memory settings.
@@ -12,9 +39,9 @@ Information on the build and deployment process for the EVSRESTAPI project
   * Bash (Git Bash / WSL): `export dir="/c/Users/carlsenbr/eclipse-workspace/data"`
   * Windows CMD: `set dir=C:\Users\carlsenbr\eclipse-workspace\data`
 * Execute `mkdir -p $dir/opensearch/data`
-- Set a new variable `$ES_DIR` to the new directory just created. This `$ES_DIR` will be referenced in upcoming steps.
-  * Bash: `export ES_DIR="$dir/opensearch/data"`
-  * Windows CMD: `set ES_DIR=%dir%\\opensearch\\data`
+- Set `$OS_DIR` to this directory for the commands in `OPENSEARCH.md`.
+  * Bash: `export OS_DIR="$dir/opensearch/data"`
+  * Windows CMD: `set OS_DIR=%dir%\\opensearch\\data`
 * Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your `$dir` folder (so that `$dir/UnitTestData` exists)
   * run `prep.sh`
 
@@ -51,6 +78,11 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ## Steps for Building and Running EVSRESTAPI locally
 
+Form email tests mock captcha and use local form fixtures. They mock SMTP delivery when mail
+credentials are missing or placeholders, or `TEST_EMAIL_DISABLED=true`; the test log identifies
+the selected mode. With configured credentials and delivery enabled, they send real email.
+To force mocked delivery for a test run, use `TEST_EMAIL_DISABLED=true make test` in Bash.
+
 * Launch Jena/fuseki and Opensearch (as described above)
   * If loaded properly, the loaded artifacts should be persistent and you can take down and restart the docker processes and the data will still be there.
   * NOTE: both services must be loaded and running for the application tests to run properly
@@ -59,6 +91,15 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Build the application (MUST DO BEFORE RUNNING if using "external tools configuration")
   * make clean build
   * Executable war file present in build/libs
+
+### Test suites
+
+* `make test` runs the full normal suite locally, including integration tests. It requires the prepared graph and OpenSearch test data. Performance tests remain separate.
+* `make unit-test` runs self-contained tests with bundled fixtures, mocks, temporary files, and in-process HTTP servers. No external graph service, OpenSearch instance, or UnitTestData download is required. Form email delivery is always mocked in this task.
+* `make integration-test` runs the remaining normal tests against the prepared external services and data. Use `TEST_EMAIL_DISABLED=true make integration-test` to force mocked form email delivery.
+* GitHub Actions currently runs `make unit-test` while the full integration environment is not provisioned on runners.
+
+The shared `selfContainedTestPatterns` selection in `build.gradle` defines the split. Add new self-contained test classes there unless they already match a listed package or naming pattern. Tests outside that selection run through `integrationTest` and remain included in `make test`. Reports are written to `build/reports/tests/unitTest`, `build/reports/tests/integrationTest`, or `build/reports/tests/test`, respectively.
 
 ### Run application in Eclipse
 * Click "Run" -> "Run Configurations"

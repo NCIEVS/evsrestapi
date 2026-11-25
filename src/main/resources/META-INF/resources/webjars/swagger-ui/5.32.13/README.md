@@ -7,5 +7,7 @@
 5. Replace src/main/resources/META-INF with the unzipped download, and copy over the old index.html found in src/main/resources/META-INF/resources/webjars/swagger-ui/{current version}.
 6. Delete the old version, and anything in the new version except the copied over index.html.
 7. Make any changes you need to in index.html.
+8. Set `springdoc.swagger-ui.version` in the main `application.yml` and test `application-test.yml`
+   to the resolved WebJar version so SpringDoc locates the matching resources.
 
 // add test to make sure current version matches classpath in VersionController

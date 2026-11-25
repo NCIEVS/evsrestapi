@@ -4,6 +4,7 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -38,6 +39,12 @@ public class CacheConfiguration {
       return;
     }
 
-    cacheNames.stream().forEach(name -> cacheManager.getCache(name).clear());
+    cacheNames.forEach(
+        name -> {
+          final Cache cache = cacheManager.getCache(name);
+          if (cache != null) {
+            cache.clear();
+          }
+        });
   }
 }
