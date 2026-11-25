@@ -1,9 +1,6 @@
  buildscript {
   ext {
     springBootVersion = '4.1.1'
-    // Remove this line to see what version is favored by springBootVersion
-    // and the version brought in by spring-data-elasticsearch
-    set('elasticsearch.version', '7.12.1')
   }
   repositories {
     maven { url "https://repo.spring.io/release" }
@@ -35,24 +32,12 @@ repositories {
   maven { url "https://repo.spring.io/milestone" }
 }
 
-// Override Boot BOM httpcore5 version to fix CVE-2026-54399 / CVE-2026-54428 (HIGH)
-ext['httpcore5.version'] = '5.4.3'
 // Match HAPI FHIR 9.0.0's Spring/Jackson patch baseline until Boot manages these or newer versions.
 ext['spring-framework.version'] = '7.0.10'
 ext['jackson-bom.version'] = '3.1.8'
 ext['jackson-2-bom.version'] = '2.21.8'
-// Keep dependency patch versions aligned with the paired operations upgrade.
-ext['commons-lang3.version'] = '3.18.0'
-ext['httpclient5.version'] = '5.6.3'
-ext['log4j2.version'] = '2.25.5'
-ext['opentelemetry.version'] = '1.62.0'
+// Keep the security patch newer than Boot's managed Tomcat version.
 ext['tomcat.version'] = '11.0.25'
-
-dependencyManagement {
-  dependencies {
-    dependency 'com.google.guava:guava:33.7.2-jre'
-  }
-}
 
 // Extra Properties
 ext {
@@ -127,16 +112,12 @@ dependencies {
   // Spring Data 2026.0: OpenSearch 3.1.x with Spring Boot 4.1.x.
   implementation "org.opensearch.client:spring-data-opensearch:3.1.4"
 
-  // Explicit OpenSearch common dependency; aligned by Gradle with the client dependencies.
-  implementation "org.opensearch:opensearch-common:3.3.2"
-
-  // other explicit vulnerability overrides
-  implementation "org.apache.commons:commons-lang3:3.18.0"
-  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.60"
+  // Use Boot-managed versions where available; retain unmanaged security overrides.
+  implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.thrift:libthrift:0.24.0"
-  implementation "org.thymeleaf:thymeleaf:3.1.5.RELEASE"
-  implementation "org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE"
-  // Security override: CVE-2026-102554 (guava 33.2.1-jre via hapi-fhir-base:7.6.1)
+  implementation "org.thymeleaf:thymeleaf"
+  implementation "org.thymeleaf:thymeleaf-spring6"
+  // Guava is used directly and is not managed by Spring Boot.
   implementation "com.google.guava:guava:33.7.2-jre"
 
   //Java Mail Sender dependency
@@ -147,13 +128,10 @@ dependencies {
   implementation "org.apache.commons:commons-text:1.10.0"
   //implementation "org.apache.opennlp:opennlp-tools:2.2.0"
 
-  // Upgrade ecache to use jakarta - https://groups.google.com/g/ehcache-users/c/sKfxWuTpY-U
-  // See also: https://stackoverflow.com/questions/75813659/gradle-could-not-find-org-ehcacheehcache-after-upgrading-to-spring-boot-3-0-x
-  // Note: ehcache 3.10.8 uses Jakarta by default, no classifier needed
-  implementation "org.ehcache:ehcache:3.10.9"
+  implementation "org.ehcache:ehcache"
 
   // JAXB dependencies required for ehcache with Java 9+
-  // ehcache 3.10.8 still uses javax.xml.bind internally for XML parsing
+  // The default Ehcache artifact still needs javax JAXB; Boot manages Jakarta JAXB instead.
   implementation 'javax.xml.bind:jaxb-api:2.3.1'
   implementation 'com.sun.xml.bind:jaxb-impl:2.3.3'
 
@@ -165,7 +143,7 @@ dependencies {
   // Used directly by the loaders; no longer supplied transitively by HAPI/Jena.
   implementation 'commons-cli:commons-cli:1.11.0'
   implementation 'cglib:cglib:3.3.0'
-  implementation 'com.google.protobuf:protobuf-java:3.25.5'
+  implementation 'com.google.protobuf:protobuf-java'
 
   // fhir dependencies
   implementation "ca.uhn.hapi.fhir:hapi-fhir-base:${hapiFhirVersion}"
@@ -187,7 +165,7 @@ dependencies {
   implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:${hapiFhirVersion}"
 
   // disk-backed map implementation for hierarchy path builds
-  implementation "com.h2database:h2:2.4.240"
+  implementation "com.h2database:h2"
 
   // Lombok dependencies (avoid using lombok for now)
   //implementation "org.projectlombok:lombok:1.18.32"
