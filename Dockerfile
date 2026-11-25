@@ -14,6 +14,11 @@ FROM eclipse-temurin:25-jre-noble
 
 WORKDIR /app
 
+# Apply OS security updates not yet in the base image.
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN groupadd --system evsapi \
     && useradd --system --gid evsapi --home-dir /app --shell /usr/sbin/nologin evsapi
 
