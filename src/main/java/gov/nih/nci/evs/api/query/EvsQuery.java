@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.query;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -7,49 +8,41 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import java.util.ArrayList;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Map;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.opensearch.search.sort.SortBuilder;
-import org.opensearch.search.sort.SortBuilders;
-import org.opensearch.search.sort.SortOrder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 
 /**
  * A node in an EVS search query tree. The term searches ({@link Exact}, {@link StartsWith}, {@link
  * Contains}, {@link Fuzzy}) search names, codes, and synonyms like the legacy concept search; the
- * logical queries ({@link And}, {@link Or}, {@link Not}, {@link Boost}) combine other {@link
- * EvsQuery} nodes. Every other node holds only names, codes, and values, never another query.
+ * logical queries ({@link And}, {@link Or}, {@link Not}) combine other {@link EvsQuery} nodes.
+ * Every other node holds only names, codes, and values, never another query.
  *
- * <p>Run a tree with {@link #fetchConcepts}. EXPERIMENTAL: nodes may also contribute sorts (see
- * {@link #getSorts()}).
+ * <p>Run a tree with {@link #fetchConcepts}. Nodes only match: none adds sorts, so matches come
+ * back in OpenSearch's default order, highest score first. To order them another way, add sorts to
+ * a search built around {@link #fetchOpenSearchQuery}.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
   @JsonSubTypes.Type(value = And.class, name = "And"),
   @JsonSubTypes.Type(value = Or.class, name = "Or"),
   @JsonSubTypes.Type(value = Not.class, name = "Not"),
-  @JsonSubTypes.Type(value = Boost.class, name = "Boost"),
   @JsonSubTypes.Type(value = HasProperty.class, name = "HasProperty"),
   @JsonSubTypes.Type(value = HasSynonym.class, name = "HasSynonym"),
   @JsonSubTypes.Type(value = InSubset.class, name = "InSubset"),
-  @JsonSubTypes.Type(value = Typeahead.class, name = "Typeahead"),
   @JsonSubTypes.Type(value = Exact.class, name = "Exact"),
   @JsonSubTypes.Type(value = StartsWith.class, name = "StartsWith"),
   @JsonSubTypes.Type(value = Contains.class, name = "Contains"),
   @JsonSubTypes.Type(value = Fuzzy.class, name = "Fuzzy"),
   @JsonSubTypes.Type(value = HasAncestor.class, name = "HasAncestor"),
-  @JsonSubTypes.Type(value = HasAncestorOrIs.class, name = "HasAncestorOrIs"),
   @JsonSubTypes.Type(value = HasDescendant.class, name = "HasDescendant"),
-  @JsonSubTypes.Type(value = HasDescendantOrIs.class, name = "HasDescendantOrIs"),
   @JsonSubTypes.Type(value = HasRole.class, name = "HasRole"),
   @JsonSubTypes.Type(value = HasInverseRole.class, name = "HasInverseRole"),
   @JsonSubTypes.Type(value = HasAssociation.class, name = "HasAssociation"),
@@ -57,6 +50,18 @@ import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 })
 @JsonInclude(Include.NON_EMPTY)
 public abstract class EvsQuery {
+
+  /**
+   * The most levels a query tree can nest, counting a leaf as 1, e.g. {@code Not(And(HasRole))} is
+   * 3. Our own limit: OpenSearch 2.19 has none ({@code index.query.max_nested_depth} is unlimited
+   * and its JSON parser has no depth cap), but parses a query by recursing once per level, so a
+   * deep enough query overflows its stack. Each level here adds up to three levels to the
+   * OpenSearch query. 10 is deeper than any query we've needed.
+   */
+  public static final int MAX_QUERY_DEPTH = 10;
+
+  /** A leaf's depth: it holds no other query. */
+  private static final int LEAF_DEPTH = 1;
 
   /**
    * Returns the OpenSearch query for this node. A hierarchy node may look up its target concepts'
@@ -97,10 +102,48 @@ public abstract class EvsQuery {
       OpenSearchOperations operations, List<Terminology> terminologies);
 
   /**
-   * Runs this query and returns one page of the concepts it matches. Sorts come from {@link
-   * #getSorts()}, with duplicates dropped, followed by terminology and code so results are stable
-   * between requests. When the include asks for highlights, each hit carries OpenSearch's
-   * highlights of the fields the query matched.
+   * Returns how many levels this query nests, counting a leaf as 1. Nodes that hold other queries
+   * override this.
+   *
+   * @return the depth
+   */
+  @JsonIgnore
+  public int getDepth() {
+    return LEAF_DEPTH;
+  }
+
+  /**
+   * Fails if this query names a role the searched terminology doesn't have. Leaves without a role
+   * have nothing to check; nodes that name a role check it, and nodes that hold other queries check
+   * their children.
+   *
+   * @param terminology the terminology searched, for the error message, e.g. ncit 25.12e
+   * @param roleNameByCode the terminology's roles, each code with its name
+   * @throws UnknownRoleException if a role isn't one of the terminology's, by code or name
+   */
+  public void checkRoles(final String terminology, final Map<String, String> roleNameByCode) {
+    // n/a: no role to check
+  }
+
+  /**
+   * Fails if this query nests deeper than {@link #MAX_QUERY_DEPTH}. Checked before every search,
+   * since OpenSearch doesn't check it.
+   *
+   * @throws QueryTooBroadException if the query is too deep
+   */
+  public void checkDepth() {
+    final int depth = getDepth();
+    final boolean isTooDeep = depth > MAX_QUERY_DEPTH;
+    if (isTooDeep) {
+      throw new QueryTooBroadException(
+          "Query nests " + depth + " levels deep; at most " + MAX_QUERY_DEPTH + " are allowed");
+    }
+  }
+
+  /**
+   * Runs this query and returns one page of the concepts it matches, in OpenSearch's default order,
+   * highest score first. When the include asks for highlights, each hit carries OpenSearch's
+   * highlights of every top-level field the query matched, as the main concept search does.
    *
    * @param operations the OpenSearch operations
    * @param terminologies the terminologies to search
@@ -114,21 +157,22 @@ public abstract class EvsQuery {
       final List<Terminology> terminologies,
       final Pageable page,
       final IncludeParam include) {
-    checkTerminologiesAreSearchable(terminologies);
+    TerminologyUtils.checkTerminologiesAreSearchable(terminologies);
+    checkDepth();
 
     final NativeSearchQueryBuilder search =
         new NativeSearchQueryBuilder()
             .withQuery(fetchOpenSearchQuery(operations, terminologies))
-            .withSorts(getSortsWithTieBreak())
             .withSourceFilter(
                 new FetchSourceFilter(
                     true, include.getIncludedFields(), include.getExcludedFields()))
             .withPageable(page);
     final boolean shouldHighlightMatches = include.isHighlights();
     if (shouldHighlightMatches) {
-      search.withHighlightFields(getHighlightFields().toArray(HighlightBuilder.Field[]::new));
+      search.withHighlightFields(new HighlightBuilder.Field(EVERY_MATCHED_FIELD));
     }
-    return operations.search(search.build(), Concept.class, getIndexCoordinates(terminologies));
+    return operations.search(
+        search.build(), Concept.class, TerminologyUtils.getIndexCoordinates(terminologies));
   }
 
   /**
@@ -142,128 +186,15 @@ public abstract class EvsQuery {
    */
   public final long fetchConceptCount(
       final OpenSearchOperations operations, final List<Terminology> terminologies) {
-    checkTerminologiesAreSearchable(terminologies);
+    TerminologyUtils.checkTerminologiesAreSearchable(terminologies);
+    checkDepth();
 
     final NativeSearchQueryBuilder count =
         new NativeSearchQueryBuilder().withQuery(fetchOpenSearchQuery(operations, terminologies));
-    return operations.count(count.build(), Concept.class, getIndexCoordinates(terminologies));
+    return operations.count(
+        count.build(), Concept.class, TerminologyUtils.getIndexCoordinates(terminologies));
   }
-
-  /**
-   * Returns the concept indexes of the terminologies, which {@link #fetchConcepts} and {@link
-   * #fetchConceptCount} search.
-   *
-   * @param terminologies the terminologies
-   * @return the index coordinates
-   */
-  public static IndexCoordinates getIndexCoordinates(final List<Terminology> terminologies) {
-    return IndexCoordinates.of(
-        terminologies.stream().map(Terminology::getIndexName).toArray(String[]::new));
-  }
-
-  /**
-   * EXPERIMENTAL: returns the sorts this node wants applied when it's the query {@link
-   * #fetchConcepts} runs, in priority order. Most nodes only match, so the default is none.
-   *
-   * <p>Composite nodes must return their own sorts first, then each child's sorts in child order. A
-   * nested node's sorts therefore only break ties left by the nodes above and before it. A node
-   * that negates its children (e.g. {@code Not}) contributes none of their sorts.
-   *
-   * @return the sorts, highest priority first
-   */
-  protected List<SortBuilder<?>> getSorts() {
-    return List.of();
-  }
-
-  /**
-   * Returns the fields OpenSearch should highlight when {@link #fetchConcepts} is asked for
-   * highlights. The default highlights every top-level field the query matched, as the main concept
-   * search does.
-   *
-   * <p>Override it when the node matches subfields, e.g. a {@code search_as_you_type} subfield: the
-   * {@code *} pattern doesn't reach multi-field subfields, so those matches would get no highlight.
-   *
-   * @return the fields to highlight
-   */
-  protected List<HighlightBuilder.Field> getHighlightFields() {
-    return List.of(new HighlightBuilder.Field(EVERY_MATCHED_FIELD));
-  }
-
-  /**
-   * Metadata field naming the index a hit came from. Each terminology has its own concept index, so
-   * this orders by terminology. The terminology field itself is analyzed text and can't be sorted
-   * on.
-   */
-  private static final String INDEX_FIELD = "_index";
 
   /** Highlights every top-level field the query matched, as the main concept search does. */
   private static final String EVERY_MATCHED_FIELD = "*";
-
-  /** Field that orders concepts within a terminology. */
-  private static final String CODE_FIELD = "code";
-
-  /**
-   * Fails if any terminology is missing its terminology or version. See {@link
-   * #checkTerminologyIsSearchable}.
-   *
-   * @param terminologies the terminologies
-   * @throws IllegalArgumentException if a terminology or version is missing
-   */
-  private static void checkTerminologiesAreSearchable(final List<Terminology> terminologies) {
-    terminologies.forEach(EvsQuery::checkTerminologyIsSearchable);
-  }
-
-  /**
-   * Fails if a terminology is missing its terminology or version, which name the terminology
-   * version each hit comes from. Checked before each search, so a partly set up terminology fails
-   * there, naming what's missing, rather than deep inside the search.
-   *
-   * <p>The index name isn't checked: {@link Terminology#getIndexName} is never null. Without one
-   * set, it builds and caches one from the terminology and version, so it's only read after they
-   * are known to be there.
-   *
-   * @param terminology the terminology
-   * @throws IllegalArgumentException if the terminology or version is missing
-   */
-  private static void checkTerminologyIsSearchable(final Terminology terminology) {
-    Objects.requireNonNull(terminology, "terminology");
-    checkTerminologyHasField(terminology, "terminology", terminology.getTerminology());
-    checkTerminologyHasField(terminology, "version", terminology.getVersion());
-  }
-
-  /**
-   * Fails if one of a terminology's fields is missing, naming the field and showing the terminology
-   * and version it does have.
-   *
-   * @param terminology the terminology
-   * @param fieldName the name of the field
-   * @param fieldValue the field's value
-   * @throws IllegalArgumentException if the value is missing
-   */
-  private static void checkTerminologyHasField(
-      final Terminology terminology, final String fieldName, final String fieldValue) {
-    final boolean hasFieldValue = fieldValue != null;
-    if (!hasFieldValue) {
-      throw new IllegalArgumentException(
-          "Terminology has no "
-              + fieldName
-              + " (terminology = "
-              + terminology.getTerminology()
-              + ", version = "
-              + terminology.getVersion()
-              + ")");
-    }
-  }
-
-  /**
-   * Returns this node's sorts without duplicates, then the terminology and code tie-break.
-   *
-   * @return the sorts, highest priority first
-   */
-  private List<SortBuilder<?>> getSortsWithTieBreak() {
-    final List<SortBuilder<?>> sorts = new ArrayList<>(getSorts());
-    sorts.add(SortBuilders.fieldSort(INDEX_FIELD).order(SortOrder.ASC));
-    sorts.add(SortBuilders.fieldSort(CODE_FIELD).order(SortOrder.ASC));
-    return sorts.stream().distinct().collect(Collectors.toList());
-  }
 }

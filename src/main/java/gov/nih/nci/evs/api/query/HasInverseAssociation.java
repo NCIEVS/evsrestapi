@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.query;
 
+import jakarta.validation.constraints.NotNull;
+
 /**
  * Matches concepts that another concept's association of the given type points to, optionally from
  * the given source: {@link HasAssociation} in the other direction. E.g. the subsets Cutaneous
@@ -48,6 +50,7 @@ public final class HasInverseAssociation extends HasRelationship {
    *
    * @return the association name or code
    */
+  @NotNull
   public String getAssociation() {
     return getRelationshipType();
   }

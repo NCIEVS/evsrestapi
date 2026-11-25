@@ -1,5 +1,8 @@
 package gov.nih.nci.evs.api.query;
 
+import jakarta.validation.constraints.NotNull;
+import java.util.Map;
+
 /**
  * Matches concepts that have a role of the given type, optionally pointing to the given target,
  * e.g. concepts whose primary anatomic site is Skin. A {@link HasRelationship} on the concept's
@@ -39,6 +42,7 @@ public final class HasRole extends HasRelationship {
    *
    * @return the role name or code
    */
+  @NotNull
   public String getRole() {
     return getRelationshipType();
   }
@@ -50,6 +54,16 @@ public final class HasRole extends HasRelationship {
    */
   public void setRole(final String role) {
     setRelationshipType(role);
+  }
+
+  /* see superclass */
+  @Override
+  public void checkRoles(final String terminology, final Map<String, String> roleNameByCode) {
+    final boolean isKnownRole =
+        roleNameByCode.containsKey(getRole()) || roleNameByCode.containsValue(getRole());
+    if (!isKnownRole) {
+      throw new UnknownRoleException(getRole(), terminology, roleNameByCode);
+    }
   }
 
   /* see superclass */

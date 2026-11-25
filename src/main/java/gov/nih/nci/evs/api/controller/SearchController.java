@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.MapResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
@@ -14,12 +15,14 @@ import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.query.EvsQuery;
-import gov.nih.nci.evs.api.query.Typeahead;
+import gov.nih.nci.evs.api.query.QueryTooBroadException;
+import gov.nih.nci.evs.api.query.UnknownRoleException;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.OpenSearchService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.service.QueryBuilderService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.service.Typeahead;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -35,11 +38,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import org.apache.jena.query.QueryException;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.syntax.ElementService;
@@ -560,7 +567,7 @@ public class SearchController extends BaseController {
 
     final Typeahead typeahead = new Typeahead(incompleteTerm);
     final ConceptResultList results =
-        openSearchService.findQueryConcepts(typeahead, terminologies, searchCriteria);
+        openSearchService.findTypeaheadConcepts(typeahead, terminologies, searchCriteria);
     highlightConceptMatches(results);
 
     results.setTimeTaken(System.currentTimeMillis() - timerStartDate);
@@ -695,9 +702,14 @@ public class SearchController extends BaseController {
       produces = "application/json")
   public @ResponseBody ConceptResultList search(
       @PathVariable(value = "terminology") final String terminology,
-      @org.springframework.web.bind.annotation.RequestBody final EvsQuery query,
-      @RequestParam(name = "fromRecord", required = false) final Integer fromRecord,
-      @RequestParam(name = "pageSize", required = false) final Integer pageSize,
+      @Valid @org.springframework.web.bind.annotation.RequestBody final EvsQuery query,
+      @RequestParam(name = "fromRecord", required = false)
+          @Min(SearchCriteriaWithoutTerminology.MIN_FROM_RECORD)
+          final Integer fromRecord,
+      @RequestParam(name = "pageSize", required = false)
+          @Min(SearchCriteriaWithoutTerminology.MIN_PAGE_SIZE)
+          @Max(SearchCriteriaWithoutTerminology.MAX_PAGE_SIZE)
+          final Integer pageSize,
       @RequestParam(name = "include", required = false) final String include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
@@ -713,12 +725,54 @@ public class SearchController extends BaseController {
     final List<Terminology> terminologies =
         parseAndValidateTerminologiesFromSearchCriteria(searchCriteria, license);
 
-    final ConceptResultList results =
-        openSearchService.findQueryConceptsWithExactTotal(query, terminologies, searchCriteria);
+    checkQueryRoles(query, terminologies);
+
+    final ConceptResultList results;
+    try {
+      results =
+          openSearchService.findQueryConceptsWithExactTotal(query, terminologies, searchCriteria);
+    } catch (final QueryTooBroadException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+    }
     highlightConceptMatches(results);
 
     results.setTimeTaken(System.currentTimeMillis() - timerStartDate);
     return results;
+  }
+
+  /**
+   * Fails with a bad request if the query names a role a searched terminology doesn't have, listing
+   * that terminology's roles.
+   *
+   * @param query the query tree
+   * @param terminologies the terminologies searched
+   * @throws Exception the exception
+   */
+  private void checkQueryRoles(final EvsQuery query, final List<Terminology> terminologies)
+      throws Exception {
+    for (final Terminology terminology : terminologies) {
+      final String terminologyLabel = terminology.getTerminology() + " " + terminology.getVersion();
+      try {
+        query.checkRoles(terminologyLabel, fetchRoleNameByCode(terminology));
+      } catch (final UnknownRoleException e) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+      }
+    }
+  }
+
+  /**
+   * Fetches the terminology's roles, each code with its name, sorted by code.
+   *
+   * @param terminology the terminology
+   * @return the role names by code
+   * @throws Exception the exception
+   */
+  private Map<String, String> fetchRoleNameByCode(final Terminology terminology) throws Exception {
+    final Map<String, String> roleNameByCode = new TreeMap<>();
+    for (final Concept role : osQueryService.getRoles(terminology, new IncludeParam("minimal"))) {
+      roleNameByCode.put(role.getCode(), role.getName());
+    }
+    return roleNameByCode;
   }
 
   /**

@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.query;
 
+import jakarta.validation.constraints.NotNull;
+
 /**
  * Matches concepts that have an association of the given type, optionally pointing to the given
  * target, e.g. concepts in a subset of the CTRP Terminology. A {@link HasRelationship} on the
@@ -41,6 +43,7 @@ public final class HasAssociation extends HasRelationship {
    *
    * @return the association name or code
    */
+  @NotNull
   public String getAssociation() {
     return getRelationshipType();
   }

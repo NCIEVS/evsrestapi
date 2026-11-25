@@ -1,6 +1,8 @@
 package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
 import org.opensearch.data.core.OpenSearchOperations;
@@ -16,7 +18,7 @@ import org.opensearch.index.query.QueryBuilders;
 public final class NoQualifiers implements QualifierCondition {
 
   /** The condition the entry must not meet. */
-  private QualifierCondition condition;
+  @NotNull @Valid private QualifierCondition condition;
 
   /** Instantiates an empty {@link NoQualifiers}. */
   public NoQualifiers() {

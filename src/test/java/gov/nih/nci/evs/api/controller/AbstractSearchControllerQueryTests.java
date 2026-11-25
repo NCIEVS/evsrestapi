@@ -1,15 +1,11 @@
-package gov.nih.nci.evs.api.queryendpoint;
+package gov.nih.nci.evs.api.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Role;
-import gov.nih.nci.evs.api.query.EvsQuery;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import java.util.stream.Stream;
@@ -19,14 +15,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 /**
  * Base class for the per-node tests of the query endpoint ({@code POST
- * /concept/{terminology}/search} with a JSON body). Each subclass tests one query node with three
+ * /concept/{terminology}/search} with a JSON body). Each subclass tests one query node with two
  * kinds of test:
  *
  * <ol>
@@ -35,9 +36,6 @@ import org.springframework.test.web.servlet.ResultActions;
  *       concepts that come back.
  *   <li><b>Mistake test</b>: posts JSON with a mistake a client could make using {@link
  *       #postQuery(String)}, and expects a bad request.
- *   <li><b>Round-trip test</b>: calls {@link #assertRoundTripsUnchanged(String)}, which reads the
- *       JSON as an {@link EvsQuery} with the application's {@link ObjectMapper} and writes it back,
- *       and checks the result equals the original JSON.
  * </ol>
  *
  * <p>Integration tests run against the test OpenSearch with NCIt loaded, as the concept search
@@ -48,16 +46,23 @@ import org.springframework.test.web.servlet.ResultActions;
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public abstract class AbstractQueryEndpointTest {
+public abstract class AbstractSearchControllerQueryTests {
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(AbstractQueryEndpointTest.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(AbstractSearchControllerQueryTests.class);
 
   /** The query endpoint url, with the terminology as a path variable. */
   protected static final String QUERY_URL = "/api/v1/concept/{terminology}/search";
 
-  /** The terminology every test searches. */
+  /** The terminology the tests search unless they name another. */
   protected static final String TERMINOLOGY = "ncit";
+
+  /**
+   * The fake terminology in {@code src/test/resources/evstest}, whose data the tests control, so
+   * they can expect exact results. See its README for loading it.
+   */
+  protected static final String EVSTEST = "evstest";
 
   /** A page large enough to hold every match in these tests. */
   protected static final String PAGE_SIZE = "1000";
@@ -67,9 +72,6 @@ public abstract class AbstractQueryEndpointTest {
 
   /** Breast, the target of most hierarchy tests. */
   protected static final String BREAST = "C12971";
-
-  /** The max level that limits hierarchy queries to direct children or parents. */
-  protected static final int DIRECT_RELATIVES_MAX_LEVEL = 1;
 
   /** The four children of Breast. */
   protected static final List<String> BREAST_CHILDREN =
@@ -90,49 +92,11 @@ public abstract class AbstractQueryEndpointTest {
   /** The role from a disease to its primary anatomic site (Disease_Has_Primary_Anatomic_Site). */
   protected static final String PRIMARY_ANATOMIC_SITE_ROLE = "R101";
 
-  /** The association from a concept to a subset it's in (Concept_In_Subset). */
-  protected static final String IN_SUBSET_ASSOCIATION = "A8";
-
-  /** A subset whose only member is Breast Carcinoma. */
-  protected static final String BREAST_CARCINOMA_ONLY_SUBSET = "C103042";
-
   /** Autowired mock MVC. */
   @Autowired protected MockMvc mvc;
 
-  /** Autowired application object mapper, the one configured by JacksonConfiguration. */
-  @Autowired protected ObjectMapper objectMapper;
-
-  /**
-   * Reads query JSON as an {@link EvsQuery}, writes it back, and asserts the result equals the
-   * original. The two are compared as {@link JsonNode}s, so key order and whitespace don't matter.
-   *
-   * @param queryJson the query tree as JSON
-   * @throws Exception the exception
-   */
-  protected void assertRoundTripsUnchanged(final String queryJson) throws Exception {
-    final JsonNode original = objectMapper.readTree(queryJson);
-
-    final EvsQuery query = objectMapper.readValue(queryJson, EvsQuery.class);
-    final JsonNode roundTripped = objectMapper.readTree(objectMapper.writeValueAsString(query));
-
-    assertThat(roundTripped).isEqualTo(original);
-  }
-
-  /**
-   * Asserts the app's object mapper writes the query as the expected JSON, compared as JSON trees
-   * so key order and whitespace don't matter. A regression check on the wire format: a renamed
-   * class, property, or enum constant changes the JSON clients send and receive.
-   *
-   * @param query the query, built in Java
-   * @param expectedJson the JSON it must be written as
-   * @throws Exception the exception
-   */
-  protected void assertSerializesTo(final EvsQuery query, final String expectedJson)
-      throws Exception {
-    final JsonNode serialized = objectMapper.readTree(objectMapper.writeValueAsString(query));
-
-    assertThat(serialized).isEqualTo(objectMapper.readTree(expectedJson));
-  }
+  /** The client for real HTTP requests to the running server. */
+  @Autowired private TestRestTemplate restTemplate;
 
   /**
    * Posts a query tree and returns the codes of the concepts it matches, in the order returned.
@@ -142,7 +106,21 @@ public abstract class AbstractQueryEndpointTest {
    * @throws Exception the exception
    */
   protected List<String> fetchCodes(final String queryJson) throws Exception {
-    return fetchQueryResults(queryJson, MINIMAL_INCLUDE).getConcepts().stream()
+    return fetchCodes(TERMINOLOGY, queryJson);
+  }
+
+  /**
+   * Posts a query tree to search the terminology and returns the codes of the concepts it matches,
+   * in the order returned.
+   *
+   * @param terminology the terminology to search
+   * @param queryJson the query tree as JSON
+   * @return the codes
+   * @throws Exception the exception
+   */
+  protected List<String> fetchCodes(final String terminology, final String queryJson)
+      throws Exception {
+    return fetchQueryResults(terminology, queryJson, MINIMAL_INCLUDE).getConcepts().stream()
         .map(Concept::getCode)
         .toList();
   }
@@ -157,8 +135,25 @@ public abstract class AbstractQueryEndpointTest {
    */
   protected ConceptResultList fetchQueryResults(final String queryJson, final String include)
       throws Exception {
+    return fetchQueryResults(TERMINOLOGY, queryJson, include);
+  }
+
+  /**
+   * Posts a query tree to search the terminology, asserts the response is OK, and reads the
+   * concepts it returns.
+   *
+   * @param terminology the terminology to search
+   * @param queryJson the query tree as JSON
+   * @param include the fields to return for each concept
+   * @return the result list
+   * @throws Exception the exception
+   */
+  protected ConceptResultList fetchQueryResults(
+      final String terminology, final String queryJson, final String include) throws Exception {
     final MvcResult result =
-        postQuery(queryJson, PAGE_SIZE, include).andExpect(status().isOk()).andReturn();
+        postQuery(terminology, queryJson, PAGE_SIZE, include)
+            .andExpect(status().isOk())
+            .andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     return ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
@@ -187,10 +182,26 @@ public abstract class AbstractQueryEndpointTest {
    */
   protected ResultActions postQuery(
       final String queryJson, final String pageSize, final String include) throws Exception {
+    return postQuery(TERMINOLOGY, queryJson, pageSize, include);
+  }
+
+  /**
+   * Posts a query tree to the query endpoint, searching the terminology.
+   *
+   * @param terminology the terminology to search
+   * @param queryJson the query tree as JSON
+   * @param pageSize the maximum number of concepts to return
+   * @param include the fields to return for each concept
+   * @return the result actions
+   * @throws Exception the exception
+   */
+  protected ResultActions postQuery(
+      final String terminology, final String queryJson, final String pageSize, final String include)
+      throws Exception {
     log.info(
-        "Testing url - " + QUERY_URL + " (terminology=" + TERMINOLOGY + "), body = " + queryJson);
+        "Testing url - " + QUERY_URL + " (terminology=" + terminology + "), body = " + queryJson);
     return mvc.perform(
-        post(QUERY_URL, TERMINOLOGY)
+        post(QUERY_URL, terminology)
             .param("pageSize", pageSize)
             .param("include", include)
             .contentType(MediaType.APPLICATION_JSON)
@@ -219,5 +230,62 @@ public abstract class AbstractQueryEndpointTest {
    */
   protected static List<String> getWithBreast(final List<String> codes) {
     return Stream.concat(codes.stream(), Stream.of(BREAST)).toList();
+  }
+
+  /**
+   * Posts a query to search NCIt over real HTTP, asking for a JSON response, including on error.
+   * Use this rather than MockMvc to check an error's message: the error controller adds it, and
+   * MockMvc skips the error controller.
+   *
+   * @param queryJson the query tree as JSON
+   * @param fromRecord the index of the first concept to return
+   * @param pageSize the maximum number of concepts to return
+   * @return the response
+   */
+  protected ResponseEntity<String> exchangeQuery(
+      final String queryJson, final int fromRecord, final int pageSize) {
+    return exchangeQuery(TERMINOLOGY, queryJson, fromRecord, pageSize);
+  }
+
+  /**
+   * Posts a query to search a terminology over real HTTP, asking for a JSON response, including on
+   * error.
+   *
+   * @param terminology the terminology to search
+   * @param queryJson the query tree as JSON
+   * @param fromRecord the index of the first concept to return
+   * @param pageSize the maximum number of concepts to return
+   * @return the response
+   */
+  protected ResponseEntity<String> exchangeQuery(
+      final String terminology, final String queryJson, final int fromRecord, final int pageSize) {
+    final HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+
+    return restTemplate.exchange(
+        QUERY_URL + "?fromRecord={fromRecord}&pageSize={pageSize}",
+        HttpMethod.POST,
+        new HttpEntity<>(queryJson, headers),
+        String.class,
+        terminology,
+        fromRecord,
+        pageSize);
+  }
+
+  /**
+   * Reads the message from an error response.
+   *
+   * @param response the error response
+   * @return the message
+   */
+  protected static String getErrorMessage(final ResponseEntity<String> response) {
+    try {
+      return ThreadLocalMapper.get()
+          .readValue(response.getBody(), RestException.class)
+          .getMessage();
+    } catch (final Exception e) {
+      throw new IllegalStateException("Not an error response: " + response.getBody(), e);
+    }
   }
 }

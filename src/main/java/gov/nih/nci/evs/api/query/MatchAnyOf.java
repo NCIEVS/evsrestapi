@@ -16,13 +16,16 @@ import org.opensearch.index.query.QueryBuilders;
  * instead of a {@code should} clause per value, which would hit OpenSearch's clause limit for large
  * sets.
  *
- * <p>OpenSearch accepts at most {@value #MAX_VALUES} values in one {@code terms} query by default,
- * so the constructor rejects larger sets. Callers that build the set from other concepts (see
+ * <p>The constructor rejects sets larger than {@value #MAX_VALUES}, which stays within what one
+ * OpenSearch {@code terms} query accepts. Callers that build the set from other concepts (see
  * {@link HasHierarchyRelative#fetchTargetCodes}) check the size first to report a clearer error.
  */
 class MatchAnyOf extends EvsQuery {
 
-  /** OpenSearch's default limit on values in one {@code terms} query. */
+  /**
+   * The most values one match accepts. Stays within OpenSearch's default {@code
+   * index.max_terms_count}.
+   */
   static final int MAX_VALUES = 65_536;
 
   /** The field to match against. */
@@ -48,7 +51,7 @@ class MatchAnyOf extends EvsQuery {
 
     final boolean hasTooManyValues = this.values.size() > MAX_VALUES;
     if (hasTooManyValues) {
-      throw new IllegalArgumentException(
+      throw new QueryTooBroadException(
           "Too many values for one terms query on '"
               + field
               + "': "

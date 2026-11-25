@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.query;
 
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -29,7 +30,7 @@ import org.opensearch.index.query.QueryBuilder;
 public final class InSubset extends EvsQuery {
 
   /** The subset's code or name. */
-  private String target;
+  @NotNull private String target;
 
   /** Instantiates an empty {@link InSubset}. */
   public InSubset() {

@@ -1,10 +1,15 @@
-package gov.nih.nci.evs.api.query;
+package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.List;
 import java.util.Map;
+import org.opensearch.data.client.orhlc.NativeSearchQuery;
+import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.MultiMatchQueryBuilder;
 import org.opensearch.index.query.Operator;
@@ -17,9 +22,14 @@ import org.opensearch.search.sort.ScriptSortBuilder;
 import org.opensearch.search.sort.SortBuilder;
 import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.search.sort.SortOrder;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 
 /**
- * Completes a partially typed term against concept preferred names and codes.
+ * Completes a partially typed term against concept preferred names and codes: the search behind
+ * {@code GET /concept/typeahead}. It isn't an {@code EvsQuery} node and can't be combined with
+ * them, because it returns suggestions, ranked best first, not every match.
  *
  * <ul>
  *   <li>Matching is search-as-you-type on the preferred name: every typed word must appear, in any
@@ -31,11 +41,13 @@ import org.opensearch.search.sort.SortOrder;
  *       then concepts that only matched by code. Every NCIt code starts with "C", so without the
  *       tiers, typing "c" or "c3" would bury names under codes. Within a tier, general concepts
  *       (those with more descendants) with short names come first, with a small preference for
- *       names that start with the typed text. See {@link #getSorts()}.
- *   <li>Run it with {@link #fetchConcepts}, which applies the ranking.
+ *       names that start with the typed text. Ties go to terminology, then code. See {@link
+ *       #getSorts()}.
+ *   <li>Run it with {@link #fetchConcepts}, or take the search with the ranking attached from
+ *       {@link #getSearch}.
  * </ul>
  */
-public class Typeahead extends EvsQuery {
+public class Typeahead {
 
   /** The search_as_you_type subfield of preferred names, which typeahead matches against. */
   private static final String NAME_TYPEAHEAD_FIELD =
@@ -53,8 +65,15 @@ public class Typeahead extends EvsQuery {
   /** Boolean field that is false for retired concepts, which typeahead leaves out. */
   private static final String ACTIVE_FIELD = "active";
 
-  /** Keyword field holding the code, which a typed code is matched against. */
+  /** Keyword field holding the code, which a typed code is matched against and ties sort by. */
   private static final String CODE_FIELD = "code";
+
+  /**
+   * Metadata field naming the index a hit came from. Each terminology has its own concept index, so
+   * this orders ties by terminology. The terminology field itself is analyzed text and can't be
+   * sorted on.
+   */
+  private static final String INDEX_FIELD = "_index";
 
   /** Keyword field holding the normalized preferred name, used to rank typeahead matches. */
   private static final String NORMALIZED_NAME_FIELD = "normName";
@@ -85,16 +104,16 @@ public class Typeahead extends EvsQuery {
 
   /**
    * Query score added when a concept's code is exactly what was typed. Above every other score, so
-   * the whole code comes first. See {@link #fetchOpenSearchQuery}.
+   * the whole code comes first. See {@link #getOpenSearchQuery}.
    */
   private static final float WHOLE_CODE_SCORE = 2.0f;
 
-  /** Query score added when a concept's name matched. See {@link #fetchOpenSearchQuery}. */
+  /** Query score added when a concept's name matched. See {@link #getOpenSearchQuery}. */
   private static final float NAME_MATCH_SCORE = 1.0f;
 
   /**
    * Query score added when a concept's code starts with what was typed. Nothing, so concepts that
-   * only matched by code rank below name matches. See {@link #fetchOpenSearchQuery}.
+   * only matched by code rank below name matches. See {@link #getOpenSearchQuery}.
    */
   private static final float CODE_MATCH_SCORE = 0.0f;
 
@@ -143,11 +162,6 @@ public class Typeahead extends EvsQuery {
   /** The text typed so far, as entered. The search_as_you_type analyzer handles normalization. */
   private String term;
 
-  /** Instantiates an empty {@link Typeahead}. */
-  public Typeahead() {
-    // n/a
-  }
-
   /**
    * Instantiates a {@link Typeahead}.
    *
@@ -184,15 +198,6 @@ public class Typeahead extends EvsQuery {
   }
 
   /**
-   * Sets the text typed so far.
-   *
-   * @param term the text typed so far
-   */
-  public void setTerm(final String term) {
-    this.term = term;
-  }
-
-  /**
    * Matches concepts whose preferred name or code completes the typed text. The score sorts matches
    * into tiers, because each clause adds a constant score: {@link #WHOLE_CODE_SCORE} for a whole
    * typed code, {@link #NAME_MATCH_SCORE} for a name match, and {@link #CODE_MATCH_SCORE} for a
@@ -201,12 +206,9 @@ public class Typeahead extends EvsQuery {
    * <p>Concepts marked inactive are left out. Concepts without an active flag are kept, so
    * terminologies that don't set it still complete.
    *
-   * @param operations the OpenSearch operations
    * @return the query builder
    */
-  @Override
-  public QueryBuilder fetchOpenSearchQuery(
-      final OpenSearchOperations operations, final List<Terminology> terminologies) {
+  public QueryBuilder getOpenSearchQuery() {
     final int eitherFieldMatches = 1;
     // Codes aren't normalized, so only surrounding whitespace is dropped before comparing
     final String typedCode = term.trim();
@@ -241,6 +243,53 @@ public class Typeahead extends EvsQuery {
   }
 
   /**
+   * Runs the typeahead and returns one page of suggestions, best first.
+   *
+   * @param operations the OpenSearch operations
+   * @param terminologies the terminologies to complete against
+   * @param page the page to return
+   * @param include the fields to return for each concept, and whether to highlight matches
+   * @return the page of suggestions, with the total match count
+   * @throws IllegalArgumentException if a terminology is missing its terminology or version
+   */
+  public SearchHits<Concept> fetchConcepts(
+      final OpenSearchOperations operations,
+      final List<Terminology> terminologies,
+      final Pageable page,
+      final IncludeParam include) {
+    TerminologyUtils.checkTerminologiesAreSearchable(terminologies);
+
+    return operations.search(
+        getSearch(page, include),
+        Concept.class,
+        TerminologyUtils.getIndexCoordinates(terminologies));
+  }
+
+  /**
+   * Returns the search for one page of suggestions: {@link #getOpenSearchQuery} with the ranking
+   * sorts (see {@link #getSorts()}) attached, and highlights when the include asks for them.
+   *
+   * @param page the page to return
+   * @param include the fields to return for each concept, and whether to highlight matches
+   * @return the search
+   */
+  public NativeSearchQuery getSearch(final Pageable page, final IncludeParam include) {
+    final NativeSearchQueryBuilder search =
+        new NativeSearchQueryBuilder()
+            .withQuery(getOpenSearchQuery())
+            .withSorts(getSorts())
+            .withSourceFilter(
+                new FetchSourceFilter(
+                    true, include.getIncludedFields(), include.getExcludedFields()))
+            .withPageable(page);
+    final boolean shouldHighlightMatches = include.isHighlights();
+    if (shouldHighlightMatches) {
+      search.withHighlightFields(getHighlightFields().toArray(HighlightBuilder.Field[]::new));
+    }
+    return search.build();
+  }
+
+  /**
    * Highlights the matched words of the preferred name, and the code when it matched.
    *
    * <p>The name is highlighted on its main text field with a {@code match_bool_prefix} query: the
@@ -252,8 +301,7 @@ public class Typeahead extends EvsQuery {
    *
    * @return the name and code highlight fields
    */
-  @Override
-  protected List<HighlightBuilder.Field> getHighlightFields() {
+  private List<HighlightBuilder.Field> getHighlightFields() {
     final QueryBuilder typedWordsQuery = QueryBuilders.matchBoolPrefixQuery(NAME_FIELD, term);
     return List.of(
         new HighlightBuilder.Field(NAME_FIELD).highlightQuery(typedWordsQuery),
@@ -261,19 +309,20 @@ public class Typeahead extends EvsQuery {
   }
 
   /**
-   * Orders matches best first: by tier, which is the query score (see {@link
-   * #fetchOpenSearchQuery}), then general concepts with short names first within a tier (see {@link
-   * #GENERAL_SHORT_NAME_FIRST_SOURCE}). Ties fall through to the default tie-break in {@link
-   * EvsQuery#fetchConcepts}.
+   * Orders matches best first: by tier, which is the query score (see {@link #getOpenSearchQuery}),
+   * then general concepts with short names first within a tier (see {@link
+   * #GENERAL_SHORT_NAME_FIRST_SOURCE}), then by terminology and code so equal suggestions come back
+   * in the same order every time.
    *
-   * @return the tier sort, then the ranking sort
+   * @return the tier sort, the ranking sort, then the terminology and code tie-break
    */
-  @Override
-  protected List<SortBuilder<?>> getSorts() {
+  private List<SortBuilder<?>> getSorts() {
     return List.of(
         SortBuilders.scoreSort().order(SortOrder.DESC),
         SortBuilders.scriptSort(getRankingScript(), ScriptSortBuilder.ScriptSortType.NUMBER)
-            .order(SortOrder.DESC));
+            .order(SortOrder.DESC),
+        SortBuilders.fieldSort(INDEX_FIELD).order(SortOrder.ASC),
+        SortBuilders.fieldSort(CODE_FIELD).order(SortOrder.ASC));
   }
 
   /**

@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
@@ -33,6 +34,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -521,5 +523,69 @@ public final class TerminologyUtils {
   /** Clear cache. */
   public static void clearCache() {
     licenseCache.clear();
+  }
+
+  /**
+   * Returns the concept indexes of the terminologies, for searching them all at once.
+   *
+   * @param terminologies the terminologies
+   * @return the index coordinates
+   */
+  public static IndexCoordinates getIndexCoordinates(final List<Terminology> terminologies) {
+    return IndexCoordinates.of(
+        terminologies.stream().map(Terminology::getIndexName).toArray(String[]::new));
+  }
+
+  /**
+   * Fails if any terminology is missing its terminology or version. See {@link
+   * #checkTerminologyIsSearchable}.
+   *
+   * @param terminologies the terminologies
+   * @throws IllegalArgumentException if a terminology or version is missing
+   */
+  public static void checkTerminologiesAreSearchable(final List<Terminology> terminologies) {
+    terminologies.forEach(TerminologyUtils::checkTerminologyIsSearchable);
+  }
+
+  /**
+   * Fails if a terminology is missing its terminology or version, which name the terminology
+   * version each hit comes from. Checked before each search, so a partly set up terminology fails
+   * there, naming what's missing, rather than deep inside the search.
+   *
+   * <p>The index name isn't checked: {@link Terminology#getIndexName} is never null. Without one
+   * set, it builds and caches one from the terminology and version, so it's only read after they
+   * are known to be there.
+   *
+   * @param terminology the terminology
+   * @throws IllegalArgumentException if the terminology or version is missing
+   */
+  private static void checkTerminologyIsSearchable(final Terminology terminology) {
+    Objects.requireNonNull(terminology, "terminology");
+    checkTerminologyHasField(terminology, "terminology", terminology.getTerminology());
+    checkTerminologyHasField(terminology, "version", terminology.getVersion());
+  }
+
+  /**
+   * Fails if one of a terminology's fields is missing, naming the field and showing the terminology
+   * and version it does have.
+   *
+   * @param terminology the terminology
+   * @param fieldName the name of the field
+   * @param fieldValue the field's value
+   * @throws IllegalArgumentException if the value is missing
+   */
+  private static void checkTerminologyHasField(
+      final Terminology terminology, final String fieldName, final String fieldValue) {
+    final boolean hasFieldValue = fieldValue != null;
+    if (!hasFieldValue) {
+      throw new IllegalArgumentException(
+          "Terminology has no "
+              + fieldName
+              + " (terminology = "
+              + terminology.getTerminology()
+              + ", version = "
+              + terminology.getVersion()
+              + ")");
+    }
   }
 }

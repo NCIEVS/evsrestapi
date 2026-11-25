@@ -174,7 +174,7 @@ final class StoredPaths {
   private static void checkSize(final Set<String> codes) {
     final boolean isTooLarge = codes.size() > MatchAnyOf.MAX_VALUES;
     if (isTooLarge) {
-      throw new IllegalArgumentException(
+      throw new QueryTooBroadException(
           "Too many ancestors to match in one query: "
               + codes.size()
               + " > "
