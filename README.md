@@ -19,7 +19,7 @@ move on EVSRESTAPI-731 is separate.
 | Jackson | 2.21.8 and 3.1.8 | Separate BOM overrides; application models still use Jackson 2 |
 | SpringDoc | 3.0.1 | `build.gradle` |
 | Spring Data OpenSearch | 3.1.4 (Spring Data 2026.0 line) | `build.gradle`; distinct from server version |
-| Local OpenSearch server | 2.18.0 | [OpenSearch setup](OPENSEARCH.md) |
+| OpenSearch deployment / local target | 1.3.20 with temporary timeout-parameter compatibility | [OpenSearch setup](OPENSEARCH.md); rewrite is always registered |
 | Local Jena/Fuseki | 5.3.0 on Java 25 | [Fuseki setup](JENA.md) and `docker/fuseki/Dockerfile` |
 
 The build files are authoritative. The client SDK has its own build and output targets;

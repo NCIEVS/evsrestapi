@@ -63,8 +63,10 @@ public class OpensearchConfiguration {
             // replayable OpenSearch REST requests.
             .setHttpClientConfigCallback(
                 builder ->
-                    builder.addRequestInterceptorLast(
-                        new EvsOpenSearchRequestLoggingInterceptor())));
+                    builder
+                        // OpenSearch 1.x rejects the newer cluster_manager_timeout parameter.
+                        .addRequestInterceptorFirst(new OpenSearchLegacyCompatibilityInterceptor())
+                        .addRequestInterceptorLast(new EvsOpenSearchRequestLoggingInterceptor())));
 
     // Alternate:
     // ClientConfiguration clientConfiguration =
